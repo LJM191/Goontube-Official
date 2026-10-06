@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/config";
 import { useAuth, useMe } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { ChannelAvatar } from "./ChannelAvatar";
 import {
   DropdownMenu,
@@ -48,23 +49,124 @@ export function Logo() {
 function SearchBar() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      setRecent(JSON.parse(localStorage.getItem("goontube-recent-searches") ?? "[]"));
+    } catch {}
+  }, []);
+
+  const term = q.trim();
+  const { data: suggestions, isFetching } = useQuery({
+    queryKey: ["search-suggestions", term],
+    enabled: term.length >= 2,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const [videos, channels] = await Promise.all([
+        supabase
+          .from("videos")
+          .select("id,title,thumbnail_path,view_count,channel:channels!inner(handle,name,avatar_path)")
+          .eq("visibility", "public")
+          .or("title.ilike.%" + term + "%,description.ilike.%" + term + "%")
+          .order("view_count", { ascending: false })
+          .limit(5),
+        supabase
+          .from("channels")
+          .select("id,handle,name,avatar_path,subscriber_count,verified")
+          .or("name.ilike.%" + term + "%,handle.ilike.%" + term + "%")
+          .order("subscriber_count", { ascending: false })
+          .limit(4),
+      ]);
+      if (videos.error) throw videos.error;
+      if (channels.error) throw channels.error;
+      return { videos: videos.data ?? [], channels: channels.data ?? [] };
+    },
+  });
+
+  const saveSearch = (value: string) => {
+    const clean = value.trim();
+    if (!clean) return;
+    const next = [clean, ...recent.filter((x) => x.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
+    setRecent(next);
+    localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+  };
+
+  const submit = (value = q) => {
+    const clean = value.trim();
+    if (!clean) return;
+    saveSearch(clean);
+    setOpen(false);
+    navigate({ to: "/search", search: { q: clean } });
+  };
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (q.trim()) navigate({ to: "/search", search: { q: q.trim() } });
-      }}
-      className="flex min-w-0 max-w-3xl flex-1 items-center gap-2 rounded-full bg-panel/80 px-5 py-2.5 ring-1 ring-edge/40 focus-within:ring-glow/50"
-    >
-      <Search className="size-4 shrink-0 text-faint" />
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Rechercher une chaîne, une vidéo…"
-        aria-label="Rechercher"
-        className="w-full bg-transparent text-sm outline-none placeholder:text-faint"
-      />
-    </form>
+    <div className="relative min-w-0 max-w-4xl flex-1">
+      <form onSubmit={(e) => { e.preventDefault(); submit(); }}
+        className="flex h-12 items-center gap-3 rounded-full bg-panel/90 px-5 ring-1 ring-edge/50 shadow-sm focus-within:ring-glow/60"
+      >
+        <Search className="size-5 shrink-0 text-faint" />
+        <input
+          value={q}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+          placeholder="Rechercher une vidéo ou une chaîne"
+          aria-label="Rechercher"
+          className="w-full bg-transparent text-base outline-none placeholder:text-faint"
+        />
+        {q && <button type="button" onClick={() => setQ("")} className="text-sm text-faint hover:text-foreground">Effacer</button>}
+      </form>
+
+      {open && (term.length >= 2 || recent.length > 0) && (
+        <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-2xl bg-panel/98 p-2 shadow-2xl ring-1 ring-edge/60 backdrop-blur-xl">
+          {term.length < 2 && recent.length > 0 && (
+            <>
+              <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Recherches récentes</p>
+              {recent.map((item) => (
+                <button key={item} onClick={() => submit(item)} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-frost">
+                  <Clock className="size-4 text-faint" /><span>{item}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {term.length >= 2 && isFetching && <p className="px-3 py-4 text-sm text-muted-foreground">Recherche…</p>}
+          {term.length >= 2 && !isFetching && suggestions && (
+            <>
+              {suggestions.channels.length > 0 && (
+                <div className="border-b border-edge/40 pb-2">
+                  <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Chaînes</p>
+                  {suggestions.channels.map((channel) => (
+                    <Link key={channel.id} to="/c/$handle" params={{ handle: channel.handle }} onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
+                      <ChannelAvatar name={channel.name} path={channel.avatar_path} className="size-9" />
+                      <div className="min-w-0"><p className="truncate text-sm font-medium">{channel.name}</p><p className="text-xs text-faint">@{channel.handle} · {channel.subscriber_count} abonnés</p></div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {suggestions.videos.length > 0 && (
+                <div className="pt-1">
+                  <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Vidéos</p>
+                  {suggestions.videos.map((video) => (
+                    <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
+                      <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-frost">
+                        {video.thumbnail_path && <img src={video.thumbnail_path} alt="" className="size-full object-cover" />}
+                      </div>
+                      <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              <button onClick={() => submit()} className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium text-glow hover:bg-frost">
+                <Search className="size-4" /> Voir tous les résultats pour « {term} »
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
