@@ -225,12 +225,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
               <>
-                <Link
-                  to="/upload"
-                  className="hidden items-center gap-1.5 rounded-full bg-panel/80 px-3.5 py-1.5 text-sm ring-1 ring-edge/40 transition-colors hover:bg-frost sm:inline-flex"
-                >
-                  <Plus className="size-4" /> Créer
-                </Link>
                 <Button variant="ghost" size="icon"
                   aria-label="Notifications"
                   className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost"
