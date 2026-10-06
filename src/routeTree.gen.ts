@@ -122,6 +122,8 @@ export interface FileRoutesByTo {
   '/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
   '/watch/$id': typeof WatchIdRoute
+  '/studio': typeof StudioRoute
+  '/profile/$username': typeof ProfileUsernameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -286,6 +288,20 @@ declare module '@tanstack/react-router' {
       path: '/watch/$id'
       fullPath: '/watch/$id'
       preLoaderRoute: typeof WatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$username': {
+      id: '/profile/$username'
+      path: '/profile/$username'
+      fullPath: '/profile/$username'
+      preLoaderRoute: typeof ProfileUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
