@@ -134,7 +134,7 @@ function Watch() {
 
   const ch = video.channel!;
   return (
-    <div className={cinema ? "mx-auto max-w-7xl" : "mx-auto max-w-[1500px]"}>
+    <div className={cinema ? "mx-auto max-w-7xl" : "mx-auto grid max-w-[1500px] gap-8 xl:grid-cols-[minmax(0,1fr)_380px]"}>
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
