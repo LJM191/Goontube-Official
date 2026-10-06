@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { BarChart3, Edit3, ExternalLink, Settings, Upload, Video, Eye, Users } from "lucide-react";
+import { BarChart3, Settings, Upload, Video, Eye, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/c/$handle")({
 });
 
 type Channel = {
-  id: string; owner_id: string; handle: string; name: string; description: string | null;
+  id: string; owner_id: string; handle: string; name: string; description: string | null; created_at: string;
   avatar_path: string | null; banner_path: string | null; verified: boolean; subscriber_count: number;
 };
 
