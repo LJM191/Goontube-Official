@@ -125,7 +125,7 @@ function Upload() {
           thumbnail_path: thumbPath,
           duration_seconds: Math.round(probe?.duration ?? 0),
           category_id: categoryId ? Number(categoryId) : null,
-          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+          tags: Array.from(new Set(tags.split(/[\s,]+/).map((t) => t.trim().replace(/^#+/, "").toLowerCase()).filter((t) => /^[\p{L}\p{N}_-]+$/u.test(t))).values()).slice(0, 60),
           visibility,
         })
         .select("id")
