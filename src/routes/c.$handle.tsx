@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { BarChart3, Edit3, ExternalLink, Settings, Upload, Video, Eye, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -131,15 +132,38 @@ function ChannelPage() {
           {channel.description && <p className="mt-1 line-clamp-2 max-w-2xl text-sm text-faint">{channel.description}</p>}
         </div>
         {isOwner ? (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Link to="/studio" className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost"><BarChart3 className="size-4" /> Studio</Link>
             <EditChannel channel={channel} />
-            <Link to="/upload" className="rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground">Mettre en ligne</Link>
+            <Link to="/upload" className="flex items-center gap-2 rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground"><Upload className="size-4" /> Mettre en ligne</Link>
           </div>
         ) : (
           <SubscribeButton channelId={channel.id} ownerId={channel.owner_id} />
         )}
       </div>
+      <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
+        <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
+        <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
+        {isOwner && (
+          <Link to="/studio" className="ml-auto flex items-center gap-2 rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30 hover:bg-frost">
+            <BarChart3 className="size-4" /> Studio
+          </Link>
+        )}
+      </div>
       <div className="my-6 h-px bg-edge/60" />
+      <div id="about" className="mb-6 rounded-2xl bg-panel/50 p-5 ring-1 ring-edge/30">
+        <h2 className="font-semibold">À propos de cette chaîne</h2>
+        <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+          {channel.description || "Aucune description pour le moment."}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-xl bg-frost/60 p-3"><Users className="size-4" /><p className="mt-2 text-lg font-semibold">{formatCount(channel.subscriber_count)}</p><p className="text-xs text-faint">abonnés</p></div>
+          <div className="rounded-xl bg-frost/60 p-3"><Video className="size-4" /><p className="mt-2 text-lg font-semibold">{videos?.length ?? 0}</p><p className="text-xs text-faint">vidéos</p></div>
+          <div className="rounded-xl bg-frost/60 p-3"><Eye className="size-4" /><p className="mt-2 text-lg font-semibold">{formatCount((videos ?? []).reduce((n, v) => n + (v.view_count ?? 0), 0))}</p><p className="text-xs text-faint">vues publiques</p></div>
+          <div className="rounded-xl bg-frost/60 p-3"><Settings className="size-4" /><p className="mt-2 text-lg font-semibold">{new Date(channel.created_at).toLocaleDateString("fr-FR")}</p><p className="text-xs text-faint">création</p></div>
+        </div>
+      </div>
+      <div id="videos" />
       <VideoGrid
         videos={videos}
         loading={loadingVideos}
