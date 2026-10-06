@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import goontubeLogo from "@/assets/goontube-logo.png";
 
 const AGES = [
   "Moins de 2 ans",
@@ -28,14 +29,11 @@ export function AgeWelcome() {
           <X className="size-4" />
         </button>
 
-        <div className="mx-auto flex items-center justify-center gap-3">
-          <div className="grid size-12 place-items-center rounded-xl bg-[#ff0000] text-white shadow-lg">
-            <span className="text-xl font-black">▶</span>
-          </div>
-          <span className="text-3xl font-black tracking-tight">Goontube</span>
+        <div className="mx-auto flex justify-center">
+          <img src={goontubeLogo} alt="Goontube" className="h-auto w-56 sm:w-64" />
         </div>
 
-        <h2 className="mt-6 text-center text-3xl font-black">Êtes-vous majeur ?</h2>
+        <h2/ className="mt-6 text-center text-3xl font-black">Êtes-vous majeur ?</h2>
         <p className="mx-auto mt-2 max-w-md text-center text-sm leading-6 text-muted-foreground">
           Bienvenue sur Goontube. Choisissez simplement votre tranche d'âge.
         </p>
@@ -52,9 +50,6 @@ export function AgeWelcome() {
           ))}
         </div>
 
-        <p className="mt-5 text-center text-xs text-faint">
-          C'est évidemment une blague : aucune information d'âge n'est enregistrée.
-        </p>
       </div>
     </div>
   );
