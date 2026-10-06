@@ -40,7 +40,7 @@ const NAV = [
 export function Logo() {
   return (
     <Link to="/" aria-label={`${APP_NAME} — Accueil`} className="flex shrink-0 items-center">
-      <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="h-auto w-28 sm:w-40" />
+      <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="h-auto w-36 sm:w-48 lg:w-52" />
     </Link>
   );
 }
@@ -54,7 +54,7 @@ function SearchBar() {
         e.preventDefault();
         if (q.trim()) navigate({ to: "/search", search: { q: q.trim() } });
       }}
-      className="flex min-w-0 max-w-xl flex-1 items-center gap-2 rounded-full bg-panel/80 px-4 py-2 ring-1 ring-edge/40 focus-within:ring-glow/50"
+      className="flex min-w-0 max-w-3xl flex-1 items-center gap-2 rounded-full bg-panel/80 px-5 py-2.5 ring-1 ring-edge/40 focus-within:ring-glow/50"
     >
       <Search className="size-4 shrink-0 text-faint" />
       <input
@@ -118,9 +118,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   return (
     <div className="min-h-screen">
-      <header className="glass-bar sticky top-0 z-30 h-16 border-b border-edge/60">
-        <div className="flex h-full items-center gap-2 px-3 sm:gap-6 sm:px-6">
-          <div className="flex shrink-0 items-center lg:w-52">
+      <header className="glass-bar sticky top-0 z-30 min-h-20 border-b border-edge/60">
+        <div className="flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
+          <div className="flex shrink-0 items-center lg:w-60">
             <Logo />
           </div>
           <SearchBar />
@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <aside className="glass-side sticky top-16 hidden h-[calc(100vh-4rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
+        <aside className="glass-side sticky top-20 hidden h-[calc(100vh-5rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
           <nav className="flex flex-col gap-1">
             {NAV.map(({ to, label, icon: Icon }) => {
               const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
