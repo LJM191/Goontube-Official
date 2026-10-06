@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { AppShell } from "@/components/stream/AppShell";
+import { AgeWelcome } from "@/components/stream/AgeWelcome";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME, APP_TAGLINE } from "@/lib/config";
 
@@ -134,6 +135,7 @@ function RootComponent() {
           <Outlet />
         </AppShell>
         <Toaster />
+        <AgeWelcome />
       </AuthProvider>
     </QueryClientProvider>
   );
