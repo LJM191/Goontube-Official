@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Gem, ListPlus, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { FolderPlus, ListPlus, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -72,14 +72,9 @@ function SaveActions({ videoId }: { videoId: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const { data: gemmed } = useQuery({
-    queryKey: ["gem", user?.id, videoId],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase.from("gems").select("video_id").eq("user_id", user!.id).eq("video_id", videoId).maybeSingle();
-      return !!data;
-    },
-  });
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+
   const { data: playlists } = useQuery({
     queryKey: ["playlists", user?.id],
     enabled: !!user && open,
@@ -89,42 +84,69 @@ function SaveActions({ videoId }: { videoId: string }) {
       return data ?? [];
     },
   });
-  const toggleGem = async () => {
-    if (!user) return;
-    if (gemmed) await supabase.from("gems").delete().eq("user_id", user.id).eq("video_id", videoId);
-    else await supabase.from("gems").insert({ user_id: user.id, video_id: videoId });
-    qc.invalidateQueries({ queryKey: ["gem", user.id, videoId] });
-    qc.invalidateQueries({ queryKey: ["gems", user.id] });
-    toast.success(gemmed ? "Retiré des Gems" : "Ajouté aux Gems");
-  };
+
   const addToPlaylist = async (playlistId: string) => {
     if (!user) return;
     const { error } = await supabase.from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
     if (error) toast.error(error.message);
-    else toast.success("Ajouté à la playlist");
+    else toast.success("Vidéo ajoutée à la playlist");
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["playlist-videos", playlistId] });
   };
+
+  const createPlaylist = async () => {
+    if (!user || !name.trim()) return;
+    const { data, error } = await supabase
+      .from("playlists")
+      .insert({ user_id: user.id, name: name.trim() })
+      .select("id")
+      .single();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setName("");
+    setCreating(false);
+    qc.invalidateQueries({ queryKey: ["playlists", user.id] });
+    await addToPlaylist(data.id);
+  };
+
   if (!user) return null;
+
   return (
-    <div className="relative flex gap-2">
-      <button onClick={toggleGem} className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost">
-        <Gem className={`size-4 ${gemmed ? "fill-glow text-glow" : ""}`} /> Gem
-      </button>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost">
-        <ListPlus className="size-4" /> Playlist
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost"
+      >
+        <ListPlus className="size-4" /> Enregistrer
       </button>
       {open && (
-        <div className="absolute right-0 top-11 z-40 w-64 rounded-2xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-          <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Ajouter à une playlist</p>
-          {(playlists ?? []).length === 0 ? (
-            <p className="px-3 py-3 text-sm text-faint">Créez d'abord une playlist dans Bibliothèque.</p>
+        <div className="absolute right-0 top-11 z-40 w-72 rounded-2xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+          <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Enregistrer dans une playlist</p>
+          {(playlists ?? []).map((playlist) => (
+            <button key={playlist.id} onClick={() => addToPlaylist(playlist.id)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-frost">
+              <ListPlus className="size-4" /> {playlist.name}
+            </button>
+          ))}
+          {creating ? (
+            <form onSubmit={(e) => { e.preventDefault(); void createPlaylist(); }} className="mt-2 border-t border-edge/40 pt-2">
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nom de la playlist"
+                className="mb-2 h-9 w-full rounded-lg bg-frost px-3 text-sm outline-none ring-1 ring-edge/40 focus:ring-glow/60"
+              />
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 rounded-lg bg-glow px-3 py-2 text-xs font-semibold text-background">Créer</button>
+                <button type="button" onClick={() => setCreating(false)} className="rounded-lg bg-frost px-3 py-2 text-xs">Annuler</button>
+              </div>
+            </form>
           ) : (
-            playlists!.map((playlist) => (
-              <button key={playlist.id} onClick={() => addToPlaylist(playlist.id)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-frost">
-                <ListPlus className="size-4" /> {playlist.name}
-              </button>
-            ))
+            <button onClick={() => setCreating(true)} className="mt-2 flex w-full items-center gap-2 rounded-xl border-t border-edge/40 px-3 py-3 pt-3 text-left text-sm font-medium text-glow hover:bg-frost">
+              <FolderPlus className="size-4" /> Créer une playlist
+            </button>
           )}
         </div>
       )}
@@ -163,7 +185,7 @@ function Watch() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("videos")
-        .select("*, channel:channels(id,owner_id,handle,name,avatar_path,verified,subscriber_count), category:categories(name)")
+        .select("*, channel:channels(id,owner_id,handle,name,avatar_path,verified,subscriber_count)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -238,7 +260,6 @@ function Watch() {
         <div className="mt-4 rounded-2xl bg-panel/60 p-4 text-sm ring-1 ring-edge/30">
           <p className="font-medium">
             {formatViews(video.view_count)} · {timeAgo(video.created_at)}
-            {video.category && <span className="text-muted-foreground"> · {video.category.name}</span>}
           </p>
           {video.description && (
             <p className={`mt-2 whitespace-pre-wrap text-muted-foreground ${expanded ? "" : "line-clamp-3"}`}>{video.description}</p>
