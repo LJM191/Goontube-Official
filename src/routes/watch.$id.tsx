@@ -89,6 +89,7 @@ function UpNext({ currentId }: { currentId: string }) {
 
 function Watch() {
   const { id } = Route.useParams();
+  const qc = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const counted = useRef<string | null>(null);
   const { data: video, isLoading } = useQuery({
@@ -109,7 +110,15 @@ function Watch() {
   useEffect(() => {
     if (video && counted.current !== video.id) {
       counted.current = video.id;
-      supabase.rpc("increment_view", { _video_id: video.id });
+      void (async () => {
+        const { data: newCount, error } = await supabase.rpc("increment_view", { _video_id: video.id });
+        if (!error && typeof newCount === "number") {
+          qc.setQueryData(["video", video.id], (current: typeof video | undefined) =>
+            current ? { ...current, view_count: newCount } : current,
+          );
+          qc.invalidateQueries({ queryKey: ["feed"] });
+        }
+      })();
     }
   }, [video]);
 
