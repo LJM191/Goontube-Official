@@ -33,7 +33,7 @@ export function AgeWelcome() {
           <img src={goontubeLogo} alt="Goontube" className="h-auto w-56 sm:w-64" />
         </div>
 
-        <h2/ className="mt-6 text-center text-3xl font-black">Êtes-vous majeur ?</h2>
+        <h2 className="mt-6 text-center text-3xl font-black">Êtes-vous majeur ?</h2>
         <p className="mx-auto mt-2 max-w-md text-center text-sm leading-6 text-muted-foreground">
           Bienvenue sur Goontube. Choisissez simplement votre tranche d'âge.
         </p>
