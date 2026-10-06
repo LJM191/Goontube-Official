@@ -88,8 +88,14 @@ function Upload() {
 
   async function pick(f: File | undefined) {
     if (!f) return;
-    if (!f.type.startsWith("video/")) return toast.error("Choisissez un fichier vidéo (MP4, WebM, MOV).");
-    if (f.size > MAX_BYTES) return toast.error("Fichier trop volumineux (500 Mo max).");
+    if (!f.type.startsWith("video/")) {
+      toast.error("Choisissez un fichier vidéo (MP4, WebM, MOV).");
+      return;
+    }
+    if (f.size > MAX_BYTES) {
+      toast.error("Fichier trop volumineux (500 Mo max).");
+      return;
+    }
     setFile(f);
     setTitle((t) => t || f.name.replace(/\.[^.]+$/, ""));
     setProbe(await probeVideo(f));
