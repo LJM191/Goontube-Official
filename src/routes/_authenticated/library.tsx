@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { FolderPlus, Gem, ListVideo, Trash2 } from "lucide-react";
+import { FolderPlus, ListVideo, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
@@ -28,26 +28,6 @@ function LibraryPage() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-
-  const { data: liked, isLoading: likedLoading, error: likedError } = useQuery({
-    queryKey: ["liked", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("video_reactions").select(`created_at, video:videos!inner(${VIDEO_SELECT})`).eq("user_id", user!.id).eq("value", 1).order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((r) => r.video) as unknown as VideoCardData[];
-    },
-  });
-
-  const { data: gems, isLoading: gemsLoading, error: gemsError } = useQuery({
-    queryKey: ["gems", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("gems").select(`created_at, video:videos!inner(${VIDEO_SELECT})`).eq("user_id", user!.id).order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((r) => r.video) as unknown as VideoCardData[];
-    },
-  });
 
   const { data: playlists, error: playlistsError } = useQuery({
     queryKey: ["playlists", user?.id],
@@ -96,7 +76,7 @@ function LibraryPage() {
   });
 
   const selectedPlaylist = playlists?.find((p) => p.id === selected);
-  const libraryError = likedError || gemsError || playlistsError || playlistVideosError;
+  const libraryError = playlistsError || playlistVideosError;
 
   return (
     <>
