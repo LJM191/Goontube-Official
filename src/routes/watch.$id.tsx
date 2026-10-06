@@ -222,7 +222,8 @@ function Watch() {
           </Link>
           <SubscribeButton channelId={ch.id} ownerId={ch.owner_id} />
           <div className="ml-auto flex gap-2">
-            <Reactions videoId={video.id} likes={video.like_count} dislikes={video.dislike_count} />\n            <SaveActions videoId={video.id} />
+            <Reactions videoId={video.id} likes={video.like_count} dislikes={video.dislike_count} />
+            <SaveActions videoId={video.id} />
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(window.location.href);
