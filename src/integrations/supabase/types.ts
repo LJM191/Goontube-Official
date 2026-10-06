@@ -147,6 +147,29 @@ export type Database = {
         }
         Relationships: []
       }
+      playlists: {
+        Row: { id: string; user_id: string; name: string; description: string | null; is_public: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; description?: string | null; is_public?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; description?: string | null; is_public?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      playlist_items: {
+        Row: { playlist_id: string; video_id: string; position: number; added_at: string }
+        Insert: { playlist_id: string; video_id: string; position?: number; added_at?: string }
+        Update: { playlist_id?: string; video_id?: string; position?: number; added_at?: string }
+        Relationships: [
+          { foreignKeyName: "playlist_items_playlist_id_fkey"; columns: ["playlist_id"]; isOneToOne: false; referencedRelation: "playlists"; referencedColumns: ["id"] },
+          { foreignKeyName: "playlist_items_video_id_fkey"; columns: ["video_id"]; isOneToOne: false; referencedRelation: "videos"; referencedColumns: ["id"] }
+        ]
+      }
+      gems: {
+        Row: { user_id: string; video_id: string; created_at: string }
+        Insert: { user_id: string; video_id: string; created_at?: string }
+        Update: { user_id?: string; video_id?: string; created_at?: string }
+        Relationships: [
+          { foreignKeyName: "gems_video_id_fkey"; columns: ["video_id"]; isOneToOne: false; referencedRelation: "videos"; referencedColumns: ["id"] }
+        ]
+      }
       subscriptions: {
         Row: {
           channel_id: string
