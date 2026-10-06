@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { fetchFeed } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
@@ -21,10 +20,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const [cat, setCat] = useState<number | null>(null);
   const { data: videos, isLoading } = useQuery({
-    queryKey: ["feed", cat],
-    queryFn: () => fetchFeed({ categoryId: cat }),
+    queryKey: ["feed"],
+    queryFn: () => fetchFeed(),
   });
 
   return (
