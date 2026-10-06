@@ -11,6 +11,7 @@ import { formatCount, formatViews, timeAgo } from "@/lib/format";
 import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { Comments } from "@/components/stream/Comments";
+import { VideoPlayer } from "@/components/stream/VideoPlayer";
 import { Thumbnail } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,7 +138,7 @@ function Watch() {
       <div className="min-w-0">
         <div className="overflow-hidden rounded-2xl bg-background ring-1 ring-edge/40">
           {src ? (
-            <video key={src} src={src} poster={poster ?? undefined} controls autoPlay playsInline className="aspect-video w-full bg-background" />
+            <VideoPlayer src={src} poster={poster} title={video.title} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
@@ -181,6 +182,20 @@ function Watch() {
               {expanded ? "Moins" : "Plus"}
             </button>
           )}
+        </div>
+        <div className="mt-4 rounded-2xl bg-panel/60 p-4 ring-1 ring-edge/30">
+          <div className="flex items-center gap-2">
+            <span className="grid size-8 place-items-center rounded-full bg-glow/15 text-glow">✦</span>
+            <div>
+              <p className="font-medium">Résumé intelligent</p>
+              <p className="text-xs text-faint">Synthèse basée sur les informations fournies par le créateur</p>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {video.description
+              ? video.description.length > 500 ? `${video.description.slice(0, 500).trim()}…` : video.description
+              : "Cette vidéo n'a pas encore de description. Un résumé automatique pourra être généré lorsque l'IA sera connectée au Studio."}
+          </p>
         </div>
         <Comments videoId={video.id} count={video.comment_count} />
       </div>
