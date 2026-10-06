@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function Thumbnail({ video, className }: { video: VideoCardData; className?: string }) {
   const url = useMediaUrl("thumbnails", video.thumbnail_path);
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-frost outline-1 -outline-offset-1 outline-edge/40 ${className ?? ""}`}>
+    <div className={`relative overflow-hidden rounded-lg bg-frost outline-1 -outline-offset-1 outline-edge/40 ${className ?? ""}`}>
       <div className="aspect-video w-full">
         {url ? (
           <img
@@ -43,13 +43,13 @@ export function VideoCard({ video }: { video: VideoCardData }) {
       <Link to="/watch/$id" params={{ id: video.id }} className="block">
         <Thumbnail video={video} />
       </Link>
-      <div className="mt-3 flex gap-3">
+      <div className="mt-4 flex gap-3">
         <Link to="/c/$handle" params={{ handle: video.channel.handle }} className="mt-0.5">
           <ChannelAvatar name={video.channel.name} path={video.channel.avatar_path} />
         </Link>
         <div className="min-w-0">
           <Link to="/watch/$id" params={{ id: video.id }}>
-            <h3 className="line-clamp-2 font-sans text-sm font-medium leading-snug text-balance">{video.title}</h3>
+            <h3 className="line-clamp-2 font-sans text-sm font-medium leading-snug text-balance transition-colors group-hover:text-glow">{video.title}</h3>
           </Link>
           <Link
             to="/c/$handle"
@@ -79,11 +79,11 @@ export function VideoGrid({
 }) {
   if (loading)
     return (
-      <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i}>
-            <Skeleton className="aspect-video w-full rounded-xl bg-frost" />
-            <div className="mt-3 flex gap-3">
+            <Skeleton className="aspect-video w-full rounded-lg bg-frost" />
+            <div className="mt-4 flex gap-3">
               <Skeleton className="size-9 rounded-full bg-frost" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-4/5 bg-frost" />
@@ -96,7 +96,7 @@ export function VideoGrid({
     );
   if (!videos?.length) return <>{empty}</>;
   return (
-    <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {videos.map((v) => (
         <VideoCard key={v.id} video={v} />
       ))}

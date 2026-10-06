@@ -24,6 +24,7 @@ export const Route = createFileRoute("/watch/$id")({
       { property: "og:title", content: `Vidéo — ${APP_NAME}` },
       { property: "og:description", content: `Regardez cette vidéo sur ${APP_NAME}.` },
       { property: "og:type", content: "video.other" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Watch,

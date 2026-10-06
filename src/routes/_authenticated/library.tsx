@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/library")({
       { name: "description", content: "Vos vidéos aimées." },
       { property: "og:title", content: `Bibliothèque — ${APP_NAME}` },
       { property: "og:description", content: "Vos vidéos aimées." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LibraryPage,

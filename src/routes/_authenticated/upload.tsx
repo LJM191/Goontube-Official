@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/upload")({
       { name: "description", content: "Publiez une nouvelle vidéo sur votre chaîne." },
       { property: "og:title", content: `Mettre en ligne — ${APP_NAME}` },
       { property: "og:description", content: "Publiez une nouvelle vidéo sur votre chaîne." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Upload,
