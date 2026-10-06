@@ -29,7 +29,7 @@ function LibraryPage() {
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
 
-  const { data: liked, isLoading: likedLoading } = useQuery({
+  const { data: liked, isLoading: likedLoading, error: likedError } = useQuery({
     queryKey: ["liked", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -39,7 +39,7 @@ function LibraryPage() {
     },
   });
 
-  const { data: gems, isLoading: gemsLoading } = useQuery({
+  const { data: gems, isLoading: gemsLoading, error: gemsError } = useQuery({
     queryKey: ["gems", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -49,7 +49,7 @@ function LibraryPage() {
     },
   });
 
-  const { data: playlists } = useQuery({
+  const { data: playlists, error: playlistsError } = useQuery({
     queryKey: ["playlists", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -59,7 +59,7 @@ function LibraryPage() {
     },
   });
 
-  const { data: playlistVideos } = useQuery({
+  const { data: playlistVideos, error: playlistVideosError } = useQuery({
     queryKey: ["playlist-videos", selected],
     enabled: !!selected,
     queryFn: async () => {
@@ -96,9 +96,16 @@ function LibraryPage() {
   });
 
   const selectedPlaylist = playlists?.find((p) => p.id === selected);
+  const libraryError = likedError || gemsError || playlistsError || playlistVideosError;
 
   return (
     <>
+      {libraryError && (
+        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm">
+          <p className="font-semibold text-red-300">La bibliothèque n’a pas pu charger ses données.</p>
+          <p className="mt-1 text-red-200/70">{libraryError instanceof Error ? libraryError.message : "Vérifiez que les migrations Supabase sont bien déployées."}</p>
+        </div>
+      )}
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Bibliothèque</h1>
