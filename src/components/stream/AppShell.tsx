@@ -151,9 +151,7 @@ function SearchBar() {
                   {suggestions.videos.map((video) => (
                     <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={() => setOpen(false)}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
-                      <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-frost">
-                        {video.thumbnail_path && <img src={video.thumbnail_path} alt="" className="size-full object-cover" />}
-                      </div>
+                      <div className="grid size-16 shrink-0 place-items-center rounded-lg bg-frost text-faint"><Search className="size-5" /></div>
                       <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
                     </Link>
                   ))}
