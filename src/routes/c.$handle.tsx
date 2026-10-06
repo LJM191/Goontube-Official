@@ -1,0 +1,148 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadMedia, useMediaUrl } from "@/lib/media";
+import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
+import { formatCount } from "@/lib/format";
+import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
+import { SubscribeButton } from "@/components/stream/SubscribeButton";
+import { VideoGrid } from "@/components/stream/VideoCard";
+import { EmptyState } from "@/components/stream/EmptyState";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { APP_NAME } from "@/lib/config";
+
+export const Route = createFileRoute("/c/$handle")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `@${params.handle} — ${APP_NAME}` },
+      { name: "description", content: `Les vidéos de la chaîne @${params.handle} sur ${APP_NAME}.` },
+      { property: "og:title", content: `@${params.handle} — ${APP_NAME}` },
+      { property: "og:description", content: `Les vidéos de la chaîne @${params.handle} sur ${APP_NAME}.` },
+    ],
+  }),
+  component: ChannelPage,
+});
+
+type Channel = {
+  id: string; owner_id: string; handle: string; name: string; description: string | null;
+  avatar_path: string | null; banner_path: string | null; verified: boolean; subscriber_count: number;
+};
+
+function EditChannel({ channel }: { channel: Channel }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(channel.name);
+  const [description, setDescription] = useState(channel.description ?? "");
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [banner, setBanner] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    try {
+      const patch: Partial<Channel> = { name: name.trim(), description: description.trim() || null };
+      if (avatar) patch.avatar_path = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
+      if (banner) patch.banner_path = await uploadMedia("avatars", user!.id, banner, banner.name.split(".").pop() || "jpg");
+      const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
+      if (error) throw error;
+      await supabase.from("profiles").update({
+        display_name: patch.name!,
+        ...(patch.avatar_path ? { avatar_path: patch.avatar_path } : {}),
+      }).eq("id", user!.id);
+      qc.invalidateQueries();
+      toast.success("Chaîne mise à jour");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className="rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost">
+        Personnaliser la chaîne
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Personnaliser la chaîne</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" maxLength={60} />
+          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={4} maxLength={1000} />
+          <label className="block text-sm">Avatar <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setAvatar(e.target.files?.[0] ?? null)} /></label>
+          <label className="block text-sm">Bannière <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setBanner(e.target.files?.[0] ?? null)} /></label>
+          <button disabled={busy || !name.trim()} onClick={save} className="w-full rounded-full bg-glow py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
+            {busy ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ChannelPage() {
+  const { handle } = Route.useParams();
+  const { user } = useAuth();
+  const { data: channel, isLoading } = useQuery({
+    queryKey: ["channel", handle],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("channels").select("*").eq("handle", handle).maybeSingle();
+      if (error) throw error;
+      return data as Channel | null;
+    },
+  });
+  const isOwner = !!user && channel?.owner_id === user.id;
+  const { data: videos, isLoading: loadingVideos } = useQuery({
+    queryKey: ["channel-videos", channel?.id, isOwner],
+    enabled: !!channel,
+    queryFn: async () => {
+      let q = supabase.from("videos").select(VIDEO_SELECT).eq("channel_id", channel!.id);
+      if (!isOwner) q = q.eq("visibility", "public");
+      const { data, error } = await q.order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as VideoCardData[];
+    },
+  });
+  const banner = useMediaUrl("avatars", channel?.banner_path);
+
+  if (isLoading) return null;
+  if (!channel) return <EmptyState title="Chaîne introuvable" />;
+
+  return (
+    <div>
+      <div className="aspect-[6/1] min-h-28 overflow-hidden rounded-2xl bg-brand opacity-90 ring-1 ring-edge/40">
+        {banner && <img src={banner} alt="" className="size-full object-cover" />}
+      </div>
+      <div className="mt-6 flex flex-wrap items-center gap-5">
+        <ChannelAvatar name={channel.name} path={channel.avatar_path} className="size-20 text-xl" />
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold">{channel.name}{channel.verified && <VerifiedDot />}</h1>
+          <p className="text-sm text-muted-foreground">
+            @{channel.handle} · {formatCount(channel.subscriber_count)} abonné{channel.subscriber_count > 1 ? "s" : ""} · {videos?.length ?? 0} vidéo{(videos?.length ?? 0) > 1 ? "s" : ""}
+          </p>
+          {channel.description && <p className="mt-1 line-clamp-2 max-w-2xl text-sm text-faint">{channel.description}</p>}
+        </div>
+        {isOwner ? (
+          <div className="flex gap-2">
+            <EditChannel channel={channel} />
+            <Link to="/upload" className="rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground">Mettre en ligne</Link>
+          </div>
+        ) : (
+          <SubscribeButton channelId={channel.id} ownerId={channel.owner_id} />
+        )}
+      </div>
+      <div className="my-6 h-px bg-edge/60" />
+      <VideoGrid
+        videos={videos}
+        loading={loadingVideos}
+        empty={<EmptyState title="Aucune vidéo" text={isOwner ? "Publiez votre première vidéo." : "Cette chaîne n'a encore rien publié."} />}
+      />
+    </div>
+  );
+}
