@@ -11,7 +11,6 @@ import {
   Search,
   Tv,
   User as UserIcon,
-  Zap,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,6 @@ const NAV = [
   { to: "/", label: "Accueil", icon: Home },
   { to: "/explore", label: "Explorer", icon: Compass },
   { to: "/subscriptions", label: "Abonnements", icon: Tv },
-  { to: "/shorts", label: "Shorts", icon: Zap },
   { to: "/library", label: "Bibliothèque", icon: Library },
   { to: "/history", label: "Historique", icon: Clock },
 ] as const;
