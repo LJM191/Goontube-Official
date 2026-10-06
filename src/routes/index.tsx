@@ -31,10 +31,10 @@ function Home() {
 
   return (
     <>
-      <div className="mb-8 flex gap-3 overflow-x-auto pb-1">
+      <div className="sticky top-20 z-20 -mx-4 mb-8 flex gap-3 overflow-x-auto bg-background/95 px-4 py-3 pb-3 backdrop-blur sm:-mx-6 sm:px-6">
         <Button variant="ghost"
           onClick={() => setCat(null)}
-          className={cat === null ? "chip bg-primary font-medium text-primary-foreground hover:bg-primary/90" : "chip bg-panel/80 text-muted-foreground ring-1 ring-edge/40 hover:bg-frost"}
+          className={cat === null ? "h-10 shrink-0 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90" : "h-10 shrink-0 rounded-xl bg-panel/90 px-5 text-sm font-medium text-muted-foreground ring-1 ring-edge/50 hover:bg-frost"}
         >
           Tout
         </Button>
