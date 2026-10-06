@@ -21,6 +21,8 @@ import { Route as AuthenticatedSubscriptionsRouteImport } from './routes/_authen
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as WatchIdRouteImport } from './routes/watch.$id'
+import { Route as StudioRouteImport } from './routes/studio'
+import { Route as ProfileUsernameRouteImport } from './routes/profile.$username'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +84,16 @@ const WatchIdRoute = WatchIdRouteImport.update({
   path: '/watch/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
+  id: '/profile/$username',
+  path: '/profile/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +107,8 @@ export interface FileRoutesByFullPath {
   '/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
   '/watch/$id': typeof WatchIdRoute
+  '/studio': typeof StudioRoute
+  '/profile/$username': typeof ProfileUsernameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +137,8 @@ export interface FileRoutesById {
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
   '/watch/$id': typeof WatchIdRoute
+  '/studio': typeof StudioRoute
+  '/profile/$username': typeof ProfileUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +154,8 @@ export interface FileRouteTypes {
     | '/upload'
     | '/c/$handle'
     | '/watch/$id'
+    | '/studio'
+    | '/profile/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +169,8 @@ export interface FileRouteTypes {
     | '/upload'
     | '/c/$handle'
     | '/watch/$id'
+    | '/studio'
+    | '/profile/$username'
   id:
     | '__root__'
     | '/'
@@ -165,6 +185,8 @@ export interface FileRouteTypes {
     | '/_authenticated/upload'
     | '/c/$handle'
     | '/watch/$id'
+    | '/studio'
+    | '/profile/$username'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,6 +198,8 @@ export interface RootRouteChildren {
   ShortsRoute: typeof ShortsRoute
   CHandleRoute: typeof CHandleRoute
   WatchIdRoute: typeof WatchIdRoute
+  StudioRoute: typeof StudioRoute
+  ProfileUsernameRoute: typeof ProfileUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,6 +317,8 @@ const rootRouteChildren: RootRouteChildren = {
   ShortsRoute: ShortsRoute,
   CHandleRoute: CHandleRoute,
   WatchIdRoute: WatchIdRoute,
+  StudioRoute: StudioRoute,
+  ProfileUsernameRoute: ProfileUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
