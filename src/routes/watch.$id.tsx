@@ -17,6 +17,13 @@ import { EmptyState } from "@/components/stream/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME } from "@/lib/config";
 
+function HashtagText({ text }: { text: string }) {
+  const parts = text.split(/(#[\p{L}\p{N}_-]+)/gu);
+  return <>{parts.map((part, i) => /^#[\p{L}\p{N}_-]+$/u.test(part) ? (
+    <Link key={i} to="/hashtag/$tag" params={{ tag: part.slice(1) }} className="font-medium text-glow hover:underline">{part}</Link>
+  ) : part)}</>;
+}
+
 export const Route = createFileRoute("/watch/$id")({
   head: () => ({
     meta: [
