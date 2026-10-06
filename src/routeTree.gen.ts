@@ -94,6 +94,11 @@ const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
   path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HashtagTagRoute = HashtagTagRouteImport.update({
+  id: '/hashtag/$tag',
+  path: '/hashtag/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/watch/$id': typeof WatchIdRoute
   '/studio': typeof StudioRoute
   '/profile/$username': typeof ProfileUsernameRoute
+  '/hashtag/$tag': typeof HashtagTagRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByTo {
   '/watch/$id': typeof WatchIdRoute
   '/studio': typeof StudioRoute
   '/profile/$username': typeof ProfileUsernameRoute
+  '/hashtag/$tag': typeof HashtagTagRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,6 +165,7 @@ export interface FileRouteTypes {
     | '/watch/$id'
     | '/studio'
     | '/profile/$username'
+    | '/hashtag/$tag'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,6 +181,7 @@ export interface FileRouteTypes {
     | '/watch/$id'
     | '/studio'
     | '/profile/$username'
+    | '/hashtag/$tag'
   id:
     | '__root__'
     | '/'
@@ -202,6 +211,7 @@ export interface RootRouteChildren {
   WatchIdRoute: typeof WatchIdRoute
   StudioRoute: typeof StudioRoute
   ProfileUsernameRoute: typeof ProfileUsernameRoute
+  HashtagTagRoute: typeof HashtagTagRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -335,6 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   WatchIdRoute: WatchIdRoute,
   StudioRoute: StudioRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
+  HashtagTagRoute: HashtagTagRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
