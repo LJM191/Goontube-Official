@@ -24,6 +24,12 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
   const [captions, setCaptions] = useState(false);
 
   useEffect(() => {
+    const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onFullscreen);
+    return () => document.removeEventListener("fullscreenchange", onFullscreen);
+  }, []);
+
+  useEffect(() => {
     const v = ref.current;
     if (!v) return;
     v.playbackRate = speed;
