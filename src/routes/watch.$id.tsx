@@ -91,7 +91,8 @@ function UpNext({ currentId }: { currentId: string }) {
 function Watch() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
-  const [expanded, setExpanded] = useState(false);\n  const [cinema, setCinema] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [cinema, setCinema] = useState(false);
   const counted = useRef<string | null>(null);
   const { data: video, isLoading } = useQuery({
     queryKey: ["video", id],
@@ -143,7 +144,10 @@ function Watch() {
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">\n          <h1 className="min-w-0 flex-1 text-xl font-semibold text-balance">{video.title}</h1>\n          <button onClick={() => setCinema(!cinema)} className="rounded-full bg-panel/80 px-4 py-2 text-sm font-medium ring-1 ring-edge/40 hover:bg-frost">{cinema ? "Quitter le mode cinéma" : "Mode cinéma"}</button>\n        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <h1 className="min-w-0 flex-1 text-xl font-semibold text-balance">{video.title}</h1>
+          <button onClick={() => setCinema(!cinema)} className="rounded-full bg-panel/80 px-4 py-2 text-sm font-medium ring-1 ring-edge/40 hover:bg-frost">{cinema ? "Quitter le mode cinéma" : "Mode cinéma"}</button>
+        </div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <Link to="/c/$handle" params={{ handle: ch.handle }} className="flex items-center gap-3">
             <ChannelAvatar name={ch.name} path={ch.avatar_path} className="size-10" />
