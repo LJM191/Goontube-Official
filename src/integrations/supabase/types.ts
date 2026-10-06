@@ -333,7 +333,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_view: { Args: { _video_id: string }; Returns: undefined }
+      increment_view: { Args: { _video_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
