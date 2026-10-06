@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Gem, ListPlus, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,6 +64,70 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
       <button onClick={() => click(-1)} className="flex items-center gap-2 px-4 py-1.5 text-sm hover:bg-frost" aria-label="Je n'aime pas">
         <ThumbsDown className={`size-4 ${mine === -1 ? "fill-foreground" : ""}`} /> {dislikes > 0 ? formatCount(dislikes) : ""}
       </button>
+    </div>
+  );
+}
+
+function SaveActions({ videoId }: { videoId: string }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const { data: gemmed } = useQuery({
+    queryKey: ["gem", user?.id, videoId],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("gems").select("video_id").eq("user_id", user!.id).eq("video_id", videoId).maybeSingle();
+      return !!data;
+    },
+  });
+  const { data: playlists } = useQuery({
+    queryKey: ["playlists", user?.id],
+    enabled: !!user && open,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("playlists").select("id,name").eq("user_id", user!.id).order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const toggleGem = async () => {
+    if (!user) return;
+    if (gemmed) await supabase.from("gems").delete().eq("user_id", user.id).eq("video_id", videoId);
+    else await supabase.from("gems").insert({ user_id: user.id, video_id: videoId });
+    qc.invalidateQueries({ queryKey: ["gem", user.id, videoId] });
+    qc.invalidateQueries({ queryKey: ["gems", user.id] });
+    toast.success(gemmed ? "Retiré des Gems" : "Ajouté aux Gems");
+  };
+  const addToPlaylist = async (playlistId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
+    if (error) toast.error(error.message);
+    else toast.success("Ajouté à la playlist");
+    setOpen(false);
+    qc.invalidateQueries({ queryKey: ["playlist-videos", playlistId] });
+  };
+  if (!user) return null;
+  return (
+    <div className="relative flex gap-2">
+      <button onClick={toggleGem} className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost">
+        <Gem className={`size-4 ${gemmed ? "fill-glow text-glow" : ""}`} /> Gem
+      </button>
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost">
+        <ListPlus className="size-4" /> Playlist
+      </button>
+      {open && (
+        <div className="absolute right-0 top-11 z-40 w-64 rounded-2xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+          <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Ajouter à une playlist</p>
+          {(playlists ?? []).length === 0 ? (
+            <p className="px-3 py-3 text-sm text-faint">Créez d'abord une playlist dans Bibliothèque.</p>
+          ) : (
+            playlists!.map((playlist) => (
+              <button key={playlist.id} onClick={() => addToPlaylist(playlist.id)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-frost">
+                <ListPlus className="size-4" /> {playlist.name}
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -158,7 +222,7 @@ function Watch() {
           </Link>
           <SubscribeButton channelId={ch.id} ownerId={ch.owner_id} />
           <div className="ml-auto flex gap-2">
-            <Reactions videoId={video.id} likes={video.like_count} dislikes={video.dislike_count} />
+            <Reactions videoId={video.id} likes={video.like_count} dislikes={video.dislike_count} />\n            <SaveActions videoId={video.id} />
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(window.location.href);
