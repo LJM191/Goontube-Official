@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Cake, X } from "lucide-react";
+import { X } from "lucide-react";
 
 const AGES = [
   "Moins de 2 ans",
@@ -10,7 +10,6 @@ const AGES = [
   "18 à 25 ans",
   "26 à 49 ans",
   "50 à 127 ans",
-  "128 ans et + (respect)",
 ];
 
 export function AgeWelcome() {
@@ -29,13 +28,16 @@ export function AgeWelcome() {
           <X className="size-4" />
         </button>
 
-        <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-glow/15 text-glow">
-          <Cake className="size-7" />
+        <div className="mx-auto flex items-center justify-center gap-3">
+          <div className="grid size-12 place-items-center rounded-xl bg-[#ff0000] text-white shadow-lg">
+            <span className="text-xl font-black">▶</span>
+          </div>
+          <span className="text-3xl font-black tracking-tight">Goontube</span>
         </div>
-        <h2 className="mt-5 text-center text-2xl font-bold">Bienvenue sur Goontube 👋</h2>
+
+        <h2 className="mt-6 text-center text-3xl font-black">Êtes-vous majeur ?</h2>
         <p className="mx-auto mt-2 max-w-md text-center text-sm leading-6 text-muted-foreground">
-          Petite question totalement scientifique : sélectionnez votre tranche d'âge.
-          Certaines propositions sont évidemment là pour la blague.
+          Bienvenue sur Goontube. Choisissez simplement votre tranche d'âge.
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -51,7 +53,7 @@ export function AgeWelcome() {
         </div>
 
         <p className="mt-5 text-center text-xs text-faint">
-          Vous êtes mineur ? Pas de souci. Vous êtes majeur ? Pas de souci non plus.
+          C'est évidemment une blague : aucune information d'âge n'est enregistrée.
         </p>
       </div>
     </div>
