@@ -23,6 +23,8 @@ export const Route = createFileRoute("/c/$handle")({
       { name: "description", content: `Les vidéos de la chaîne @${params.handle} sur ${APP_NAME}.` },
       { property: "og:title", content: `@${params.handle} — ${APP_NAME}` },
       { property: "og:description", content: `Les vidéos de la chaîne @${params.handle} sur ${APP_NAME}.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ChannelPage,

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/config";
+import goontubeLogo from "@/assets/goontube-logo.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -15,6 +16,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: `Connectez-vous ou créez votre compte ${APP_NAME}.` },
       { property: "og:title", content: `Connexion — ${APP_NAME}` },
       { property: "og:description", content: `Connectez-vous ou créez votre compte ${APP_NAME}.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,
@@ -63,8 +66,8 @@ function AuthPage() {
 
   return (
     <div className="mx-auto mt-6 max-w-sm rounded-2xl bg-panel/70 p-6 ring-1 ring-edge/40 sm:mt-12">
-      <div className="mb-6 flex items-center gap-2">
-        <span className="size-7 rounded-lg bg-brand shadow-glow" />
+      <div className="mb-6 flex flex-col items-start">
+        <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="mb-5 h-auto w-40" />
         <h1 className="text-xl font-semibold">{mode === "signin" ? "Connexion" : "Créer un compte"}</h1>
       </div>
 

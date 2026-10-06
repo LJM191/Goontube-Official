@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/subscriptions")({
       { name: "description", content: "Les dernières vidéos de vos chaînes." },
       { property: "og:title", content: `Abonnements — ${APP_NAME}` },
       { property: "og:description", content: "Les dernières vidéos de vos chaînes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Subs,

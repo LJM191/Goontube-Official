@@ -15,6 +15,8 @@ export const Route = createFileRoute("/search")({
       { name: "description", content: "Recherchez des vidéos et des chaînes." },
       { property: "og:title", content: `Recherche — ${APP_NAME}` },
       { property: "og:description", content: "Recherchez des vidéos et des chaînes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SearchPage,

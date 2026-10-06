@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/history")({
       { name: "description", content: "Les vidéos que vous avez regardées." },
       { property: "og:title", content: `Historique — ${APP_NAME}` },
       { property: "og:description", content: "Les vidéos que vous avez regardées." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: History,

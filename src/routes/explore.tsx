@@ -12,6 +12,8 @@ export const Route = createFileRoute("/explore")({
       { name: "description", content: "Les vidéos les plus regardées du moment." },
       { property: "og:title", content: `Explorer — ${APP_NAME}` },
       { property: "og:description", content: "Les vidéos les plus regardées du moment." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Explore,

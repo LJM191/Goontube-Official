@@ -13,6 +13,8 @@ import {
   User as UserIcon,
   Zap,
 } from "lucide-react";
+import goontubeLogo from "@/assets/goontube-logo.png";
+import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/config";
 import { useAuth, useMe } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,9 +39,8 @@ const NAV = [
 
 export function Logo() {
   return (
-    <Link to="/" className="flex shrink-0 items-center gap-2">
-      <span className="size-7 rounded-lg bg-brand shadow-glow" />
-      <span className="font-display text-lg font-semibold tracking-tight">{APP_NAME}</span>
+    <Link to="/" aria-label={`${APP_NAME} — Accueil`} className="flex shrink-0 items-center">
+      <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="h-auto w-28 sm:w-40" />
     </Link>
   );
 }
@@ -53,7 +54,7 @@ function SearchBar() {
         e.preventDefault();
         if (q.trim()) navigate({ to: "/search", search: { q: q.trim() } });
       }}
-      className="flex max-w-xl flex-1 items-center gap-2 rounded-full bg-panel/80 px-4 py-2 ring-1 ring-edge/40 focus-within:ring-glow/50"
+      className="flex min-w-0 max-w-xl flex-1 items-center gap-2 rounded-full bg-panel/80 px-4 py-2 ring-1 ring-edge/40 focus-within:ring-glow/50"
     >
       <Search className="size-4 shrink-0 text-faint" />
       <input
@@ -76,7 +77,7 @@ function UserMenu() {
     return (
       <Link
         to="/auth"
-        className="inline-flex items-center gap-1.5 rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-glow/90"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-edge/60 px-3 py-2 text-xs font-medium transition-colors hover:border-glow/50 hover:bg-panel sm:px-5 sm:text-sm"
       >
         <UserIcon className="size-4" /> Se connecter
       </Link>
@@ -91,7 +92,7 @@ function UserMenu() {
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {data?.channel && (
-          <DropdownMenuItem onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel!.handle } })}>
+          <DropdownMenuItem onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel?.handle ?? "" } })}>
             <Tv className="size-4" /> Ma chaîne
           </DropdownMenuItem>
         )}
@@ -118,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="glass-bar sticky top-0 z-30 h-16 border-b border-edge/60">
-        <div className="flex h-full items-center gap-4 px-4 sm:px-6">
+        <div className="flex h-full items-center gap-2 px-3 sm:gap-6 sm:px-6">
           <div className="flex shrink-0 items-center lg:w-52">
             <Logo />
           </div>
@@ -132,12 +133,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <Plus className="size-4" /> Créer
                 </Link>
-                <button
+                <Button variant="ghost" size="icon"
                   aria-label="Notifications"
                   className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost"
                 >
                   <Bell className="size-4 text-muted-foreground" />
-                </button>
+                </Button>
               </>
             )}
             <UserMenu />
@@ -156,7 +157,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   to={to}
                   className={
                     active
-                      ? "flex items-center gap-3 rounded-xl bg-glow/10 px-3 py-2.5 text-sm font-medium ring-1 ring-glow/20"
+                      ? "flex items-center gap-3 rounded-xl bg-panel px-3 py-2.5 text-sm font-medium text-glow ring-1 ring-edge/30"
                       : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70"
                   }
                 >
