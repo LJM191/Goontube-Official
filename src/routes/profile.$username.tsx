@@ -1,18 +1,76 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Eye, Users, Video } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarDays, Eye, Users, Video, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMediaUrl } from "@/lib/media";
 import { formatCount } from "@/lib/format";
 import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/profile/$username")({
   head: ({ params }) => ({ meta: [{ title: `@${params.username} — ${APP_NAME}` }] }),
   component: Profile,
 });
+
+function EditUsername({ current }: { current: string }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(current);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    const username = value.trim();
+    if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
+      toast.error("3 à 30 caractères : lettres, chiffres et _ uniquement.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("profiles").update({ username }).eq("id", user!.id);
+      if (error) {
+        if (error.code === "23505") throw new Error("Cet arobase est déjà utilisé.");
+        throw error;
+      }
+      await qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Arobase modifié !");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Impossible de modifier l'arobase.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <Pencil className="size-3.5" /> Modifier
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Modifier ton arobase</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <p className="mb-1 text-sm font-medium">Arobase</p>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">@</span>
+              <Input value={value} onChange={(e) => setValue(e.target.value.replace(/^@+/, ""))} maxLength={30} />
+            </div>
+            <p className="mt-1 text-xs text-faint">3–30 caractères, lettres, chiffres et _. Il doit être unique.</p>
+          </div>
+          <button disabled={busy} onClick={() => void save()} className="w-full rounded-full bg-glow py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
+            {busy ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function Profile() {
   const { username } = Route.useParams();
@@ -53,6 +111,7 @@ function Profile() {
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-semibold">{profile.display_name}{channel?.verified && <VerifiedDot />}</h1>
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
+            {isMe && <EditUsername current={profile.username} />}
             {profile.bio && <p className="mt-3 max-w-2xl whitespace-pre-wrap text-sm text-faint">{profile.bio}</p>}
           </div>
           {channel && <Link to="/c/$handle" params={{ handle: channel.handle }} className="rounded-full bg-frost px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Voir la chaîne</Link>}
