@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,12 +25,15 @@ export function SubscribeButton({ channelId, ownerId }: { channelId: string; own
   const toggle = useMutation({
     mutationFn: async () => {
       if (subscribed) {
-        await supabase.from("subscriptions").delete().eq("subscriber_id", user!.id).eq("channel_id", channelId);
+        const { error } = await supabase.from("subscriptions").delete().eq("subscriber_id", user!.id).eq("channel_id", channelId);
+        if (error) throw error;
       } else {
-        await supabase.from("subscriptions").insert({ subscriber_id: user!.id, channel_id: channelId });
+        const { error } = await supabase.from("subscriptions").insert({ subscriber_id: user!.id, channel_id: channelId });
+        if (error) throw error;
       }
     },
     onMutate: () => qc.setQueryData(key, !subscribed),
+    onError: (error) => { toast.error(error.message); qc.invalidateQueries({ queryKey: key }); },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
       qc.invalidateQueries({ queryKey: ["channel"] });
