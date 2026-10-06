@@ -22,10 +22,11 @@ export const Route = createFileRoute("/_authenticated/subscriptions")({
 
 function Subs() {
   const { user } = Route.useRouteContext();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["subs-feed", user.id],
     queryFn: async () => {
-      const { data: subs } = await supabase.from("subscriptions").select("channel_id").eq("subscriber_id", user.id);
+      const { data: subs, error: subsError } = await supabase.from("subscriptions").select("channel_id").eq("subscriber_id", user.id);
+      if (subsError) throw subsError;
       const ids = (subs ?? []).map((s) => s.channel_id);
       if (!ids.length) return [];
       const { data, error } = await supabase
@@ -42,6 +43,7 @@ function Subs() {
   return (
     <>
       <h1 className="mb-6 text-2xl font-semibold">Abonnements</h1>
+      {error && <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">Impossible de charger les abonnements : {error instanceof Error ? error.message : "erreur Supabase"}.</div>}
       <VideoGrid
         videos={data}
         loading={isLoading}
