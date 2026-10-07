@@ -215,6 +215,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const topNav = [
+    { to: "/gay", label: "GAY" },
     { to: "/", label: "ACCUEIL" },
     { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
     { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
@@ -267,6 +268,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                       ))}
                     </div>
                   </div>
+                )}
+                {label === "GAY" && (
+                  <span className="flex items-center whitespace-nowrap px-2 text-sm font-medium text-muted-foreground">
+                    s'identifie comme un cheval
+                  </span>
                 )}
               </div>
             );
