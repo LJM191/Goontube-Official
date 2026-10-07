@@ -214,9 +214,18 @@ function UserMenu() {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
+  const topNav = [
+    { to: "/", label: "ACCUEIL" },
+    { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
+    { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
+    { to: "/explore", label: "CRÉATEURS", dropdown: ["Créateurs populaires", "Nouveaux créateurs"] },
+    { to: "/subscriptions", label: "COMMUNAUTÉ", dropdown: ["Abonnements", "Chaînes"] },
+    { to: "/explore", label: "PHOTOS ET GIFS" },
+  ] as const;
+
   return (
     <div className="min-h-screen">
-      <header className="glass-bar sticky top-0 z-30 min-h-20 border-b border-edge/60">
+      <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
           <div className="flex shrink-0 items-center lg:w-60">
             <Logo />
@@ -224,20 +233,53 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SearchBar />
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
-              <>
-                <Button variant="ghost" size="icon"
-                  aria-label="Notifications"
-                  className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost"
-                >
-                  <Bell className="size-4 text-muted-foreground" />
-                </Button>
-              </>
+              <Button variant="ghost" size="icon" aria-label="Notifications"
+                className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost">
+                <Bell className="size-4 text-muted-foreground" />
+              </Button>
             )}
             <UserMenu />
           </div>
         </div>
-      </header>
 
+        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3">
+          {topNav.map(({ to, label, dropdown }) => {
+            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+            return (
+              <div key={label} className="group relative flex h-full items-stretch">
+                <Link
+                  to={to}
+                  className={
+                    "relative flex min-w-[145px] items-center justify-center gap-2 px-5 text-base font-extrabold tracking-tight transition-colors " +
+                    (active ? "text-foreground" : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {label}
+                  {dropdown && <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>}
+                  <span className={
+                    "absolute inset-x-2 bottom-0 h-0.5 origin-center transition-all " +
+                    (active ? "scale-x-100 bg-glow" : "scale-x-0 bg-glow group-hover:scale-x-100")
+                  } />
+                </Link>
+                {dropdown && (
+                  <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                      {dropdown.map((item) => (
+                        <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+      </header>
+    </div>
+  );
+}
       <div className="flex">
         <aside className="glass-side sticky top-20 hidden h-[calc(100vh-5rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
           <nav className="flex flex-col gap-1">
