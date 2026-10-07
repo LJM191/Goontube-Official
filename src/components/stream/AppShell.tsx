@@ -12,6 +12,7 @@ import {
   Tv,
   User as UserIcon,
   ChevronDown,
+  X,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ function SearchBar() {
   };
 
   return (
-    <div className="relative min-w-0 max-w-4xl flex-1">
+    <div className="relative w-full max-w-2xl">
       <form onSubmit={(e) => { e.preventDefault(); submit(); }}
         className="flex h-12 items-center gap-3 rounded-full bg-panel/90 px-5 ring-1 ring-edge/50 shadow-sm focus-within:ring-glow/60"
       >
@@ -109,12 +110,23 @@ function SearchBar() {
         <input
           value={q}
           onFocus={() => setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           placeholder="Rechercher une vidéo ou une chaîne"
           aria-label="Rechercher"
           className="w-full bg-transparent text-base outline-none placeholder:text-faint"
         />
-        {q && <button type="button" onClick={() => setQ("")} className="text-sm text-faint hover:text-foreground">Effacer</button>}
+        {q && (
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { setQ(""); setOpen(false); }}
+            aria-label="Effacer la recherche"
+            className="grid size-7 shrink-0 place-items-center rounded-full text-faint hover:bg-frost hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </form>
 
       {open && (term.length >= 2 || recent.length > 0) && (
@@ -123,10 +135,30 @@ function SearchBar() {
             <>
               <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Recherches récentes</p>
               {recent.map((item) => (
-                <button key={item} onClick={() => submit(item)} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-frost">
-                  <Clock className="size-4 text-faint" /><span>{item}</span>
-                </button>
-              ))}
+                <div key={item} className="flex items-center rounded-xl hover:bg-frost">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => submit(item)}
+                    className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left"
+                  >
+                    <Clock className="size-4 shrink-0 text-faint" /><span className="truncate">{item}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      const next = recent.filter((search) => search !== item);
+                      setRecent(next);
+                      localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+                    }}
+                    aria-label={`Supprimer la recherche « ${item} »`}
+                    className="mr-2 grid size-7 shrink-0 place-items-center rounded-full text-faint hover:bg-panel hover:text-foreground"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ))
             </>
           )}
           {term.length >= 2 && isFetching && <p className="px-3 py-4 text-sm text-muted-foreground">Recherche…</p>}
@@ -293,9 +325,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
-        <div className="flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
+        <div className="relative flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
           <div className="flex shrink-0 items-center lg:w-60"><Logo /></div>
-          <SearchBar />
+          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+            <SearchBar />
+          </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
               <Button variant="ghost" size="icon" aria-label="Notifications"
@@ -307,8 +341,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-start gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
-          <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
+        <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
+          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8"><OrientationMenu /></div>
+          <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
           {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? navItem.dropdown : undefined;
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
@@ -342,11 +377,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             );
           })}
+          </div>
         </nav>
       </header>
 
       <div className="flex">
-        <main className="min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">{children}</main>
+        <main className="mx-auto w-full max-w-[1500px] min-w-0 px-4 pb-24 pt-6 sm:px-8 lg:pb-10">{children}</main>
       </div>
 
       <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 py-2 lg:hidden">
