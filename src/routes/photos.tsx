@@ -46,7 +46,7 @@ function PhotosPage() {
     },
   });
 
-  async function publish(e: React.FormEvent) {
+  async function publish(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     if (!user || !file) return;
     const me = await (supabase as any).from("channels").select("id").eq("owner_id", user.id).maybeSingle();

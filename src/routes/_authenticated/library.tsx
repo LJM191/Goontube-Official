@@ -24,7 +24,7 @@ function LibraryPage() {
     queryKey: ["playlists", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlists")
         .select("id,name,description,is_public,created_at,updated_at")
         .eq("user_id", user!.id)
@@ -38,7 +38,7 @@ function LibraryPage() {
     queryKey: ["playlist-videos", selected],
     enabled: !!selected,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlist_items")
         .select(`position, video:videos!inner(${VIDEO_SELECT})`)
         .eq("playlist_id", selected!)
@@ -53,7 +53,7 @@ function LibraryPage() {
     mutationFn: async () => {
       const clean = name.trim();
       if (!clean) throw new Error("Donnez un nom à la playlist.");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlists")
         .insert({ user_id: user!.id, name: clean })
         .select("id")
