@@ -112,7 +112,7 @@ function ChannelPage() {
       return data as unknown as VideoCardData[];
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_path);\n  const { data: media } = useQuery({\n    queryKey: ["channel-media", channel?.id],\n    enabled: !!channel,\n    queryFn: async () => {\n      const { data, error } = await supabase.from("channel_media").select("*").eq("channel_id", channel!.id).order("created_at", { ascending: false });\n      if (error) throw error;\n      return data ?? [];\n    },\n  });
+  const banner = useMediaUrl("avatars", channel?.banner_path);
 
   if (isLoading) return null;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
