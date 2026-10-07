@@ -22,7 +22,11 @@ import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as WatchIdRouteImport } from './routes/watch.$id'
 import { Route as StudioRouteImport } from './routes/studio'
-import { Route as ProfileUsernameRouteImport } from './routes/profile.$username'\nimport { Route as CommunityRouteImport } from './routes/community'\nimport { Route as CommunityForumSlugRouteImport } from './routes/community.forum.$slug'\nimport { Route as CommunityThreadIdRouteImport } from './routes/community.thread.$id'\nimport { Route as PhotosRouteImport } from './routes/photos'
+import { Route as ProfileUsernameRouteImport } from './routes/profile.$username'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as CommunityForumSlugRouteImport } from './routes/community.forum.$slug'
+import { Route as CommunityThreadIdRouteImport } from './routes/community.thread.$id'
+import { Route as PhotosRouteImport } from './routes/photos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -89,7 +93,27 @@ const StudioRoute = StudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CommunityRoute = CommunityRouteImport.update({\n  id: '/community',\n  path: '/community',\n  getParentRoute: () => rootRouteImport,\n} as any)\nconst CommunityForumSlugRoute = CommunityForumSlugRouteImport.update({\n  id: '/community/forum/$slug',\n  path: '/community/forum/$slug',\n  getParentRoute: () => rootRouteImport,\n} as any)\nconst CommunityThreadIdRoute = CommunityThreadIdRouteImport.update({\n  id: '/community/thread/$id',\n  path: '/community/thread/$id',\n  getParentRoute: () => rootRouteImport,\n} as any)\nconst PhotosRoute = PhotosRouteImport.update({\n  id: '/photos',\n  path: '/photos',\n  getParentRoute: () => rootRouteImport,\n} as any)\nconst ProfileUsernameRoute = ProfileUsernameRouteImport.update({
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityForumSlugRoute = CommunityForumSlugRouteImport.update({
+  id: '/community/forum/$slug',
+  path: '/community/forum/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityThreadIdRoute = CommunityThreadIdRouteImport.update({
+  id: '/community/thread/$id',
+  path: '/community/thread/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotosRoute = PhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
   id: '/profile/$username',
   path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
@@ -114,6 +138,10 @@ export interface FileRoutesByFullPath {
   '/watch/$id': typeof WatchIdRoute
   '/studio': typeof StudioRoute
   '/profile/$username': typeof ProfileUsernameRoute
+  '/community': typeof CommunityRoute
+  '/community/forum/$slug': typeof CommunityForumSlugRoute
+  '/community/thread/$id': typeof CommunityThreadIdRoute
+  '/photos': typeof PhotosRoute
   '/hashtag/$tag': typeof HashtagTagRoute
 }
 export interface FileRoutesByTo {
@@ -165,6 +193,10 @@ export interface FileRouteTypes {
     | '/watch/$id'
     | '/studio'
     | '/profile/$username'
+    | '/community'
+    | '/community/forum/$slug'
+    | '/community/thread/$id'
+    | '/photos'
     | '/hashtag/$tag'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -307,7 +339,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/community': { id: '/community', path: '/community', fullPath: '/community', preLoaderRoute: typeof CommunityRouteImport, parentRoute: typeof rootRouteImport },\n    '/community/forum/$slug': { id: '/community/forum/$slug', path: '/community/forum/$slug', fullPath: '/community/forum/$slug', preLoaderRoute: typeof CommunityForumSlugRouteImport, parentRoute: typeof rootRouteImport },\n    '/community/thread/$id': { id: '/community/thread/$id', path: '/community/thread/$id', fullPath: '/community/thread/$id', preLoaderRoute: typeof CommunityThreadIdRouteImport, parentRoute: typeof rootRouteImport },\n    '/photos': { id: '/photos', path: '/photos', fullPath: '/photos', preLoaderRoute: typeof PhotosRouteImport, parentRoute: typeof rootRouteImport },\n    '/profile/$username': {
+    '/community': { id: '/community', path: '/community', fullPath: '/community', preLoaderRoute: typeof CommunityRouteImport, parentRoute: typeof rootRouteImport },
+    '/community/forum/$slug': { id: '/community/forum/$slug', path: '/community/forum/$slug', fullPath: '/community/forum/$slug', preLoaderRoute: typeof CommunityForumSlugRouteImport, parentRoute: typeof rootRouteImport },
+    '/community/thread/$id': { id: '/community/thread/$id', path: '/community/thread/$id', fullPath: '/community/thread/$id', preLoaderRoute: typeof CommunityThreadIdRouteImport, parentRoute: typeof rootRouteImport },
+    '/photos': { id: '/photos', path: '/photos', fullPath: '/photos', preLoaderRoute: typeof PhotosRouteImport, parentRoute: typeof rootRouteImport },
+    '/profile/$username': {
       id: '/profile/$username'
       path: '/profile/$username'
       fullPath: '/profile/$username'
@@ -345,6 +381,10 @@ const rootRouteChildren: RootRouteChildren = {
   WatchIdRoute: WatchIdRoute,
   StudioRoute: StudioRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
+  CommunityRoute: CommunityRoute,
+  CommunityForumSlugRoute: CommunityForumSlugRoute,
+  CommunityThreadIdRoute: CommunityThreadIdRoute,
+  PhotosRoute: PhotosRoute,
   HashtagTagRoute: HashtagTagRoute,
 }
 export const routeTree = rootRouteImport
