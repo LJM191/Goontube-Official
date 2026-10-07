@@ -220,7 +220,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
     { to: "/explore", label: "CRÉATEURS", dropdown: ["Créateurs populaires", "Nouveaux créateurs"] },
     { to: "/subscriptions", label: "COMMUNAUTÉ", dropdown: ["Découvrir la communauté", "Concours de créateurs", "Flux de la communauté", "Membres populaires", "Créateurs récents", "Créateurs populaires", "Membres en ligne", "Rechercher un membre", "Devenir contributeur"] },
-    { to: "/explore", label: "PHOTOS ET GIFS" },
+    { to: "/photos", label: "PHOTOS ET GIFS" },
   ] as const;
 
   return (
@@ -263,7 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
                       {dropdown.map((item) => (
-                        <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{item}</Link>
+                        <Link key={item} to={label === "COMMUNAUTÉ" ? "/community" : "/explore"} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{item}</Link>
                       ))}
                     </div>
                   </div>
