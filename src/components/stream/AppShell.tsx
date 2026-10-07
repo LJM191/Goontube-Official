@@ -132,7 +132,7 @@ function SearchBar() {
       {open && (term.length >= 2 || recent.length > 0) && (
         <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-2xl bg-panel/98 p-2 shadow-2xl ring-1 ring-edge/60 backdrop-blur-xl">
           {term.length < 2 && recent.length > 0 && (
-            <>
+            <div>
               <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Recherches récentes</p>
               {recent.map((item) => (
                 <div key={item} className="flex items-center rounded-xl hover:bg-frost">
@@ -159,11 +159,11 @@ function SearchBar() {
                   </button>
                 </div>
               ))
-            </>
+            </div>
           )}
           {term.length >= 2 && isFetching && <p className="px-3 py-4 text-sm text-muted-foreground">Recherche…</p>}
           {term.length >= 2 && !isFetching && suggestions && (
-            <>
+            <div>
               {suggestions.channels.length > 0 && (
                 <div className="border-b border-edge/40 pb-2">
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Chaînes</p>
@@ -191,7 +191,7 @@ function SearchBar() {
               <button onClick={() => submit()} className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium text-glow hover:bg-frost">
                 <Search className="size-4" /> Voir tous les résultats pour « {term} »
               </button>
-            </>
+            </div>
           )}
         </div>
       )}
