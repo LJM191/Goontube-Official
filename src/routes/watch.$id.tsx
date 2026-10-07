@@ -272,7 +272,7 @@ function Watch() {
             <p className={`mt-2 whitespace-pre-wrap text-muted-foreground ${expanded ? "" : "line-clamp-3"}`}>{video.description}</p>
           )}
           {video.tags.length > 0 && (
-            <p className="mt-2 text-glow">{video.tags.map((t) => `#${t}`).join(" ")}</p>
+            <p className="mt-2 text-glow">{video.tags.map((t: string) => `#${t}`).join(" ")}</p>
           )}
           {video.description && video.description.length > 200 && (
             <button onClick={() => setExpanded(!expanded)} className="mt-2 font-medium">
