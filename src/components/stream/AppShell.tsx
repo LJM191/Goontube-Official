@@ -250,6 +250,17 @@ function OrientationIcon({ type }: { type: string }) {
   if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
   if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣</span>;
   if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
+  if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
+  if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
+  if (type === "Pansexuel") {
+    return (
+      <span aria-hidden="true" className="flex w-5 flex-col gap-px overflow-hidden rounded-sm">
+        <span className="h-1 bg-pink-500" />
+        <span className="h-1 bg-yellow-300" />
+        <span className="h-1 bg-cyan-400" />
+      </span>
+    );
+  }
   return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
 }
 
@@ -259,6 +270,9 @@ const ORIENTATION_OPTIONS = [
   { label: "Gay", slug: "orientation-gay" },
   { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
   { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
+  { label: "S'identifie comme un chien", slug: "orientation-chien" },
+  { label: "S'identifie comme un chat", slug: "orientation-chat" },
+  { label: "Pansexuel", slug: "orientation-pansexuel" },
 ] as const;
 
 function OrientationMenu() {
