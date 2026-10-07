@@ -282,7 +282,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const topNav = [
-    { to: "/", label: "ACCUEIL" },
+    { to: "/", label: "ACCUEIL", dropdown: NAV },
     { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
     { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
     { to: "/explore", label: "CRÉATEURS", dropdown: ["Créateurs populaires", "Nouveaux créateurs"] },
@@ -309,7 +309,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-start gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
           <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
-          {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? (navItem.dropdown as readonly string[]) : undefined;
+          {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? navItem.dropdown : undefined;
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
               <div key={label} className="group relative flex h-full items-stretch">
@@ -330,9 +330,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {dropdown && (
                   <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                      {dropdown.map((item) => (
-                        <Link key={item} to={label === "COMMUNAUTÉ" ? "/community" : "/explore"} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{item}</Link>
-                      ))}
+                      {dropdown.map((item) => {
+                        const itemTo = typeof item === "string" ? (label === "COMMUNAUTÉ" ? "/community" : "/explore") : item.to;
+                        const itemLabel = typeof item === "string" ? item : item.label;
+                        return <Link key={itemLabel} to={itemTo} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{itemLabel}</Link>;
+                      })}
                     </div>
                   </div>
                 )}
@@ -344,30 +346,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <aside className="glass-side sticky top-36 hidden h-[calc(100vh-9rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
-          <nav className="flex flex-col gap-1">
-            <OrientationMenu />
-            {NAV.map(({ to, label, icon: Icon }) => {
-              const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-              return (
-                <Link key={to} to={to}
-                  className={active
-                    ? "flex items-center gap-3 rounded-xl bg-panel px-3 py-2.5 text-sm font-medium text-glow ring-1 ring-edge/30"
-                    : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70"}>
-                  <Icon className={active ? "size-4 text-glow" : "size-4"} />{label}
-                </Link>
-              );
-            })}
-          </nav>
-          {!user && (
-            <div className="mt-auto rounded-2xl bg-panel/70 p-4 ring-1 ring-edge/40">
-              <p className="text-sm font-medium">Rejoignez {APP_NAME}</p>
-              <p className="mt-1 text-xs text-faint">Abonnez-vous, aimez et publiez vos vidéos.</p>
-              <Link to="/auth" className="mt-3 inline-block text-sm font-medium text-glow">Se connecter →</Link>
-            </div>
-          )}
-        </aside>
-
         <main className="min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">{children}</main>
       </div>
 
