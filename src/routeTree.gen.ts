@@ -12,21 +12,22 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShortsRouteImport } from './routes/shorts'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedSubscriptionsRouteImport } from './routes/_authenticated/subscriptions'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
-import { Route as WatchIdRouteImport } from './routes/watch.$id'
-import { Route as StudioRouteImport } from './routes/studio'
+import { Route as HashtagTagRouteImport } from './routes/hashtag.$tag'
 import { Route as ProfileUsernameRouteImport } from './routes/profile.$username'
-import { Route as CommunityRouteImport } from './routes/community'
+import { Route as WatchIdRouteImport } from './routes/watch.$id'
 import { Route as CommunityForumSlugRouteImport } from './routes/community.forum.$slug'
 import { Route as CommunityThreadIdRouteImport } from './routes/community.thread.$id'
-import { Route as PhotosRouteImport } from './routes/photos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -42,9 +43,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotosRoute = PhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -55,6 +66,11 @@ const SearchRoute = SearchRouteImport.update({
 const ShortsRoute = ShortsRouteImport.update({
   id: '/shorts',
   path: '/shorts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
@@ -83,34 +99,9 @@ const CHandleRoute = CHandleRouteImport.update({
   path: '/c/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WatchIdRoute = WatchIdRouteImport.update({
-  id: '/watch/$id',
-  path: '/watch/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudioRoute = StudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityRoute = CommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityForumSlugRoute = CommunityForumSlugRouteImport.update({
-  id: '/community/forum/$slug',
-  path: '/community/forum/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityThreadIdRoute = CommunityThreadIdRouteImport.update({
-  id: '/community/thread/$id',
-  path: '/community/thread/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PhotosRoute = PhotosRouteImport.update({
-  id: '/photos',
-  path: '/photos',
+const HashtagTagRoute = HashtagTagRouteImport.update({
+  id: '/hashtag/$tag',
+  path: '/hashtag/$tag',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
@@ -118,132 +109,162 @@ const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
   path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HashtagTagRoute = HashtagTagRouteImport.update({
-  id: '/hashtag/$tag',
-  path: '/hashtag/$tag',
+const WatchIdRoute = WatchIdRouteImport.update({
+  id: '/watch/$id',
+  path: '/watch/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityForumSlugRoute = CommunityForumSlugRouteImport.update({
+  id: '/forum/$slug',
+  path: '/forum/$slug',
+  getParentRoute: () => CommunityRoute,
+} as any)
+const CommunityThreadIdRoute = CommunityThreadIdRouteImport.update({
+  id: '/thread/$id',
+  path: '/thread/$id',
+  getParentRoute: () => CommunityRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
+  '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
-  '/watch/$id': typeof WatchIdRoute
-  '/studio': typeof StudioRoute
+  '/hashtag/$tag': typeof HashtagTagRoute
   '/profile/$username': typeof ProfileUsernameRoute
-  '/community': typeof CommunityRoute
+  '/watch/$id': typeof WatchIdRoute
   '/community/forum/$slug': typeof CommunityForumSlugRoute
   '/community/thread/$id': typeof CommunityThreadIdRoute
-  '/photos': typeof PhotosRoute
-  '/hashtag/$tag': typeof HashtagTagRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
+  '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
-  '/watch/$id': typeof WatchIdRoute
-  '/studio': typeof StudioRoute
-  '/profile/$username': typeof ProfileUsernameRoute
   '/hashtag/$tag': typeof HashtagTagRoute
+  '/profile/$username': typeof ProfileUsernameRoute
+  '/watch/$id': typeof WatchIdRoute
+  '/community/forum/$slug': typeof CommunityForumSlugRoute
+  '/community/thread/$id': typeof CommunityThreadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
+  '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
+  '/studio': typeof StudioRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/subscriptions': typeof AuthenticatedSubscriptionsRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
   '/c/$handle': typeof CHandleRoute
-  '/watch/$id': typeof WatchIdRoute
-  '/studio': typeof StudioRoute
+  '/hashtag/$tag': typeof HashtagTagRoute
   '/profile/$username': typeof ProfileUsernameRoute
+  '/watch/$id': typeof WatchIdRoute
+  '/community/forum/$slug': typeof CommunityForumSlugRoute
+  '/community/thread/$id': typeof CommunityThreadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/community'
     | '/explore'
+    | '/photos'
     | '/search'
     | '/shorts'
+    | '/studio'
     | '/history'
     | '/library'
     | '/subscriptions'
     | '/upload'
     | '/c/$handle'
-    | '/watch/$id'
-    | '/studio'
+    | '/hashtag/$tag'
     | '/profile/$username'
-    | '/community'
+    | '/watch/$id'
     | '/community/forum/$slug'
     | '/community/thread/$id'
-    | '/photos'
-    | '/hashtag/$tag'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/community'
     | '/explore'
+    | '/photos'
     | '/search'
     | '/shorts'
+    | '/studio'
     | '/history'
     | '/library'
     | '/subscriptions'
     | '/upload'
     | '/c/$handle'
-    | '/watch/$id'
-    | '/studio'
-    | '/profile/$username'
     | '/hashtag/$tag'
+    | '/profile/$username'
+    | '/watch/$id'
+    | '/community/forum/$slug'
+    | '/community/thread/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/community'
     | '/explore'
+    | '/photos'
     | '/search'
     | '/shorts'
+    | '/studio'
     | '/_authenticated/history'
     | '/_authenticated/library'
     | '/_authenticated/subscriptions'
     | '/_authenticated/upload'
     | '/c/$handle'
-    | '/watch/$id'
-    | '/studio'
+    | '/hashtag/$tag'
     | '/profile/$username'
+    | '/watch/$id'
+    | '/community/forum/$slug'
+    | '/community/thread/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CommunityRoute: typeof CommunityRouteWithChildren
   ExploreRoute: typeof ExploreRoute
+  PhotosRoute: typeof PhotosRoute
   SearchRoute: typeof SearchRoute
   ShortsRoute: typeof ShortsRoute
-  CHandleRoute: typeof CHandleRoute
-  WatchIdRoute: typeof WatchIdRoute
   StudioRoute: typeof StudioRoute
-  ProfileUsernameRoute: typeof ProfileUsernameRoute
+  CHandleRoute: typeof CHandleRoute
   HashtagTagRoute: typeof HashtagTagRoute
+  ProfileUsernameRoute: typeof ProfileUsernameRoute
+  WatchIdRoute: typeof WatchIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -269,11 +290,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore': {
       id: '/explore'
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/photos': {
+      id: '/photos'
+      path: '/photos'
+      fullPath: '/photos'
+      preLoaderRoute: typeof PhotosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -288,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/shorts'
       fullPath: '/shorts'
       preLoaderRoute: typeof ShortsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/history': {
@@ -325,6 +367,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hashtag/$tag': {
+      id: '/hashtag/$tag'
+      path: '/hashtag/$tag'
+      fullPath: '/hashtag/$tag'
+      preLoaderRoute: typeof HashtagTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$username': {
+      id: '/profile/$username'
+      path: '/profile/$username'
+      fullPath: '/profile/$username'
+      preLoaderRoute: typeof ProfileUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/watch/$id': {
       id: '/watch/$id'
       path: '/watch/$id'
@@ -332,23 +388,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/studio': {
-      id: '/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof StudioRouteImport
-      parentRoute: typeof rootRouteImport
+    '/community/forum/$slug': {
+      id: '/community/forum/$slug'
+      path: '/forum/$slug'
+      fullPath: '/community/forum/$slug'
+      preLoaderRoute: typeof CommunityForumSlugRouteImport
+      parentRoute: typeof CommunityRoute
     }
-    '/community': { id: '/community', path: '/community', fullPath: '/community', preLoaderRoute: typeof CommunityRouteImport, parentRoute: typeof rootRouteImport },
-    '/community/forum/$slug': { id: '/community/forum/$slug', path: '/community/forum/$slug', fullPath: '/community/forum/$slug', preLoaderRoute: typeof CommunityForumSlugRouteImport, parentRoute: typeof rootRouteImport },
-    '/community/thread/$id': { id: '/community/thread/$id', path: '/community/thread/$id', fullPath: '/community/thread/$id', preLoaderRoute: typeof CommunityThreadIdRouteImport, parentRoute: typeof rootRouteImport },
-    '/photos': { id: '/photos', path: '/photos', fullPath: '/photos', preLoaderRoute: typeof PhotosRouteImport, parentRoute: typeof rootRouteImport },
-    '/profile/$username': {
-      id: '/profile/$username'
-      path: '/profile/$username'
-      fullPath: '/profile/$username'
-      preLoaderRoute: typeof ProfileUsernameRouteImport
-      parentRoute: typeof rootRouteImport
+    '/community/thread/$id': {
+      id: '/community/thread/$id'
+      path: '/thread/$id'
+      fullPath: '/community/thread/$id'
+      preLoaderRoute: typeof CommunityThreadIdRouteImport
+      parentRoute: typeof CommunityRoute
     }
   }
 }
@@ -370,22 +422,34 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CommunityRouteChildren {
+  CommunityForumSlugRoute: typeof CommunityForumSlugRoute
+  CommunityThreadIdRoute: typeof CommunityThreadIdRoute
+}
+
+const CommunityRouteChildren: CommunityRouteChildren = {
+  CommunityForumSlugRoute: CommunityForumSlugRoute,
+  CommunityThreadIdRoute: CommunityThreadIdRoute,
+}
+
+const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
+  CommunityRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CommunityRoute: CommunityRouteWithChildren,
   ExploreRoute: ExploreRoute,
+  PhotosRoute: PhotosRoute,
   SearchRoute: SearchRoute,
   ShortsRoute: ShortsRoute,
-  CHandleRoute: CHandleRoute,
-  WatchIdRoute: WatchIdRoute,
   StudioRoute: StudioRoute,
-  ProfileUsernameRoute: ProfileUsernameRoute,
-  CommunityRoute: CommunityRoute,
-  CommunityForumSlugRoute: CommunityForumSlugRoute,
-  CommunityThreadIdRoute: CommunityThreadIdRoute,
-  PhotosRoute: PhotosRoute,
+  CHandleRoute: CHandleRoute,
   HashtagTagRoute: HashtagTagRoute,
+  ProfileUsernameRoute: ProfileUsernameRoute,
+  WatchIdRoute: WatchIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
