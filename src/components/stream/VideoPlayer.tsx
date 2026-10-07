@@ -122,6 +122,8 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
     <div
       className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10", fullscreen && "rounded-none")}
       onDoubleClick={toggleFullscreen}
+      onPointerMove={showControls}
+      onTouchStart={showControls}
     >
       <video
         ref={ref}
@@ -130,7 +132,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
         autoPlay={autoPlay}
         playsInline
         className="size-full touch-manipulation object-contain"
-        onClick={() => { togglePlay(); showControls(); }}
+        onClick={togglePlay}
       />
 
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 transition-opacity duration-200", controlsVisible ? "opacity-100" : "opacity-0")} />
@@ -140,7 +142,11 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
       </div>
 
       <button
-        onClick={togglePlay}
+        onClick={(event) => {
+          event.stopPropagation();
+          togglePlay();
+          showControls();
+        }}
         aria-label={playing ? "Pause" : "Lecture"}
         className={cn("absolute left-1/2 top-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all hover:scale-105 sm:size-16", controlsVisible ? "opacity-100" : "opacity-0")}
       >
