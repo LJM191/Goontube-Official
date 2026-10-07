@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { BarChart3, Settings, Upload, Video, Eye, Users } from "lucide-react";
+import { BarChart3, Settings, Upload, Video, Eye, Users, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -112,7 +112,7 @@ function ChannelPage() {
       return data as unknown as VideoCardData[];
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_path);
+  const banner = useMediaUrl("avatars", channel?.banner_path);\n  const { data: media } = useQuery({\n    queryKey: ["channel-media", channel?.id],\n    enabled: !!channel,\n    queryFn: async () => {\n      const { data, error } = await supabase.from("channel_media").select("*").eq("channel_id", channel!.id).order("created_at", { ascending: false });\n      if (error) throw error;\n      return data ?? [];\n    },\n  });
 
   if (isLoading) return null;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
@@ -143,7 +143,7 @@ function ChannelPage() {
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
         <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
-        <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
+        <a href="#photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</a>\n        <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
         {isOwner && (
           <Link to="/studio" className="ml-auto flex items-center gap-2 rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30 hover:bg-frost">
             <BarChart3 className="size-4" /> Studio
