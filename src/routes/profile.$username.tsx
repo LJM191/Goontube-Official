@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Eye, Users, Video, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +33,7 @@ function EditUsername({ current }: { current: string }) {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.from("profiles").update({ username }).eq("id", user!.id);
+      const { error } = await (supabase as any).from("profiles").update({ username }).eq("id", user!.id);
       if (error) {
         if (error.code === "23505") throw new Error("Cet arobase est déjà utilisé.");
         throw error;
@@ -78,7 +79,7 @@ function Profile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", username],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
+      const { data, error } = await (supabase as any).from("profiles").select("*").eq("username", username).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -87,7 +88,7 @@ function Profile() {
     queryKey: ["profile-channel", profile?.id],
     enabled: !!profile,
     queryFn: async () => {
-      const { data, error } = await supabase.from("channels").select("*").eq("owner_id", profile!.id).maybeSingle();
+      const { data, error } = await (supabase as any).from("channels").select("*").eq("owner_id", profile!.id).maybeSingle();
       if (error) throw error;
       return data;
     },

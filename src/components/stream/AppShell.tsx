@@ -241,7 +241,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3">
-          {topNav.map(({ to, label, dropdown }) => {
+          {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? (navItem.dropdown as readonly string[]) : undefined;
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
               <div key={label} className="group relative flex h-full items-stretch">

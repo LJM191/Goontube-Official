@@ -47,14 +47,14 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
     queryKey: key,
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("video_reactions").select("value").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
+      const { data } = await (supabase as any).from("video_reactions").select("value").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
       return data?.value ?? 0;
     },
   });
   const react = useMutation({
     mutationFn: async (value: 1 | -1) => {
-      if (mine === value) await supabase.from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
-      else await supabase.from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, value });
+      if (mine === value) await (supabase as any).from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
+      else await (supabase as any).from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, value });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
@@ -86,7 +86,7 @@ function SaveActions({ videoId }: { videoId: string }) {
     queryKey: ["playlists", user?.id],
     enabled: !!user && open,
     queryFn: async () => {
-      const { data, error } = await supabase.from("playlists").select("id,name").eq("user_id", user!.id).order("name");
+      const { data, error } = await (supabase as any).from("playlists").select("id,name").eq("user_id", user!.id).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -94,7 +94,7 @@ function SaveActions({ videoId }: { videoId: string }) {
 
   const addToPlaylist = async (playlistId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
+    const { error } = await (supabase as any).from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
     if (error) toast.error(error.message);
     else toast.success("Vidéo ajoutée à la playlist");
     setOpen(false);
@@ -103,7 +103,7 @@ function SaveActions({ videoId }: { videoId: string }) {
 
   const createPlaylist = async () => {
     if (!user || !name.trim()) return;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("playlists")
       .insert({ user_id: user.id, name: name.trim() })
       .select("id")
@@ -131,7 +131,7 @@ function SaveActions({ videoId }: { videoId: string }) {
       {open && (
         <div className="absolute right-0 top-11 z-40 w-72 rounded-2xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
           <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Enregistrer dans une playlist</p>
-          {(playlists ?? []).map((playlist) => (
+          {(playlists ?? []).map((playlist: any) => (
             <button key={playlist.id} onClick={() => addToPlaylist(playlist.id)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-frost">
               <ListPlus className="size-4" /> {playlist.name}
             </button>
@@ -190,7 +190,7 @@ function Watch() {
   const { data: video, isLoading } = useQuery({
     queryKey: ["video", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("videos")
         .select("*, channel:channels(id,owner_id,handle,name,avatar_path,verified,subscriber_count)")
         .eq("id", id)
@@ -272,7 +272,7 @@ function Watch() {
             <p className={`mt-2 whitespace-pre-wrap text-muted-foreground ${expanded ? "" : "line-clamp-3"}`}>{video.description}</p>
           )}
           {video.tags.length > 0 && (
-            <p className="mt-2 text-glow">{video.tags.map((t) => `#${t}`).join(" ")}</p>
+            <p className="mt-2 text-glow">{video.tags.map((t: string) => `#${t}`).join(" ")}</p>
           )}
           {video.description && video.description.length > 200 && (
             <button onClick={() => setExpanded(!expanded)} className="mt-2 font-medium">

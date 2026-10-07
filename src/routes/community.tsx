@@ -32,7 +32,7 @@ function CommunityPage() {
   const { data: forums, isLoading } = useQuery({
     queryKey: ["community-forums"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_forums").select("*").eq("is_public", true).order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("community_forums").select("*").eq("is_public", true).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Forum[];
     },
@@ -45,7 +45,7 @@ function CommunityPage() {
     if (!user || !name.trim()) return;
     setBusy(true);
     try {
-      const { error } = await supabase.from("community_forums").insert({
+      const { error } = await (supabase as any).from("community_forums").insert({
         owner_id: user.id, name: name.trim(), slug: slugify(name) + "-" + crypto.randomUUID().slice(0, 6),
         description: description.trim() || null, is_public: true,
       });
@@ -101,7 +101,7 @@ function ForumCard({ forum }: { forum: Forum }) {
   const { data: stats } = useQuery({
     queryKey: ["community-forum-stats", forum.id],
     queryFn: async () => {
-      const { count, error } = await supabase.from("community_threads").select("id", { count: "exact", head: true }).eq("forum_id", forum.id);
+      const { count, error } = await (supabase as any).from("community_threads").select("id", { count: "exact", head: true }).eq("forum_id", forum.id);
       if (error) throw error;
       return count ?? 0;
     },

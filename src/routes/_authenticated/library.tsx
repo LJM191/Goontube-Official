@@ -24,7 +24,7 @@ function LibraryPage() {
     queryKey: ["playlists", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlists")
         .select("id,name,description,is_public,created_at,updated_at")
         .eq("user_id", user!.id)
@@ -38,14 +38,14 @@ function LibraryPage() {
     queryKey: ["playlist-videos", selected],
     enabled: !!selected,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlist_items")
         .select(`position, video:videos!inner(${VIDEO_SELECT})`)
         .eq("playlist_id", selected!)
         .order("position", { ascending: true })
         .order("added_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => r.video) as unknown as VideoCardData[];
+      return (data ?? []).map((r: any) => r.video) as unknown as VideoCardData[];
     },
   });
 
@@ -53,7 +53,7 @@ function LibraryPage() {
     mutationFn: async () => {
       const clean = name.trim();
       if (!clean) throw new Error("Donnez un nom à la playlist.");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("playlists")
         .insert({ user_id: user!.id, name: clean })
         .select("id")
@@ -70,7 +70,7 @@ function LibraryPage() {
 
   const deletePlaylist = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("playlists").delete().eq("id", id).eq("user_id", user!.id);
+      const { error } = await (supabase as any).from("playlists").delete().eq("id", id).eq("user_id", user!.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -79,7 +79,7 @@ function LibraryPage() {
     },
   });
 
-  const selectedPlaylist = playlists?.find((p) => p.id === selected);
+  const selectedPlaylist = playlists?.find((p: any) => p.id === selected);
 
   return (
     <>
@@ -115,7 +115,7 @@ function LibraryPage() {
 
       {(playlists ?? []).length > 0 ? (
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(playlists ?? []).map((playlist) => (
+          {(playlists ?? []).map((playlist: any) => (
             <div key={playlist.id} className="rounded-2xl bg-panel/70 p-4 ring-1 ring-edge/40">
               <button onClick={() => setSelected(playlist.id)} className="w-full text-left">
                 <div className="mb-3 grid size-11 place-items-center rounded-xl bg-frost">
