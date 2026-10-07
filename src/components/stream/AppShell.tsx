@@ -313,14 +313,16 @@ function OrientationMenu() {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
-  const topNav = [
-    { to: "/", label: "ACCUEIL", dropdown: NAV },
-    { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
-    { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
-    { to: "/explore", label: "CRÉATEURS", dropdown: ["Créateurs populaires", "Nouveaux créateurs"] },
-    { to: "/subscriptions", label: "COMMUNAUTÉ", dropdown: ["Découvrir la communauté", "Concours de créateurs", "Flux de la communauté", "Membres populaires", "Créateurs récents", "Créateurs populaires", "Membres en ligne", "Rechercher un membre", "Devenir contributeur"] },
-    { to: "/photos", label: "PHOTOS ET GIFS" },
-  ] as const;
+  const activeClass = (to: string) =>
+    to === "/" ? pathname === "/" : pathname.startsWith(to);
+
+  const navClass = (active: boolean) =>
+    "relative flex min-w-[145px] items-center justify-center gap-2 px-5 text-base font-extrabold tracking-tight transition-colors " +
+    (active ? "text-foreground" : "text-muted-foreground hover:text-foreground");
+
+  const underlineClass = (active: boolean) =>
+    "absolute inset-x-2 bottom-0 h-0.5 origin-center transition-all " +
+    (active ? "scale-x-100 bg-glow" : "scale-x-0 bg-glow group-hover:scale-x-100");
 
   return (
     <div className="min-h-screen">
@@ -342,59 +344,98 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
-          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8"><OrientationMenu /></div>
-          <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
-          {topNav.map((navItem) => {
-            const { to, label } = navItem;
-            const dropdown = "dropdown" in navItem ? navItem.dropdown : undefined;
-            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-            return (
-              <div key={label} className="group relative flex h-full items-stretch">
-                <Link
-                  to={to}
-                  className={
-                    "relative flex min-w-[145px] items-center justify-center gap-2 px-5 text-base font-extrabold tracking-tight transition-colors " +
-                    (active ? "text-foreground" : "text-muted-foreground hover:text-foreground")
-                  }
-                >
-                  {label}
-                  {dropdown && <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>}
-                  <span className={
-                    "absolute inset-x-2 bottom-0 h-0.5 origin-center transition-all " +
-                    (active ? "scale-x-100 bg-glow" : "scale-x-0 bg-glow group-hover:scale-x-100")
-                  } />
-                </Link>
-                {dropdown && (
-                  <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                    <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                      {dropdown.map((item) => {
-                        if (typeof item === "string") {
-                          if (label === "COMMUNAUTÉ") {
-                            return (
-                              <Link key={item} to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
-                                {item}
-                              </Link>
-                            );
-                          }
-                          return (
-                            <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
-                              {item}
-                            </Link>
-                          );
-                        }
-                        return (
-                          <Link key={item.label} to={item.to} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
-                            {item.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
+            <OrientationMenu />
+          </div>
 
+          <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
+            <div className="group relative flex h-full items-stretch">
+              <Link to="/" className={navClass(activeClass("/"))}>
+                ACCUEIL
+                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
+                <span className={underlineClass(activeClass("/"))} />
+              </Link>
+              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                  <Link to="/" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Accueil</Link>
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Explorer</Link>
+                  <Link to="/subscriptions" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Abonnements</Link>
+                  <Link to="/library" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Bibliothèque</Link>
+                  <Link to="/history" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Historique</Link>
+                </div>
               </div>
-            );
-          })}
+            </div>
+
+            <div className="group relative flex h-full items-stretch">
+              <Link to="/search" className={navClass(activeClass("/search"))}>
+                VIDÉOS
+                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
+                <span className={underlineClass(activeClass("/search"))} />
+              </Link>
+              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Toutes les vidéos</Link>
+                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos récentes</Link>
+                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos populaires</Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative flex h-full items-stretch">
+              <Link to="/explore" className={navClass(activeClass("/explore"))}>
+                CATÉGORIES
+                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
+                <span className={underlineClass(activeClass("/explore"))} />
+              </Link>
+              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Gaming</Link>
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Musique</Link>
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Sport</Link>
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Technologie</Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative flex h-full items-stretch">
+              <Link to="/explore" className={navClass(activeClass("/explore"))}>
+                CRÉATEURS
+                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
+                <span className={underlineClass(activeClass("/explore"))} />
+              </Link>
+              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
+                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Nouveaux créateurs</Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="group relative flex h-full items-stretch">
+              <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>
+                COMMUNAUTÉ
+                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
+                <span className={underlineClass(activeClass("/subscriptions"))} />
+              </Link>
+              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Découvrir la communauté</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Concours de créateurs</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Flux de la communauté</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres populaires</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs récents</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres en ligne</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Rechercher un membre</Link>
+                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Devenir contributeur</Link>
+                </div>
+              </div>
+            </div>
+
+            <Link to="/photos" className={navClass(activeClass("/photos"))}>
+              PHOTOS ET GIFS
+              <span className={underlineClass(activeClass("/photos"))} />
+            </Link>
           </div>
         </nav>
       </header>
