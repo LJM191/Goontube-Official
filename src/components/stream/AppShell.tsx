@@ -248,7 +248,7 @@ function UserMenu() {
 function OrientationIcon({ type }: { type: string }) {
   if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
   if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
-  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣</span>;
+  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣ ❤️</span>;
   if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
   if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
   if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
