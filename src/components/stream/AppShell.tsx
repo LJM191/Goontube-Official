@@ -366,9 +366,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
                       {dropdown.map((item) => {
-                        const itemTo = typeof item === "string" ? (label === "COMMUNAUTÉ" ? "/community" : "/explore") : item.to;
-                        const itemLabel = typeof item === "string" ? item : item.label;
-                        return <Link key={itemLabel} to={itemTo} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{itemLabel}</Link>;
+                        if (typeof item === "string") {
+                          const destination = label === "COMMUNAUTÉ" ? "/community" : "/explore";
+                          return (
+                            <Link key={item} to={destination} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
+                              {item}
+                            </Link>
+                          );
+                        }
+                        return (
+                          <Link key={item.label} to={item.to} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
+                            {item.label}
+                          </Link>
+                        );
                       })}
                     </div>
                   </div>
