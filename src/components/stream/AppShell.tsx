@@ -342,7 +342,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
-        <div className="relative flex min-h-24 items-center gap-3 px-4 sm:gap-8 sm:px-8 lg:px-10">
+        <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
           <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
             <SearchBar />
@@ -456,13 +456,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <main className="mx-auto w-full max-w-[1680px] min-w-0 px-4 pb-24 pt-8 sm:px-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
+        <main className="mx-auto w-full max-w-[1680px] min-w-0 px-3 pb-24 pt-4 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 py-2 lg:hidden">
+      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden">
         {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          return <Link key={to} to={to} className={`flex flex-col items-center gap-0.5 px-2 text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
+          return <Link key={to} to={to} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-medium transition-colors active:bg-frost ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
         })}
       </nav>
     </div>
