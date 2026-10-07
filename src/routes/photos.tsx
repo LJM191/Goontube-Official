@@ -40,7 +40,7 @@ function PhotosPage() {
   const { data: media, isLoading } = useQuery({
     queryKey: ["channel-media-all"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("channel_media").select("*,channel:channels!inner(handle,name)").order("created_at", { ascending: false }).limit(100);
+      const { data, error } = await (supabase as any).from("channel_media").select("*,channel:channels!inner(handle,name)").order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       return (data ?? []) as unknown as Media[];
     },
@@ -49,14 +49,14 @@ function PhotosPage() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !file) return;
-    const me = await supabase.from("channels").select("id").eq("owner_id", user.id).maybeSingle();
+    const me = await (supabase as any).from("channels").select("id").eq("owner_id", user.id).maybeSingle();
     if (me.error || !me.data) return toast.error("Créez d'abord votre chaîne.");
     if (!file.type.startsWith("image/")) return toast.error("Choisissez une image ou un GIF.");
     if (file.size > 25 * 1024 * 1024) return toast.error("25 Mo maximum.");
     setBusy(true);
     try {
       const path = await uploadMedia("photos", user.id, file, file.name.split(".").pop()?.toLowerCase() || "jpg");
-      const { error } = await supabase.from("channel_media").insert({ channel_id: me.data.id, owner_id: user.id, media_type: type, title: title.trim(), description: description.trim() || null, media_path: path });
+      const { error } = await (supabase as any).from("channel_media").insert({ channel_id: me.data.id, owner_id: user.id, media_type: type, title: title.trim(), description: description.trim() || null, media_path: path });
       if (error) throw error;
       setFile(null); setTitle(""); setDescription("");
       qc.invalidateQueries({ queryKey: ["channel-media-all"] });
@@ -65,7 +65,7 @@ function PhotosPage() {
   }
 
   async function remove(id: string) {
-    const { error } = await supabase.from("channel_media").delete().eq("id", id);
+    const { error } = await (supabase as any).from("channel_media").delete().eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["channel-media-all"] });
   }

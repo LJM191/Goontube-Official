@@ -28,7 +28,7 @@ function ForumPage() {
   const { data: forum, isLoading: forumLoading } = useQuery({
     queryKey: ["community-forum", slug],
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_forums").select("id,name,slug,description").eq("slug", slug).maybeSingle();
+      const { data, error } = await (supabase as any).from("community_forums").select("id,name,slug,description").eq("slug", slug).maybeSingle();
       if (error) throw error;
       return data as Forum | null;
     },
@@ -38,7 +38,7 @@ function ForumPage() {
     queryKey: ["community-threads", forum?.id],
     enabled: !!forum,
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_threads").select("*").eq("forum_id", forum!.id).order("is_pinned", { ascending: false }).order("updated_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("forum_id", forum!.id).order("is_pinned", { ascending: false }).order("updated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Thread[];
     },
@@ -48,7 +48,7 @@ function ForumPage() {
     e.preventDefault();
     if (!user || !forum || !title.trim() || !body.trim()) return;
     try {
-      const { data, error } = await supabase.from("community_threads").insert({ forum_id: forum.id, author_id: user.id, title: title.trim(), body: body.trim() }).select("id").single();
+      const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, author_id: user.id, title: title.trim(), body: body.trim() }).select("id").single();
       if (error) throw error;
       setTitle(""); setBody(""); setShowNew(false);
       qc.invalidateQueries({ queryKey: ["community-threads", forum.id] });

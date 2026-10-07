@@ -70,7 +70,7 @@ function LibraryPage() {
 
   const deletePlaylist = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("playlists").delete().eq("id", id).eq("user_id", user!.id);
+      const { error } = await (supabase as any).from("playlists").delete().eq("id", id).eq("user_id", user!.id);
       if (error) throw error;
     },
     onSuccess: () => {

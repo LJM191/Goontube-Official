@@ -25,7 +25,7 @@ function ThreadPage() {
   const { data: thread, isLoading } = useQuery({
     queryKey: ["community-thread", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_threads").select("*").eq("id", id).maybeSingle();
+      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as Thread | null;
     },
@@ -34,7 +34,7 @@ function ThreadPage() {
     queryKey: ["community-replies", id],
     enabled: !!thread,
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_replies").select("*").eq("thread_id", id).order("created_at");
+      const { data, error } = await (supabase as any).from("community_replies").select("*").eq("thread_id", id).order("created_at");
       if (error) throw error;
       return (data ?? []) as Reply[];
     },
@@ -43,7 +43,7 @@ function ThreadPage() {
     queryKey: ["community-forum-by-id", thread?.forum_id],
     enabled: !!thread,
     queryFn: async () => {
-      const { data, error } = await supabase.from("community_forums").select("name,slug").eq("id", thread!.forum_id).single();
+      const { data, error } = await (supabase as any).from("community_forums").select("name,slug").eq("id", thread!.forum_id).single();
       if (error) throw error;
       return data as { name: string; slug: string };
     },
@@ -52,7 +52,7 @@ function ThreadPage() {
   async function sendReply(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !thread || thread.is_locked || !reply.trim()) return;
-    const { error } = await supabase.from("community_replies").insert({ thread_id: id, author_id: user.id, body: reply.trim() });
+    const { error } = await (supabase as any).from("community_replies").insert({ thread_id: id, author_id: user.id, body: reply.trim() });
     if (error) return toast.error(error.message);
     setReply("");
     qc.invalidateQueries({ queryKey: ["community-replies", id] });

@@ -47,14 +47,14 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
     queryKey: key,
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("video_reactions").select("value").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
+      const { data } = await (supabase as any).from("video_reactions").select("value").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
       return data?.value ?? 0;
     },
   });
   const react = useMutation({
     mutationFn: async (value: 1 | -1) => {
-      if (mine === value) await supabase.from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
-      else await supabase.from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, value });
+      if (mine === value) await (supabase as any).from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
+      else await (supabase as any).from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, value });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
@@ -86,7 +86,7 @@ function SaveActions({ videoId }: { videoId: string }) {
     queryKey: ["playlists", user?.id],
     enabled: !!user && open,
     queryFn: async () => {
-      const { data, error } = await supabase.from("playlists").select("id,name").eq("user_id", user!.id).order("name");
+      const { data, error } = await (supabase as any).from("playlists").select("id,name").eq("user_id", user!.id).order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -94,7 +94,7 @@ function SaveActions({ videoId }: { videoId: string }) {
 
   const addToPlaylist = async (playlistId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
+    const { error } = await (supabase as any).from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
     if (error) toast.error(error.message);
     else toast.success("Vidéo ajoutée à la playlist");
     setOpen(false);
