@@ -227,9 +227,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
-          <div className="flex shrink-0 items-center lg:w-60">
-            <Logo />
-          </div>
+          <div className="flex shrink-0 items-center lg:w-60"><Logo /></div>
           <SearchBar />
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
@@ -265,9 +263,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
                       {dropdown.map((item) => (
-                        <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
-                          {item}
-                        </Link>
+                        <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">{item}</Link>
                       ))}
                     </div>
                   </div>
@@ -277,26 +273,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
       </header>
-    </div>
-  );
-}
+
       <div className="flex">
-        <aside className="glass-side sticky top-20 hidden h-[calc(100vh-5rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
+        <aside className="glass-side sticky top-36 hidden h-[calc(100vh-9rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
           <nav className="flex flex-col gap-1">
             {NAV.map(({ to, label, icon: Icon }) => {
               const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
               return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={
-                    active
-                      ? "flex items-center gap-3 rounded-xl bg-panel px-3 py-2.5 text-sm font-medium text-glow ring-1 ring-edge/30"
-                      : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70"
-                  }
-                >
-                  <Icon className={active ? "size-4 text-glow" : "size-4"} />
-                  {label}
+                <Link key={to} to={to}
+                  className={active
+                    ? "flex items-center gap-3 rounded-xl bg-panel px-3 py-2.5 text-sm font-medium text-glow ring-1 ring-edge/30"
+                    : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70"}>
+                  <Icon className={active ? "size-4 text-glow" : "size-4"} />{label}
                 </Link>
               );
             })}
@@ -305,9 +293,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="mt-auto rounded-2xl bg-panel/70 p-4 ring-1 ring-edge/40">
               <p className="text-sm font-medium">Rejoignez {APP_NAME}</p>
               <p className="mt-1 text-xs text-faint">Abonnez-vous, aimez et publiez vos vidéos.</p>
-              <Link to="/auth" className="mt-3 inline-block text-sm font-medium text-glow">
-                Se connecter →
-              </Link>
+              <Link to="/auth" className="mt-3 inline-block text-sm font-medium text-glow">Se connecter →</Link>
             </div>
           )}
         </aside>
@@ -315,23 +301,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">{children}</main>
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 py-2 lg:hidden">
-        {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(
-          ({ to, label, icon: Icon }) => {
-            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`flex flex-col items-center gap-0.5 px-2 text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}
-              >
-                <Icon className="size-5" />
-                {label}
-              </Link>
-            );
-          },
-        )}
+        {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(({ to, label, icon: Icon }) => {
+          const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+          return <Link key={to} to={to} className={`flex flex-col items-center gap-0.5 px-2 text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
+        })}
       </nav>
     </div>
   );
