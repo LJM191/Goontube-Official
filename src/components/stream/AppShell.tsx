@@ -219,7 +219,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
     { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
     { to: "/explore", label: "CRÉATEURS", dropdown: ["Créateurs populaires", "Nouveaux créateurs"] },
-    { to: "/subscriptions", label: "COMMUNAUTÉ", dropdown: ["Abonnements", "Chaînes"] },
+    { to: "/subscriptions", label: "COMMUNAUTÉ", dropdown: ["Découvrir la communauté", "Concours de créateurs", "Flux de la communauté", "Membres populaires", "Créateurs récents", "Créateurs populaires", "Membres en ligne", "Rechercher un membre", "Devenir contributeur"] },
     { to: "/explore", label: "PHOTOS ET GIFS" },
   ] as const;
 
