@@ -11,6 +11,7 @@ const AGES = [
   "18 à 25 ans",
   "26 à 49 ans",
   "50 à 127 ans",
+  "6-7 🙌",
 ];
 
 export function AgeWelcome() {
@@ -43,7 +44,7 @@ export function AgeWelcome() {
             <button
               key={age}
               onClick={() => setOpen(false)}
-              className="rounded-2xl bg-frost/70 px-3 py-3 text-sm font-medium ring-1 ring-edge/40 transition hover:bg-glow/15 hover:ring-glow/50"
+              className={`rounded-2xl bg-frost/70 px-3 py-3 text-sm font-medium ring-1 ring-edge/40 transition hover:bg-glow/15 hover:ring-glow/50 ${age === "6-7 🙌" ? "col-span-2 sm:col-span-3" : ""}`}
             >
               {age}
             </button>
