@@ -11,7 +11,6 @@ import {
   Search,
   Tv,
   User as UserIcon,
-  Heart,
   ChevronDown,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
@@ -213,34 +212,64 @@ function UserMenu() {
   );
 }
 
+function OrientationIcon({ type }: { type: string }) {
+  if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
+  if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
+  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣</span>;
+  if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
+  return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
+}
+
+const ORIENTATION_OPTIONS = [
+  { label: "Hétéro", slug: "orientation-hetero" },
+  { label: "Bi", slug: "orientation-bi" },
+  { label: "Gay", slug: "orientation-gay" },
+  { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
+  { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
+] as const;
+
 function OrientationMenu() {
   const [open, setOpen] = useState(false);
-  const options = ["Hétéro", "Bi", "Gay", "S'identifie comme un cheval", "S'identifie comme un pingouin"];
+  const [selected, setSelected] = useState("Hétéro");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("goontube-orientation");
+    if (saved && ORIENTATION_OPTIONS.some((option) => option.label === saved)) setSelected(saved);
+  }, []);
+
+  const choose = (option: (typeof ORIENTATION_OPTIONS)[number]) => {
+    setSelected(option.label);
+    localStorage.setItem("goontube-orientation", option.label);
+    setOpen(false);
+    window.location.href = `/explore?category=${encodeURIComponent(option.slug)}`;
+  };
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        aria-label="Orientation"
+        aria-label={`Catégorie ${selected}`}
+        title={selected}
         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"
       >
-        <Heart className="size-4" />
-        <span className="flex-1 text-left">Orientation</span>
+        <OrientationIcon type={selected} />
+        <span className="flex-1 truncate text-left">{selected}</span>
         <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="mt-1 rounded-xl bg-panel p-1.5 ring-1 ring-edge/60 shadow-xl">
-          {options.map((option) => (
+        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl bg-panel p-1.5 shadow-xl ring-1 ring-edge/60">
+          {ORIENTATION_OPTIONS.map((option) => (
             <button
-              key={option}
+              key={option.slug}
               type="button"
-              onClick={() => setOpen(false)}
-              className="flex w-full rounded-lg px-3 py-2 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
+              onClick={() => choose(option)}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
             >
-              {option}
+              <OrientationIcon type={option.label} />
+              <span>{option.label}</span>
             </button>
           ))}
         </div>
@@ -278,7 +307,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3">
+        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-start gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">\n          <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
           {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? (navItem.dropdown as readonly string[]) : undefined;
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
