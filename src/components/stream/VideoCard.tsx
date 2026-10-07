@@ -79,7 +79,7 @@ export function VideoGrid({
 }) {
   if (loading)
     return (
-      <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i}>
             <Skeleton className="aspect-video w-full rounded-lg bg-frost" />
@@ -96,7 +96,7 @@ export function VideoGrid({
     );
   if (!videos?.length) return <>{empty}</>;
   return (
-    <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {videos.map((v) => (
         <VideoCard key={v.id} video={v} />
       ))}
