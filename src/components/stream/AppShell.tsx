@@ -60,9 +60,15 @@ function SearchBar() {
   }, []);
 
   const term = q.trim();
+  const [debouncedTerm, setDebouncedTerm] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedTerm(term), 250);
+    return () => window.clearTimeout(timer);
+  }, [term]);
+
   const { data: suggestions, isFetching } = useQuery({
-    queryKey: ["search-suggestions", term],
-    enabled: term.length >= 2,
+    queryKey: ["search-suggestions", debouncedTerm],
+    enabled: debouncedTerm.length >= 2,
     staleTime: 15_000,
     queryFn: async () => {
       const [videos, channels] = await Promise.all([
@@ -70,13 +76,13 @@ function SearchBar() {
           .from("videos")
           .select("id,title,thumbnail_path,view_count,channel:channels!inner(handle,name,avatar_path)")
           .eq("visibility", "public")
-          .or("title.ilike.%" + term + "%,description.ilike.%" + term + "%")
+          .or("title.ilike.%" + debouncedTerm + "%,description.ilike.%" + debouncedTerm + "%")
           .order("view_count", { ascending: false })
           .limit(5),
         supabase
           .from("channels")
           .select("id,handle,name,avatar_path,subscriber_count,verified")
-          .or("name.ilike.%" + term + "%,handle.ilike.%" + term + "%")
+          .or("name.ilike.%" + debouncedTerm + "%,handle.ilike.%" + debouncedTerm + "%")
           .order("subscriber_count", { ascending: false })
           .limit(4),
       ]);
