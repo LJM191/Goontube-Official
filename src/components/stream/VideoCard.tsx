@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { Play } from "lucide-react";
 import { useMediaUrl } from "@/lib/media";
 import { formatDuration, formatViews, timeAgo } from "@/lib/format";
@@ -75,7 +76,7 @@ export function VideoGrid({
 }: {
   videos: VideoCardData[] | undefined;
   loading?: boolean;
-  empty?: React.ReactNode;
+  empty?: ReactNode;
 }) {
   if (loading)
     return (
