@@ -342,7 +342,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <UserMenu />
           </div>
-          </div>
         </div>
         <div className="px-3 pb-3 md:hidden">
           <SearchBar />
