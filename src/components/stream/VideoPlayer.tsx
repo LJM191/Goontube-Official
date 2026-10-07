@@ -131,6 +131,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
         poster={poster ?? undefined}
         autoPlay={autoPlay}
         playsInline
+        preload="metadata"
         className="size-full touch-manipulation object-contain"
         onClick={togglePlay}
       />
