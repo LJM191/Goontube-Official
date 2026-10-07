@@ -19,13 +19,13 @@ export async function fetchFeed(opts: { categoryId?: number | null; order?: "rec
   let q = supabase.from("videos").select(VIDEO_SELECT).eq("visibility", "public");
   if (opts.categoryId) q = q.eq("category_id", opts.categoryId);
   q = opts.order === "popular" ? q.order("view_count", { ascending: false }) : q.order("created_at", { ascending: false });
-  const { data, error } = await q.limit(opts.limit ?? 48);
+  const { data, error } = await q.limit(opts.limit ?? 36);
   if (error) throw error;
   return (data ?? []) as unknown as VideoCardData[];
 }
 
 export async function fetchCategories() {
-  const { data, error } = await supabase.from("categories").select("*").order("id");
+  const { data, error } = await supabase.from("categories").select("id,name,slug").order("id");
   if (error) throw error;
   return data ?? [];
 }
