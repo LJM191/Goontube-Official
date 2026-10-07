@@ -103,7 +103,7 @@ function Upload() {
 
   async function publish(e: React.FormEvent) {
     e.preventDefault();
-    if (!file || !me?.channel) return;
+    if (!file || !me?.channel) return;\n    if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
     try {
       setStep("Envoi de la vidéo…");
       const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
@@ -168,9 +168,9 @@ function Upload() {
                   id="cat"
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  className="h-9 w-full rounded-md border border-input bg-panel px-3 text-sm"
                 >
-                  <option value="">Aucune</option>
+                  <option value="">Choisir une catégorie…</option>
                   {categories?.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -211,7 +211,7 @@ function Upload() {
               <input type="file" accept="image/*" className="hidden" onChange={(e) => setThumb(e.target.files?.[0] ?? null)} />
             </label>
             <button
-              disabled={!!step || !me?.channel}
+              disabled={!!step || !me?.channel || !categoryId}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-glow py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-glow/90 disabled:opacity-60"
             >
               {step ? <><Loader2 className="size-4 animate-spin" /> {step}</> : "Publier"}
