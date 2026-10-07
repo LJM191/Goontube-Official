@@ -11,6 +11,8 @@ import {
   Search,
   Tv,
   User as UserIcon,
+  Heart,
+  ChevronDown,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
 import { Button } from "@/components/ui/button";
@@ -211,11 +213,46 @@ function UserMenu() {
   );
 }
 
+function OrientationMenu() {
+  const [open, setOpen] = useState(false);
+  const options = ["Hétéro", "Bi", "Gay", "S'identifie comme un cheval", "S'identifie comme un pingouin"];
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-label="Orientation"
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"
+      >
+        <Heart className="size-4" />
+        <span className="flex-1 text-left">Orientation</span>
+        <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="mt-1 rounded-xl bg-panel p-1.5 ring-1 ring-edge/60 shadow-xl">
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex w-full rounded-lg px-3 py-2 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const topNav = [
-    { to: "/gay", label: "GAY" },
     { to: "/", label: "ACCUEIL" },
     { to: "/search", label: "VIDÉOS", dropdown: ["Toutes les vidéos", "Vidéos récentes", "Vidéos populaires"] },
     { to: "/explore", label: "CATÉGORIES", dropdown: ["Gaming", "Musique", "Sport", "Technologie"] },
@@ -269,11 +306,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </div>
                   </div>
                 )}
-                {label === "GAY" && (
-                  <span className="flex items-center whitespace-nowrap px-2 text-sm font-medium text-muted-foreground">
-                    s'identifie comme un cheval
-                  </span>
-                )}
+
               </div>
             );
           })}
@@ -283,6 +316,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex">
         <aside className="glass-side sticky top-36 hidden h-[calc(100vh-9rem)] w-60 shrink-0 flex-col gap-1 border-r border-edge/60 p-3 lg:flex">
           <nav className="flex flex-col gap-1">
+            <OrientationMenu />
             {NAV.map(({ to, label, icon: Icon }) => {
               const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
               return (
