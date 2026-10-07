@@ -1,26 +1,18 @@
 # GoonTube
 
-Implement exactly the screenshot and nothing else
+Plateforme de partage de vidéos construite avec React, TanStack Start, Supabase et Netlify.
 
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://goontube.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7493607f-cb0e-408d-b304-cad31ff21b00).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Développement
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
 npm i
 npm run dev
+```
+
+## Build
+
+```sh
+npm run build
 ```
