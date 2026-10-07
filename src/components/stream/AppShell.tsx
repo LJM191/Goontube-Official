@@ -158,7 +158,7 @@ function SearchBar() {
                     <X className="size-4" />
                   </button>
                 </div>
-              ))
+              ))}
             </div>
           )}
           {term.length >= 2 && isFetching && <p className="px-3 py-4 text-sm text-muted-foreground">Recherche…</p>}
