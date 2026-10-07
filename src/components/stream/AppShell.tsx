@@ -358,6 +358,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
+        <div className="px-3 pb-3 md:hidden">
+          <SearchBar />
+        </div>
+
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
           <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
             <OrientationMenu />
