@@ -147,53 +147,6 @@ export type Database = {
         }
         Relationships: []
       }
-      playlists: {
-        Row: { id: string; user_id: string; name: string; description: string | null; is_public: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; user_id: string; name: string; description?: string | null; is_public?: boolean; created_at?: string; updated_at?: string }
-        Update: { id?: string; user_id?: string; name?: string; description?: string | null; is_public?: boolean; created_at?: string; updated_at?: string }
-        Relationships: []
-      }
-      playlist_items: {
-        Row: { playlist_id: string; video_id: string; position: number; added_at: string }
-        Insert: { playlist_id: string; video_id: string; position?: number; added_at?: string }
-        Update: { playlist_id?: string; video_id?: string; position?: number; added_at?: string }
-        Relationships: [
-          { foreignKeyName: "playlist_items_playlist_id_fkey"; columns: ["playlist_id"]; isOneToOne: false; referencedRelation: "playlists"; referencedColumns: ["id"] },
-          { foreignKeyName: "playlist_items_video_id_fkey"; columns: ["video_id"]; isOneToOne: false; referencedRelation: "videos"; referencedColumns: ["id"] }
-        ]
-      }
-      gems: {
-        Row: { user_id: string; video_id: string; created_at: string }
-        Insert: { user_id: string; video_id: string; created_at?: string }
-        Update: { user_id?: string; video_id?: string; created_at?: string }
-        Relationships: [
-          { foreignKeyName: "gems_video_id_fkey"; columns: ["video_id"]; isOneToOne: false; referencedRelation: "videos"; referencedColumns: ["id"] }
-        ]
-      }
-      community_forums: {
-        Row: { id: string; owner_id: string; name: string; slug: string; description: string | null; is_public: boolean; created_at: string }
-        Insert: { id?: string; owner_id: string; name: string; slug: string; description?: string | null; is_public?: boolean; created_at?: string }
-        Update: { id?: string; owner_id?: string; name?: string; slug?: string; description?: string | null; is_public?: boolean; created_at?: string }
-        Relationships: []
-      }
-      community_threads: {
-        Row: { id: string; forum_id: string; author_id: string; title: string; body: string; is_pinned: boolean; is_locked: boolean; view_count: number; created_at: string; updated_at: string }
-        Insert: { id?: string; forum_id: string; author_id: string; title: string; body: string; is_pinned?: boolean; is_locked?: boolean; view_count?: number; created_at?: string; updated_at?: string }
-        Update: { id?: string; forum_id?: string; author_id?: string; title?: string; body?: string; is_pinned?: boolean; is_locked?: boolean; view_count?: number; created_at?: string; updated_at?: string }
-        Relationships: []
-      }
-      community_replies: {
-        Row: { id: string; thread_id: string; author_id: string; body: string; created_at: string; updated_at: string }
-        Insert: { id?: string; thread_id: string; author_id: string; body: string; created_at?: string; updated_at?: string }
-        Update: { id?: string; thread_id?: string; author_id?: string; body?: string; created_at?: string; updated_at?: string }
-        Relationships: []
-      }
-      channel_media: {
-        Row: { id: string; channel_id: string; owner_id: string; media_type: "photo" | "gif"; title: string; description: string | null; media_path: string; created_at: string }
-        Insert: { id?: string; channel_id: string; owner_id: string; media_type: "photo" | "gif"; title?: string; description?: string | null; media_path: string; created_at?: string }
-        Update: { id?: string; channel_id?: string; owner_id?: string; media_type?: "photo" | "gif"; title?: string; description?: string | null; media_path?: string; created_at?: string }
-        Relationships: []
-      }
       subscriptions: {
         Row: {
           channel_id: string
@@ -380,7 +333,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_view: { Args: { _video_id: string }; Returns: number }
+      increment_view: { Args: { _video_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
