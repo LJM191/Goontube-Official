@@ -45,7 +45,7 @@ function LibraryPage() {
         .order("position", { ascending: true })
         .order("added_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => r.video) as unknown as VideoCardData[];
+      return (data ?? []).map((r: any) => r.video) as unknown as VideoCardData[];
     },
   });
 
@@ -79,7 +79,7 @@ function LibraryPage() {
     },
   });
 
-  const selectedPlaylist = playlists?.find((p) => p.id === selected);
+  const selectedPlaylist = playlists?.find((p: any) => p.id === selected);
 
   return (
     <>
@@ -115,7 +115,7 @@ function LibraryPage() {
 
       {(playlists ?? []).length > 0 ? (
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(playlists ?? []).map((playlist) => (
+          {(playlists ?? []).map((playlist: any) => (
             <div key={playlist.id} className="rounded-2xl bg-panel/70 p-4 ring-1 ring-edge/40">
               <button onClick={() => setSelected(playlist.id)} className="w-full text-left">
                 <div className="mb-3 grid size-11 place-items-center rounded-xl bg-frost">

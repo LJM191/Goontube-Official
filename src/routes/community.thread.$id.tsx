@@ -49,7 +49,7 @@ function ThreadPage() {
     },
   });
 
-  async function sendReply(e: React.FormEvent): Promise<void> {
+  async function sendReply(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
     if (!user || !thread || thread.is_locked || !reply.trim()) return;
     const { error } = await (supabase as any).from("community_replies").insert({ thread_id: id, author_id: user.id, body: reply.trim() });
