@@ -367,9 +367,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
                       {dropdown.map((item) => {
                         if (typeof item === "string") {
-                          const destination = label === "COMMUNAUTÉ" ? "/community" : "/explore";
+                          if (label === "COMMUNAUTÉ") {
+                            return (
+                              <Link key={item} to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
+                                {item}
+                              </Link>
+                            );
+                          }
                           return (
-                            <Link key={item} to={destination} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
+                            <Link key={item} to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
                               {item}
                             </Link>
                           );
