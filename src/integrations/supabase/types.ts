@@ -32,6 +32,47 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_media: {
+        Row: {
+          channel_id: string
+          created_at: string
+          description: string | null
+          id: string
+          media_path: string
+          media_type: string
+          owner_id: string
+          title: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          media_path: string
+          media_type?: string
+          owner_id: string
+          title: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          media_path?: string
+          media_type?: string
+          owner_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_media_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channels: {
         Row: {
           avatar_path: string | null
@@ -119,6 +160,184 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      community_forums: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          owner_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          owner_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          owner_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_replies: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          thread_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          thread_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_replies_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "community_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_threads: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          forum_id: string
+          id: string
+          is_locked: boolean
+          is_pinned: boolean
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          forum_id: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          forum_id?: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_threads_forum_id_fkey"
+            columns: ["forum_id"]
+            isOneToOne: false
+            referencedRelation: "community_forums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlist_items: {
+        Row: {
+          added_at: string
+          playlist_id: string
+          position: number
+          video_id: string
+        }
+        Insert: {
+          added_at?: string
+          playlist_id: string
+          position?: number
+          video_id: string
+        }
+        Update: {
+          added_at?: string
+          playlist_id?: string
+          position?: number
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_items_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_items_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -333,7 +552,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_view: { Args: { _video_id: string }; Returns: undefined }
+      increment_view: { Args: { _video_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
