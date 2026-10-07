@@ -170,6 +170,30 @@ export type Database = {
           { foreignKeyName: "gems_video_id_fkey"; columns: ["video_id"]; isOneToOne: false; referencedRelation: "videos"; referencedColumns: ["id"] }
         ]
       }
+      community_forums: {
+        Row: { id: string; owner_id: string; name: string; slug: string; description: string | null; is_public: boolean; created_at: string }
+        Insert: { id?: string; owner_id: string; name: string; slug: string; description?: string | null; is_public?: boolean; created_at?: string }
+        Update: { id?: string; owner_id?: string; name?: string; slug?: string; description?: string | null; is_public?: boolean; created_at?: string }
+        Relationships: []
+      }
+      community_threads: {
+        Row: { id: string; forum_id: string; author_id: string; title: string; body: string; is_pinned: boolean; is_locked: boolean; view_count: number; created_at: string; updated_at: string }
+        Insert: { id?: string; forum_id: string; author_id: string; title: string; body: string; is_pinned?: boolean; is_locked?: boolean; view_count?: number; created_at?: string; updated_at?: string }
+        Update: { id?: string; forum_id?: string; author_id?: string; title?: string; body?: string; is_pinned?: boolean; is_locked?: boolean; view_count?: number; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      community_replies: {
+        Row: { id: string; thread_id: string; author_id: string; body: string; created_at: string; updated_at: string }
+        Insert: { id?: string; thread_id: string; author_id: string; body: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; thread_id?: string; author_id?: string; body?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      channel_media: {
+        Row: { id: string; channel_id: string; owner_id: string; media_type: "photo" | "gif"; title: string; description: string | null; media_path: string; created_at: string }
+        Insert: { id?: string; channel_id: string; owner_id: string; media_type: "photo" | "gif"; title?: string; description?: string | null; media_path: string; created_at?: string }
+        Update: { id?: string; channel_id?: string; owner_id?: string; media_type?: "photo" | "gif"; title?: string; description?: string | null; media_path?: string; created_at?: string }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           channel_id: string
