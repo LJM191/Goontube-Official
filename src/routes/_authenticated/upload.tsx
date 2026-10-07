@@ -103,7 +103,8 @@ function Upload() {
 
   async function publish(e: React.FormEvent) {
     e.preventDefault();
-    if (!file || !me?.channel) return;\n    if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
+    if (!file || !me?.channel) return;
+    if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
     try {
       setStep("Envoi de la vidéo…");
       const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
