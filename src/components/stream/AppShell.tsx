@@ -307,7 +307,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-start gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">\n          <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
+        <nav aria-label="Navigation principale" className="hidden h-16 items-stretch justify-start gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
+          <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
           {topNav.map((navItem) => { const { to, label } = navItem; const dropdown = "dropdown" in navItem ? (navItem.dropdown as readonly string[]) : undefined;
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
