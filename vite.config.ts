@@ -5,6 +5,8 @@ import viteReact from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  css: { transformer: "postcss" },
+  build: { cssMinify: "esbuild" },
   plugins: [
     tanstackStart(),
     netlify(),
