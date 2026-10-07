@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Bucket = "videos" | "thumbnails" | "avatars";
+export type Bucket = "videos" | "thumbnails" | "avatars" | "photos";
 
 const TTL = 60 * 60; // seconds
 
