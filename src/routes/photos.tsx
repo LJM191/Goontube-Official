@@ -46,13 +46,13 @@ function PhotosPage() {
     },
   });
 
-  async function publish(e: React.FormEvent): Promise<unknown> {
+  async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !file) return;
     const me = await (supabase as any).from("channels").select("id").eq("owner_id", user.id).maybeSingle();
-    if (me.error || !me.data) return toast.error("Créez d'abord votre chaîne.");
-    if (!file.type.startsWith("image/")) return toast.error("Choisissez une image ou un GIF.");
-    if (file.size > 25 * 1024 * 1024) return toast.error("25 Mo maximum.");
+    if (me.error || !me.data) { toast.error("Créez d'abord votre chaîne."); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Choisissez une image ou un GIF."); return; }
+    if (file.size > 25 * 1024 * 1024) { toast.error("25 Mo maximum."); return; }
     setBusy(true);
     try {
       const path = await uploadMedia("photos", user.id, file, file.name.split(".").pop()?.toLowerCase() || "jpg");
@@ -66,7 +66,7 @@ function PhotosPage() {
 
   async function remove(id: string) {
     const { error } = await (supabase as any).from("channel_media").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["channel-media-all"] });
   }
 

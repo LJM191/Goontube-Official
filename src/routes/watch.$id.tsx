@@ -103,7 +103,7 @@ function SaveActions({ videoId }: { videoId: string }) {
 
   const createPlaylist = async () => {
     if (!user || !name.trim()) return;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("playlists")
       .insert({ user_id: user.id, name: name.trim() })
       .select("id")
@@ -131,7 +131,7 @@ function SaveActions({ videoId }: { videoId: string }) {
       {open && (
         <div className="absolute right-0 top-11 z-40 w-72 rounded-2xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
           <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Enregistrer dans une playlist</p>
-          {(playlists ?? []).map((playlist) => (
+          {(playlists ?? []).map((playlist: any) => (
             <button key={playlist.id} onClick={() => addToPlaylist(playlist.id)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm hover:bg-frost">
               <ListPlus className="size-4" /> {playlist.name}
             </button>
@@ -190,7 +190,7 @@ function Watch() {
   const { data: video, isLoading } = useQuery({
     queryKey: ["video", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("videos")
         .select("*, channel:channels(id,owner_id,handle,name,avatar_path,verified,subscriber_count)")
         .eq("id", id)
