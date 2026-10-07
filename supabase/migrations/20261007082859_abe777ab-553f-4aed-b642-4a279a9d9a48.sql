@@ -26,13 +26,13 @@ create trigger sync_handle after update of username on public.profiles for each 
 
 create or replace function public.update_updated_at_column() returns trigger language plpgsql set search_path = public as $$ begin new.updated_at = now(); return new; end $$;
 
-create table public.playlists (id uuid primary key default gen_random_uuid(), user_id uuid not null, name text not null check (char_length(name) between 1 and 100), description text, is_public boolean not null default false, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table if not exists public.playlists (id uuid primary key default gen_random_uuid(), user_id uuid not null, name text not null check (char_length(name) between 1 and 100), description text, is_public boolean not null default false, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
 grant select, insert, update, delete on public.playlists to authenticated; grant all on public.playlists to service_role;
 alter table public.playlists enable row level security;
 create policy "own playlists" on public.playlists for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create trigger playlists_updated before update on public.playlists for each row execute function public.update_updated_at_column();
 
-create table public.playlist_items (playlist_id uuid not null references public.playlists(id) on delete cascade, video_id uuid not null references public.videos(id) on delete cascade, position integer not null default 0, added_at timestamptz not null default now(), primary key (playlist_id, video_id));
+create table if not exists public.playlist_items (playlist_id uuid not null references public.playlists(id) on delete cascade, video_id uuid not null references public.videos(id) on delete cascade, position integer not null default 0, added_at timestamptz not null default now(), primary key (playlist_id, video_id));
 grant select, insert, update, delete on public.playlist_items to authenticated; grant all on public.playlist_items to service_role;
 alter table public.playlist_items enable row level security;
 create policy "own playlist items" on public.playlist_items for all to authenticated
