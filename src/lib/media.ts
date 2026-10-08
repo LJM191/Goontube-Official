@@ -3,13 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Bucket = "videos" | "thumbnails" | "avatars" | "photos";
 
+const PUBLIC_BUCKETS = new Set<Bucket>(["thumbnails", "avatars"]);
 const TTL = 60 * 60; // seconds
 
-/** Resolve a private storage path to a short-lived signed URL. */
+/** Resolve public assets directly through the CDN and private assets through a short-lived signed URL. */
 export function useMediaUrl(bucket: Bucket, path: string | null | undefined) {
+  const publicUrl =
+    path && PUBLIC_BUCKETS.has(bucket)
+      ? supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+      : null;
+
   const { data } = useQuery({
     queryKey: ["media", bucket, path],
-    enabled: !!path,
+    enabled: !!path && !publicUrl,
     staleTime: (TTL - 300) * 1000,
     gcTime: (TTL - 300) * 1000,
     queryFn: async () => {
@@ -18,13 +24,15 @@ export function useMediaUrl(bucket: Bucket, path: string | null | undefined) {
       return data.signedUrl;
     },
   });
-  return data ?? null;
+
+  return publicUrl ?? data ?? null;
 }
 
 export async function uploadMedia(bucket: Bucket, userId: string, file: Blob, ext: string) {
-  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+  const path = `${userId}/${crypto.randomUUID()}.${safeExt}`;
   const { error } = await supabase.storage.from(bucket).upload(path, file, {
-    cacheControl: "3600",
+    cacheControl: "31536000",
     upsert: false,
   });
   if (error) throw error;

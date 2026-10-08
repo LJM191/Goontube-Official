@@ -21,6 +21,7 @@ import { useAuth, useMe } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ChannelAvatar } from "./ChannelAvatar";
+import { SiteFooter } from "./SiteFooter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,9 +60,15 @@ function SearchBar() {
   }, []);
 
   const term = q.trim();
+  const [debouncedTerm, setDebouncedTerm] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedTerm(term), 250);
+    return () => window.clearTimeout(timer);
+  }, [term]);
+
   const { data: suggestions, isFetching } = useQuery({
-    queryKey: ["search-suggestions", term],
-    enabled: term.length >= 2,
+    queryKey: ["search-suggestions", debouncedTerm],
+    enabled: debouncedTerm.length >= 2,
     staleTime: 15_000,
     queryFn: async () => {
       const [videos, channels] = await Promise.all([
@@ -69,13 +76,13 @@ function SearchBar() {
           .from("videos")
           .select("id,title,thumbnail_path,view_count,channel:channels!inner(handle,name,avatar_path)")
           .eq("visibility", "public")
-          .or("title.ilike.%" + term + "%,description.ilike.%" + term + "%")
+          .or("title.ilike.%" + debouncedTerm + "%,description.ilike.%" + debouncedTerm + "%")
           .order("view_count", { ascending: false })
           .limit(5),
         supabase
           .from("channels")
           .select("id,handle,name,avatar_path,subscriber_count,verified")
-          .or("name.ilike.%" + term + "%,handle.ilike.%" + term + "%")
+          .or("name.ilike.%" + debouncedTerm + "%,handle.ilike.%" + debouncedTerm + "%")
           .order("subscriber_count", { ascending: false })
           .limit(4),
       ]);
@@ -247,8 +254,19 @@ function UserMenu() {
 function OrientationIcon({ type }: { type: string }) {
   if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
   if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
-  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣</span>;
+  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣ ❤️</span>;
   if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
+  if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
+  if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
+  if (type === "Pansexuel") {
+    return (
+      <span aria-hidden="true" className="flex w-5 flex-col gap-px overflow-hidden rounded-sm">
+        <span className="h-1 bg-pink-500" />
+        <span className="h-1 bg-yellow-300" />
+        <span className="h-1 bg-cyan-400" />
+      </span>
+    );
+  }
   return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
 }
 
@@ -258,6 +276,9 @@ const ORIENTATION_OPTIONS = [
   { label: "Gay", slug: "orientation-gay" },
   { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
   { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
+  { label: "S'identifie comme un chien", slug: "orientation-chien" },
+  { label: "S'identifie comme un chat", slug: "orientation-chat" },
+  { label: "Pansexuel", slug: "orientation-pansexuel" },
 ] as const;
 
 function OrientationMenu() {
@@ -327,8 +348,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
-        <div className="relative flex min-h-20 items-center gap-3 px-3 sm:gap-7 sm:px-6 lg:px-8">
-          <div className="flex shrink-0 items-center lg:w-60"><Logo /></div>
+        <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
+          <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
           <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
             <SearchBar />
           </div>
@@ -341,6 +362,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
             <UserMenu />
           </div>
+        </div>
+
+        <div className="px-3 pb-3 md:hidden">
+          <SearchBar />
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
@@ -441,13 +466,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <main className="mx-auto w-full max-w-[1500px] min-w-0 px-4 pb-24 pt-6 sm:px-8 lg:pb-10">{children}</main>
+        <main className="mx-auto w-full max-w-[1680px] min-w-0 px-3 pb-24 pt-4 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 py-2 lg:hidden">
+      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden">
         {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          return <Link key={to} to={to} className={`flex flex-col items-center gap-0.5 px-2 text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
+          return <Link key={to} to={to} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-medium transition-colors active:bg-frost ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
         })}
       </nav>
     </div>

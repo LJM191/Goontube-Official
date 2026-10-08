@@ -17,7 +17,9 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
             src={url}
             alt={video.title}
             loading="lazy"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            loading="lazy"
+            decoding="async"
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="grid size-full place-items-center text-faint">
@@ -40,7 +42,7 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
 
 export function VideoCard({ video }: { video: VideoCardData }) {
   return (
-    <article className="group animate-in fade-in duration-500">
+    <article className="group">
       <Link to="/watch/$id" params={{ id: video.id }} className="block">
         <Thumbnail video={video} />
       </Link>

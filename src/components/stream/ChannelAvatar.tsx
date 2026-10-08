@@ -19,7 +19,7 @@ export function ChannelAvatar({
         className,
       )}
     >
-      {url ? <img src={url} alt={name} className="size-full object-cover" /> : initials(name) || "?"}
+      {url ? <img src={url} alt={name} loading="lazy" decoding="async" className="size-full object-cover" /> : initials(name) || "?"}
     </div>
   );
 }

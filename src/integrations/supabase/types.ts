@@ -16,17 +16,20 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
-          id: number
+          created_at: string
+          id: string
           name: string
           slug: string
         }
         Insert: {
-          id?: number
+          created_at?: string
+          id?: string
           name: string
           slug: string
         }
         Update: {
-          id?: number
+          created_at?: string
+          id?: string
           name?: string
           slug?: string
         }
@@ -36,32 +39,26 @@ export type Database = {
         Row: {
           channel_id: string
           created_at: string
-          description: string | null
           id: string
-          media_path: string
           media_type: string
-          owner_id: string
-          title: string
+          title: string | null
+          url: string
         }
         Insert: {
           channel_id: string
           created_at?: string
-          description?: string | null
           id?: string
-          media_path: string
-          media_type?: string
-          owner_id: string
-          title: string
+          media_type: string
+          title?: string | null
+          url: string
         }
         Update: {
           channel_id?: string
           created_at?: string
-          description?: string | null
           id?: string
-          media_path?: string
           media_type?: string
-          owner_id?: string
-          title?: string
+          title?: string | null
+          url?: string
         }
         Relationships: [
           {
@@ -75,65 +72,74 @@ export type Database = {
       }
       channels: {
         Row: {
-          avatar_path: string | null
-          banner_path: string | null
+          avatar_url: string | null
+          banner_url: string | null
           created_at: string
-          description: string | null
+          description: string
           handle: string
           id: string
           name: string
-          owner_id: string
           subscriber_count: number
-          verified: boolean
+          updated_at: string
+          user_id: string
+          video_count: number
         }
         Insert: {
-          avatar_path?: string | null
-          banner_path?: string | null
+          avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
-          description?: string | null
+          description?: string
           handle: string
           id?: string
           name: string
-          owner_id: string
           subscriber_count?: number
-          verified?: boolean
+          updated_at?: string
+          user_id: string
+          video_count?: number
         }
         Update: {
-          avatar_path?: string | null
-          banner_path?: string | null
+          avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
-          description?: string | null
+          description?: string
           handle?: string
           id?: string
           name?: string
-          owner_id?: string
           subscriber_count?: number
-          verified?: boolean
+          updated_at?: string
+          user_id?: string
+          video_count?: number
         }
         Relationships: []
       }
       comments: {
         Row: {
-          body: string
+          content: string
           created_at: string
           id: string
+          like_count: number
           parent_id: string | null
+          updated_at: string
           user_id: string
           video_id: string
         }
         Insert: {
-          body: string
+          content: string
           created_at?: string
           id?: string
+          like_count?: number
           parent_id?: string | null
+          updated_at?: string
           user_id: string
           video_id: string
         }
         Update: {
-          body?: string
+          content?: string
           created_at?: string
           id?: string
+          like_count?: number
           parent_id?: string | null
+          updated_at?: string
           user_id?: string
           video_id?: string
         }
@@ -143,13 +149,6 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -164,57 +163,51 @@ export type Database = {
       community_forums: {
         Row: {
           created_at: string
-          description: string | null
+          description: string
           id: string
-          is_public: boolean
           name: string
-          owner_id: string
           slug: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
-          is_public?: boolean
           name: string
-          owner_id: string
           slug: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
-          is_public?: boolean
           name?: string
-          owner_id?: string
           slug?: string
-          updated_at?: string
         }
         Relationships: []
       }
       community_replies: {
         Row: {
-          author_id: string
-          body: string
+          content: string
           created_at: string
           id: string
           thread_id: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          author_id: string
-          body: string
+          content: string
           created_at?: string
           id?: string
           thread_id: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          author_id?: string
-          body?: string
+          content?: string
           created_at?: string
           id?: string
           thread_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -228,40 +221,31 @@ export type Database = {
       }
       community_threads: {
         Row: {
-          author_id: string
-          body: string
+          content: string
           created_at: string
           forum_id: string
           id: string
-          is_locked: boolean
-          is_pinned: boolean
           title: string
           updated_at: string
-          view_count: number
+          user_id: string
         }
         Insert: {
-          author_id: string
-          body: string
+          content: string
           created_at?: string
           forum_id: string
           id?: string
-          is_locked?: boolean
-          is_pinned?: boolean
           title: string
           updated_at?: string
-          view_count?: number
+          user_id: string
         }
         Update: {
-          author_id?: string
-          body?: string
+          content?: string
           created_at?: string
           forum_id?: string
           id?: string
-          is_locked?: boolean
-          is_pinned?: boolean
           title?: string
           updated_at?: string
-          view_count?: number
+          user_id?: string
         }
         Relationships: [
           {
@@ -269,6 +253,64 @@ export type Database = {
             columns: ["forum_id"]
             isOneToOne: false
             referencedRelation: "community_forums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          channel_id: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          read_at: string | null
+          type: string
+          user_id: string
+          video_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          channel_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          type: string
+          user_id: string
+          video_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          channel_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          type?: string
+          user_id?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
             referencedColumns: ["id"]
           },
         ]
@@ -312,7 +354,7 @@ export type Database = {
       playlists: {
         Row: {
           created_at: string
-          description: string | null
+          description: string
           id: string
           is_public: boolean
           name: string
@@ -321,7 +363,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
           is_public?: boolean
           name: string
@@ -330,7 +372,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          description?: string | null
+          description?: string
           id?: string
           is_public?: boolean
           name?: string
@@ -341,46 +383,106 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_path: string | null
-          bio: string | null
+          avatar: string | null
+          bio: string
           created_at: string
-          display_name: string
-          id: string
-          username: string
+          email: string | null
+          profile_photo: string | null
+          pseudo: string | null
+          school_level: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          avatar_path?: string | null
-          bio?: string | null
+          avatar?: string | null
+          bio?: string
           created_at?: string
-          display_name: string
-          id: string
-          username: string
+          email?: string | null
+          profile_photo?: string | null
+          pseudo?: string | null
+          school_level?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          avatar_path?: string | null
-          bio?: string | null
+          avatar?: string | null
+          bio?: string
           created_at?: string
-          display_name?: string
-          id?: string
-          username?: string
+          email?: string | null
+          profile_photo?: string | null
+          pseudo?: string | null
+          school_level?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          details: string
+          id: string
+          reason: string
+          reporter_id: string
+          status: string
+          updated_at: string
+          video_id: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          reason: string
+          reporter_id: string
+          status?: string
+          updated_at?: string
+          video_id?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+          updated_at?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
           channel_id: string
           created_at: string
-          subscriber_id: string
+          user_id: string
         }
         Insert: {
           channel_id: string
           created_at?: string
-          subscriber_id: string
+          user_id: string
         }
         Update: {
           channel_id?: string
           created_at?: string
-          subscriber_id?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -394,17 +496,17 @@ export type Database = {
       }
       user_roles: {
         Row: {
-          id: string
+          created_at: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          id?: string
+          created_at?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -413,20 +515,20 @@ export type Database = {
       video_reactions: {
         Row: {
           created_at: string
+          reaction: string
           user_id: string
-          value: number
           video_id: string
         }
         Insert: {
           created_at?: string
+          reaction: string
           user_id: string
-          value: number
           video_id: string
         }
         Update: {
           created_at?: string
+          reaction?: string
           user_id?: string
-          value?: number
           video_id?: string
         }
         Relationships: [
@@ -441,59 +543,56 @@ export type Database = {
       }
       videos: {
         Row: {
-          category_id: number | null
+          category_id: string | null
           channel_id: string
           comment_count: number
           created_at: string
-          description: string | null
+          description: string
           dislike_count: number
-          duration_seconds: number
+          duration_seconds: number | null
           id: string
-          is_live: boolean
           like_count: number
-          owner_id: string
-          tags: string[]
-          thumbnail_path: string | null
+          published_at: string
+          thumbnail_url: string | null
           title: string
-          video_path: string
+          updated_at: string
+          video_url: string | null
           view_count: number
           visibility: Database["public"]["Enums"]["video_visibility"]
         }
         Insert: {
-          category_id?: number | null
+          category_id?: string | null
           channel_id: string
           comment_count?: number
           created_at?: string
-          description?: string | null
+          description?: string
           dislike_count?: number
-          duration_seconds?: number
+          duration_seconds?: number | null
           id?: string
-          is_live?: boolean
           like_count?: number
-          owner_id: string
-          tags?: string[]
-          thumbnail_path?: string | null
+          published_at?: string
+          thumbnail_url?: string | null
           title: string
-          video_path: string
+          updated_at?: string
+          video_url?: string | null
           view_count?: number
           visibility?: Database["public"]["Enums"]["video_visibility"]
         }
         Update: {
-          category_id?: number | null
+          category_id?: string | null
           channel_id?: string
           comment_count?: number
           created_at?: string
-          description?: string | null
+          description?: string
           dislike_count?: number
-          duration_seconds?: number
+          duration_seconds?: number | null
           id?: string
-          is_live?: boolean
           like_count?: number
-          owner_id?: string
-          tags?: string[]
-          thumbnail_path?: string | null
+          published_at?: string
+          thumbnail_url?: string | null
           title?: string
-          video_path?: string
+          updated_at?: string
+          video_url?: string | null
           view_count?: number
           visibility?: Database["public"]["Enums"]["video_visibility"]
         }
@@ -516,16 +615,19 @@ export type Database = {
       }
       watch_history: {
         Row: {
+          progress_seconds: number
           user_id: string
           video_id: string
           watched_at: string
         }
         Insert: {
+          progress_seconds?: number
           user_id: string
           video_id: string
           watched_at?: string
         }
         Update: {
+          progress_seconds?: number
           user_id?: string
           video_id?: string
           watched_at?: string
@@ -546,13 +648,10 @@ export type Database = {
     }
     Functions: {
       has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
+        Args: { required_role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
-      increment_view: { Args: { _video_id: string }; Returns: number }
+      increment_view: { Args: { video_uuid: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -13,10 +13,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setState({ user: session?.user ?? null, session, loading: false });
-      if (event === "SIGNED_IN" || event === "USER_UPDATED") qc.invalidateQueries();
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") void qc.invalidateQueries();
       if (event === "SIGNED_OUT") qc.clear();
     });
-    supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(({ data }) => {
       setState({ user: data.session?.user ?? null, session: data.session, loading: false });
     });
     return () => sub.subscription.unsubscribe();
@@ -33,10 +33,19 @@ export function useMe() {
   return useQuery({
     queryKey: ["me", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const [{ data: profile }, { data: channel }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
-        supabase.from("channels").select("*").eq("owner_id", user!.id).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id,display_name,avatar_path,bio,created_at")
+          .eq("id", user!.id)
+          .maybeSingle(),
+        supabase
+          .from("channels")
+          .select("id,owner_id,handle,name,avatar_path,banner_path,verified,subscriber_count,created_at,description")
+          .eq("owner_id", user!.id)
+          .maybeSingle(),
       ]);
       return { profile, channel };
     },

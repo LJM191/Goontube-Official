@@ -22,6 +22,8 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
   const [fullscreen, setFullscreen] = useState(false);
   const [settings, setSettings] = useState(false);
   const [captions, setCaptions] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -57,11 +59,24 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
     };
   }, []);
 
+  const showControls = () => {
+    setControlsVisible(true);
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    if (playing) {
+      hideTimer.current = window.setTimeout(() => setControlsVisible(false), 2800);
+    }
+  };
+
+  useEffect(() => () => {
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+  }, []);
+
   const togglePlay = () => {
     const v = ref.current;
     if (!v) return;
     if (v.paused) void v.play();
     else v.pause();
+    showControls();
   };
 
   const seek = (value: number) => {
@@ -107,6 +122,8 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
     <div
       className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10", fullscreen && "rounded-none")}
       onDoubleClick={toggleFullscreen}
+      onPointerMove={showControls}
+      onTouchStart={showControls}
     >
       <video
         ref={ref}
@@ -114,25 +131,30 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
         poster={poster ?? undefined}
         autoPlay={autoPlay}
         playsInline
-        className="size-full object-contain"
+        preload="metadata"
+        className="size-full touch-manipulation object-contain"
         onClick={togglePlay}
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100" />
+      <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 transition-opacity duration-200", controlsVisible ? "opacity-100" : "opacity-0")} />
 
-      <div className="pointer-events-none absolute left-5 right-5 top-4 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className={cn("pointer-events-none absolute left-3 right-3 top-3 transition-opacity sm:left-5 sm:right-5 sm:top-4", controlsVisible ? "opacity-100" : "opacity-0")}>
         <p className="line-clamp-2 text-sm font-medium text-white drop-shadow-lg">{title}</p>
       </div>
 
       <button
-        onClick={togglePlay}
+        onClick={(event) => {
+          event.stopPropagation();
+          togglePlay();
+          showControls();
+        }}
         aria-label={playing ? "Pause" : "Lecture"}
-        className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition-all hover:scale-105 group-hover:opacity-100"
+        className={cn("absolute left-1/2 top-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all hover:scale-105 sm:size-16", controlsVisible ? "opacity-100" : "opacity-0")}
       >
         {playing ? <Pause className="size-7 fill-white" /> : <Play className="ml-1 size-7 fill-white" />}
       </button>
 
-      <div className="absolute inset-x-0 bottom-0 px-4 pb-3 pt-10 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className={cn("absolute inset-x-0 bottom-0 px-2 pb-2 pt-12 transition-opacity sm:px-4 sm:pb-3", controlsVisible ? "opacity-100" : "opacity-0")}>
         <input
           aria-label="Progression"
           type="range"
@@ -141,19 +163,19 @@ export function VideoPlayer({ src, poster, title, autoPlay = true }: PlayerProps
           step={0.1}
           value={progress}
           onChange={(e) => seek(Number(e.target.value))}
-          className="mb-2 h-1 w-full cursor-pointer accent-red-500"
+          className="mb-2 h-2 w-full cursor-pointer accent-red-500 touch-manipulation sm:h-1"
         />
-        <div className="flex items-center gap-2 text-white">
-          <button onClick={togglePlay} aria-label={playing ? "Pause" : "Lecture"} className="rounded-full p-1.5 hover:bg-white/15">
+        <div className="flex min-h-10 items-center gap-1.5 text-white sm:gap-2">
+          <button onClick={togglePlay} aria-label={playing ? "Pause" : "Lecture"} className="grid size-9 place-items-center rounded-full p-1.5 hover:bg-white/15 sm:size-8">
             {playing ? <Pause className="size-5 fill-white" /> : <Play className="size-5 fill-white" />}
           </button>
-          <button onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }} aria-label="Son" className="rounded-full p-1.5 hover:bg-white/15">
+          <button onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }} aria-label="Son" className="grid size-9 place-items-center rounded-full p-1.5 hover:bg-white/15 sm:size-8">
             {muted || volume === 0 ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
           </button>
           <input aria-label="Volume" type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={(e) => { const n = Number(e.target.value); setVolume(n); setMuted(n === 0); if (ref.current) { ref.current.volume = n; ref.current.muted = n === 0; } }} className="hidden w-20 accent-white sm:block" />
-          <span className="text-xs tabular-nums">{fmt(progress)} / {fmt(duration)}</span>
-          <div className="ml-auto flex items-center gap-1">
-            <button onClick={toggleCaptions} aria-label="Sous-titres" className={cn("rounded-full p-1.5 hover:bg-white/15", captions && "bg-white/20")}><Captions className="size-5" /></button>
+          <span className="text-[11px] tabular-nums sm:text-xs">{fmt(progress)} / {fmt(duration)}</span>
+          <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+            <button onClick={toggleCaptions} aria-label="Sous-titres" className={cn("grid size-9 place-items-center rounded-full p-1.5 hover:bg-white/15 sm:size-8", captions && "bg-white/20")}><Captions className="size-5" /></button>
             <button onClick={pictureInPicture} aria-label="Picture in Picture" className="hidden rounded-full p-1.5 hover:bg-white/15 sm:block"><PictureInPicture2 className="size-5" /></button>
             <div className="relative">
               <button onClick={() => setSettings(!settings)} aria-label="Paramètres" className="rounded-full p-1.5 hover:bg-white/15"><Settings className="size-5" /></button>
