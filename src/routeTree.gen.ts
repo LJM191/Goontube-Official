@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CguRouteImport } from './routes/cgu'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as PhotosRouteImport } from './routes/photos'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShortsRouteImport } from './routes/shorts'
@@ -43,14 +46,29 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CguRoute = CguRouteImport.update({
+  id: '/cgu',
+  path: '/cgu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityRoute = CommunityRouteImport.update({
   id: '/community',
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PhotosRoute = PhotosRouteImport.update({
@@ -128,8 +146,11 @@ const CommunityThreadIdRoute = CommunityThreadIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cgu': typeof CguRoute
   '/community': typeof CommunityRouteWithChildren
+  '/confidentialite': typeof ConfidentialiteRoute
   '/explore': typeof ExploreRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
@@ -148,8 +169,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cgu': typeof CguRoute
   '/community': typeof CommunityRouteWithChildren
+  '/confidentialite': typeof ConfidentialiteRoute
   '/explore': typeof ExploreRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
@@ -170,8 +194,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cgu': typeof CguRoute
   '/community': typeof CommunityRouteWithChildren
+  '/confidentialite': typeof ConfidentialiteRoute
   '/explore': typeof ExploreRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/photos': typeof PhotosRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
@@ -192,8 +219,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/cgu'
     | '/community'
+    | '/confidentialite'
     | '/explore'
+    | '/mentions-legales'
     | '/photos'
     | '/search'
     | '/shorts'
@@ -212,8 +242,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/cgu'
     | '/community'
+    | '/confidentialite'
     | '/explore'
+    | '/mentions-legales'
     | '/photos'
     | '/search'
     | '/shorts'
@@ -233,8 +266,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/cgu'
     | '/community'
+    | '/confidentialite'
     | '/explore'
+    | '/mentions-legales'
     | '/photos'
     | '/search'
     | '/shorts'
@@ -255,8 +291,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CguRoute: typeof CguRoute
   CommunityRoute: typeof CommunityRouteWithChildren
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
   ExploreRoute: typeof ExploreRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
   PhotosRoute: typeof PhotosRoute
   SearchRoute: typeof SearchRoute
   ShortsRoute: typeof ShortsRoute
@@ -290,6 +329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cgu': {
+      id: '/cgu'
+      path: '/cgu'
+      fullPath: '/cgu'
+      preLoaderRoute: typeof CguRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community': {
       id: '/community'
       path: '/community'
@@ -297,11 +343,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore': {
       id: '/explore'
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/photos': {
@@ -440,8 +500,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CguRoute: CguRoute,
   CommunityRoute: CommunityRouteWithChildren,
+  ConfidentialiteRoute: ConfidentialiteRoute,
   ExploreRoute: ExploreRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
   PhotosRoute: PhotosRoute,
   SearchRoute: SearchRoute,
   ShortsRoute: ShortsRoute,
