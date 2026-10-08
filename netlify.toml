@@ -8,3 +8,5 @@
 [dev]
   command = "vite dev"
   port = 3000
+
+# Keep the production deploy configuration explicit for Netlify.
