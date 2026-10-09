@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, ChevronRight, CircleHelp, Globe, Keyboard, Languages, Monitor, ShieldCheck, Smartphone, Settings as SettingsIcon } from "lucide-react";
+import { Check, ChevronRight, CircleHelp, Globe, Languages, Monitor, Smartphone, Settings as SettingsIcon } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/settings")({
@@ -9,8 +9,8 @@ export const Route = createFileRoute("/settings")({
 });
 
 const PREFS_KEY = "goontube-preferences-v1";
-type Preferences = { language: string; country: string; restrictedMode: boolean; theme: string };
-const defaults: Preferences = { language: "Français", country: "France", restrictedMode: false, theme: "Sombre" };
+type Preferences = { language: string; country: string; theme: string };
+const defaults: Preferences = { language: "Français", country: "France", theme: "Sombre" };
 
 function SettingsPage() {
   const [prefs, setPrefs] = useState<Preferences>(defaults);
@@ -19,7 +19,10 @@ function SettingsPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(PREFS_KEY);
-      if (raw) setPrefs({ ...defaults, ...JSON.parse(raw) });
+      if (raw) {
+        const stored = JSON.parse(raw) as Partial<Preferences> & { theme?: string };
+        setPrefs({ ...defaults, ...stored, theme: stored.theme === "Clair" ? "Clair" : "Sombre" });
+      }
     } catch { /* Use defaults if local preferences are unavailable. */ }
   }, []);
 
@@ -29,6 +32,7 @@ function SettingsPage() {
       try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* Preferences remain usable for this session. */ }
       return next;
     });
+    if (key === "theme") document.documentElement.classList.toggle("dark", String(value) !== "Clair");
     setSaved(true);
   }
 
@@ -52,23 +56,13 @@ function SettingsPage() {
 
       <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
         <div className="flex items-center gap-3 border-b border-edge/50 p-4 sm:p-5"><Monitor className="size-5 text-glow" /><div><h2 className="font-semibold">Apparence</h2><p className="text-sm text-muted-foreground">Thème de l'application.</p></div></div>
-        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"><div><p className="text-sm font-medium">Thème</p><p className="mt-1 text-sm text-muted-foreground">GoonTube utilise actuellement une interface sombre.</p></div><select value={prefs.theme} onChange={(e) => update("theme", e.target.value)} className="h-11 w-full rounded-xl border border-edge bg-background px-3 text-foreground sm:w-56"><option>Sombre</option><option>Thème de l'appareil</option></select></div>
+        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"><div><p className="text-sm font-medium">Thème</p><p className="mt-1 text-sm text-muted-foreground">Choisis une interface sombre ou claire pour tout le site.</p></div><select value={prefs.theme} onChange={(e) => update("theme", e.target.value)} className="h-11 w-full rounded-xl border border-edge bg-background px-3 text-foreground sm:w-56"><option>Sombre</option><option>Clair</option></select></div>
         {prefs.theme === "Thème de l'appareil" && <p className="px-4 pb-4 text-xs text-muted-foreground sm:px-5">Le choix est enregistré, mais l'interface claire n'est pas encore disponible. Le site reste sombre pour le moment.</p>}
-      </section>
-
-      <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
-        <div className="flex items-center gap-3 border-b border-edge/50 p-4 sm:p-5"><ShieldCheck className="size-5 text-glow" /><div><h2 className="font-semibold">Mode restreint</h2><p className="text-sm text-muted-foreground">Préférence enregistrée sur cet appareil.</p></div></div>
-        <label className="flex cursor-pointer items-start gap-3 p-4 sm:p-5"><input type="checkbox" checked={prefs.restrictedMode} onChange={(e) => update("restrictedMode", e.target.checked)} className="mt-1 size-4 accent-current" /><span><span className="block text-sm font-medium">Activer le mode restreint</span><span className="mt-1 block text-sm text-muted-foreground">Ce réglage mémorise ton choix. Le filtrage automatique des vidéos n'est pas encore implémenté.</span></span></label>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
         <div className="flex items-center gap-3 border-b border-edge/50 p-4 sm:p-5"><Smartphone className="size-5 text-glow" /><div><h2 className="font-semibold">Appareils</h2><p className="text-sm text-muted-foreground">Sessions et connexion.</p></div></div>
         <div className="flex items-center justify-between gap-3 p-4 sm:p-5"><div><p className="text-sm font-medium">Appareil actuel</p><p className="mt-1 text-sm text-muted-foreground">Gestion des autres appareils à venir.</p></div><span className="rounded-full bg-frost px-3 py-1 text-xs">Connecté</span></div>
-      </section>
-
-      <section id="shortcuts" className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
-        <div className="flex items-center gap-3 border-b border-edge/50 p-4 sm:p-5"><Keyboard className="size-5 text-glow" /><div><h2 className="font-semibold">Raccourcis clavier</h2><p className="text-sm text-muted-foreground">Quelques raccourcis utiles.</p></div></div>
-        <div className="space-y-3 p-4 text-sm sm:p-5"><div className="flex items-center justify-between gap-3"><span>Rechercher</span><kbd className="rounded-md border border-edge px-2 py-1 text-xs">/</kbd></div><div className="flex items-center justify-between gap-3"><span>Lire / mettre en pause une vidéo</span><kbd className="rounded-md border border-edge px-2 py-1 text-xs">Espace</kbd></div><p className="text-xs text-muted-foreground">Ces raccourcis sont indicatifs : ils ne sont pas tous actifs sur chaque page.</p></div>
       </section>
 
       <section id="help" className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
