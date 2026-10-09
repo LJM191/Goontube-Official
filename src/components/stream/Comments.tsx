@@ -66,7 +66,7 @@ function CommentItem({ c, replies, videoId, canModerate = false }: { c: Comment;
   const [replying, setReplying] = useState(false);
   const name = c.author?.pseudo ?? "Utilisateur";
   async function remove() {
-    const { error } = await supabase.from("comments").delete().eq("id", c.id).eq("user_id", user?.id ?? "");
+    const { error } = await supabase.from("comments").delete().eq("id", c.id);
     if (error) {
       toast.error("Suppression impossible");
       return;
