@@ -16,7 +16,7 @@ function AccountPage() {
   const { data } = useMe();
   const navigate = useNavigate();
   const name = data?.channel?.name ?? data?.profile?.pseudo ?? (typeof user?.user_metadata?.["full_name"] === "string" ? user.user_metadata["full_name"] : null) ?? user?.email?.split("@")[0] ?? "Mon compte";
-  const avatar = (typeof user?.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ?? (typeof user?.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ?? data?.channel?.avatar_url ?? data?.profile?.profile_photo ?? data?.profile?.avatar ?? null;
+  const avatar = data?.channel?.avatar_url ?? data?.profile?.profile_photo ?? data?.profile?.avatar ?? (typeof user?.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ?? (typeof user?.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ?? null;
 
   function downloadData() {
     if (!user) return;
