@@ -42,7 +42,7 @@ function Composer({ videoId, parentId, onDone }: { videoId: string; parentId?: s
   if (!user)
     return <p className="text-sm text-muted-foreground"><Link to="/auth" className="text-glow">Connectez-vous</Link> pour commenter.</p>;
 
-  const profileName = me?.profile?.pseudo ?? user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "?";
+  const profileName = me?.profile?.pseudo ?? user.user_metadata?.["full_name"] ?? user.email?.split("@")[0] ?? "?";
   const profileAvatar = me?.profile?.profile_photo ?? me?.profile?.avatar ?? null;
   return (
     <div className="flex gap-3">
