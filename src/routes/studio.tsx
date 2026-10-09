@@ -19,7 +19,7 @@ function Studio() {
     queryKey: ["studio-channel", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("channels").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("channels").select("*").eq("user_id", user!.id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -89,7 +89,7 @@ function Studio() {
             {videos.slice(0, 10).map((v) => (
               <div key={v.id} className="flex items-center gap-4 py-3">
                 <Link to="/watch/$id" params={{ id: v.id }} className="w-36 shrink-0">
-                  <Thumbnail video={{ ...v, is_live: false, channel: { id: channel.id, handle: channel.handle, name: channel.name, avatar_path: channel.avatar_path, verified: channel.verified } } as any} className="rounded-lg" />
+                  <Thumbnail video={{ ...v, is_live: false, channel: { id: channel.id, handle: channel.handle, name: channel.name, avatar_path: channel.avatar_url, verified: channel.verified } } as any} className="rounded-lg" />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link to="/watch/$id" params={{ id: v.id }} className="line-clamp-2 text-sm font-medium hover:underline">{v.title}</Link>
