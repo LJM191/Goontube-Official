@@ -52,7 +52,7 @@ const NAV = [
 export function Logo() {
   return (
     <Link to="/" aria-label={`${APP_NAME} — Accueil`} className="flex shrink-0 items-center">
-      <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="h-auto w-36 sm:w-48 lg:w-52" />
+      <img src={goontubeLogo} alt={APP_NAME} width={1445} height={236} className="h-auto w-32 sm:w-48 lg:w-52" />
     </Link>
   );
 }
@@ -307,14 +307,14 @@ function UserMenu() {
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <Globe className="size-4" /> Pays
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings#shortcuts" })}>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <Keyboard className="size-4" /> Raccourcis clavier
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <Settings className="size-4" /> Paramètres
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings#help" })}>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <CircleHelp className="size-4" /> Aide
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/feedback" })}>
