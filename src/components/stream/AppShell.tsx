@@ -220,11 +220,24 @@ function UserMenu() {
         <UserIcon className="size-4" /> Se connecter
       </Link>
     );
-  const name = data?.channel?.name ?? data?.profile?.display_name ?? "Moi";
+  const name =
+    data?.channel?.name ??
+    data?.profile?.pseudo ??
+    (typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : null) ??
+    (typeof user.user_metadata?.name === "string" ? user.user_metadata.name : null) ??
+    user.email?.split("@")[0] ??
+    "Mon compte";
+  const avatarPath =
+    (typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null) ??
+    (typeof user.user_metadata?.picture === "string" ? user.user_metadata.picture : null) ??
+    data?.channel?.avatar_url ??
+    data?.profile?.profile_photo ??
+    data?.profile?.avatar ??
+    null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="rounded-full ring-1 ring-edge/40 outline-none focus-visible:ring-glow">
-        <ChannelAvatar name={name} path={data?.channel?.avatar_path} />
+        <ChannelAvatar name={name} path={avatarPath} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
