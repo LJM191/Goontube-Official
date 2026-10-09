@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Bucket = "videos" | "thumbnails" | "avatars" | "photos";
+export type Bucket = "videos" | "thumbnails" | "avatars" | "banners" | "photos";
 
-const PUBLIC_BUCKETS = new Set<Bucket>(["thumbnails", "avatars"]);
+const PUBLIC_BUCKETS = new Set<Bucket>(["thumbnails", "avatars", "banners", "photos"]);
 const TTL = 60 * 60; // seconds
 
 /** Resolve public assets directly through the CDN and private assets through a short-lived signed URL. */
