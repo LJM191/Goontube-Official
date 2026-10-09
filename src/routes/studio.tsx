@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Eye, Heart, MessageSquare, Settings, Upload, Users, Video } from "lucide-react";
+import { BarChart3, Eye, Heart, MessageSquare, Settings, Upload, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
