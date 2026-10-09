@@ -4,17 +4,19 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type QualitySource = { label: string; src: string; height?: number };
+type SubtitleSource = { label: string; src: string; language: string; kind?: "subtitles" | "captions" };
 type PlayerProps = {
   src: string;
   poster?: string | null;
   title: string;
   autoPlay?: boolean;
   sources?: QualitySource[] | null;
+  subtitleSources?: SubtitleSource[] | null;
 };
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [] }: PlayerProps) {
+export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [] }: PlayerProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [activeSrc, setActiveSrc] = useState(src);
   const [playing, setPlaying] = useState(autoPlay);
@@ -207,7 +209,11 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [] 
         preload="metadata"
         className="size-full touch-manipulation object-contain"
         onClick={togglePlay}
-      />
+      >
+        {(Array.isArray(subtitleSources) ? subtitleSources : []).filter((track) => track && track.src && track.language).map((track, index) => (
+          <track key={`${track.language}-${index}`} kind={track.kind ?? "subtitles"} src={track.src} srcLang={track.language} label={track.label || track.language} />
+        ))}
+      </video>
 
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 transition-opacity duration-200", controlsVisible ? "opacity-100" : "opacity-0")} />
       <div className={cn("pointer-events-none absolute left-3 right-3 top-3 transition-opacity sm:left-5 sm:right-5 sm:top-4", controlsVisible ? "opacity-100" : "opacity-0")}>
