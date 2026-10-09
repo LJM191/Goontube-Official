@@ -512,10 +512,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden">
-        {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(({ to, label, icon: Icon }) => {
+      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
+        {[
+          { to: "/", label: "Accueil", icon: Home },
+          { to: "/search", label: "Vidéo", icon: Tv },
+          { to: "/subscriptions", label: "Créateur", icon: UserRound },
+          { to: "/community", label: "Communauté", icon: MessageSquare },
+          { to: "/photos", label: "Photo", icon: Globe },
+          { to: "/shorts", label: "Diff", icon: Plus },
+        ].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          return <Link key={to} to={to} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-medium transition-colors active:bg-frost ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
+          return (
+            <Link key={to} to={to} aria-current={active ? "page" : undefined}
+              className={`flex min-w-0 min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-0.5 py-1 text-[10px] leading-tight font-medium transition-colors active:bg-frost sm:text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}>
+              <Icon className="size-5 shrink-0" />
+              <span className="max-w-full truncate">{label}</span>
+            </Link>
+          );
         })}
       </nav>
       <SiteFooter />
