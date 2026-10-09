@@ -11,7 +11,6 @@ import {
   Search,
   Tv,
   User as UserIcon,
-  ChevronDown,
   X,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
@@ -239,108 +238,39 @@ function UserMenu() {
       <DropdownMenuTrigger className="rounded-full ring-1 ring-edge/40 outline-none focus-visible:ring-glow">
         <ChannelAvatar name={name} path={avatarPath} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
+      <DropdownMenuContent align="end" sideOffset={10} className="w-80 rounded-2xl border border-edge/70 bg-panel p-0 shadow-2xl">
+        <div className="flex items-center gap-3 p-4">
+          <ChannelAvatar name={name} path={avatarPath} className="size-12 shrink-0" />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-foreground">{name}</p>
+            <p className="truncate text-sm text-muted-foreground">{user.email ?? "Compte connecté"}</p>
+            {data?.channel?.handle && <p className="mt-0.5 truncate text-xs text-faint">@{data.channel.handle}</p>}
+          </div>
+        </div>
         <DropdownMenuSeparator />
         {data?.channel && (
-          <DropdownMenuItem onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel?.handle ?? "" } })}>
-            <Tv className="size-4" /> Ma chaîne
+          <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel?.handle ?? "" } })}>
+            <Tv className="size-4" /> Votre chaîne
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={() => navigate({ to: "/upload" })}>
-          <Plus className="size-4" /> Mettre en ligne
+        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/upload" })}>
+          <Plus className="size-4" /> Mettre en ligne une vidéo
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/library" })}>
+          <Library className="size-4" /> Bibliothèque
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/history" })}>
+          <Clock className="size-4" /> Historique
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate({ to: "/", replace: true });
-          }}
-        >
+        <DropdownMenuItem className="gap-3 px-4 py-3 text-red-400 focus:text-red-400" onClick={async () => {
+          await supabase.auth.signOut();
+          navigate({ to: "/", replace: true });
+        }}>
           <LogOut className="size-4" /> Se déconnecter
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function OrientationIcon({ type }: { type: string }) {
-  if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
-  if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
-  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣ ❤️</span>;
-  if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
-  if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
-  if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
-  if (type === "Pansexuel") {
-    return (
-      <span aria-hidden="true" className="flex w-5 flex-col gap-px overflow-hidden rounded-sm">
-        <span className="h-1 bg-pink-500" />
-        <span className="h-1 bg-yellow-300" />
-        <span className="h-1 bg-cyan-400" />
-      </span>
-    );
-  }
-  return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
-}
-
-const ORIENTATION_OPTIONS = [
-  { label: "Hétéro", slug: "orientation-hetero" },
-  { label: "Bi", slug: "orientation-bi" },
-  { label: "Gay", slug: "orientation-gay" },
-  { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
-  { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
-  { label: "S'identifie comme un chien", slug: "orientation-chien" },
-  { label: "S'identifie comme un chat", slug: "orientation-chat" },
-  { label: "Pansexuel", slug: "orientation-pansexuel" },
-] as const;
-
-function OrientationMenu() {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("Hétéro");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("goontube-orientation");
-    if (saved && ORIENTATION_OPTIONS.some((option) => option.label === saved)) setSelected(saved);
-  }, []);
-
-  const choose = (option: (typeof ORIENTATION_OPTIONS)[number]) => {
-    setSelected(option.label);
-    localStorage.setItem("goontube-orientation", option.label);
-    setOpen(false);
-    window.location.href = `/explore?category=${encodeURIComponent(option.slug)}`;
-  };
-
-  return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-label={`Catégorie ${selected}`}
-        title={selected}
-        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"
-      >
-        <OrientationIcon type={selected} />
-        <span className="flex-1 truncate text-left">{selected}</span>
-        <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl bg-panel p-1.5 shadow-xl ring-1 ring-edge/60">
-          {ORIENTATION_OPTIONS.map((option) => (
-            <button
-              key={option.slug}
-              type="button"
-              onClick={() => choose(option)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
-            >
-              <OrientationIcon type={option.label} />
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -359,7 +289,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     (active ? "scale-x-100 bg-glow" : "scale-x-0 bg-glow group-hover:scale-x-100");
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
@@ -382,10 +312,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
-          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
-            <OrientationMenu />
-          </div>
-
           <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
             <div className="group relative flex h-full items-stretch">
               <Link to="/" className={navClass(activeClass("/"))}>
@@ -415,22 +341,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Toutes les vidéos</Link>
                   <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos récentes</Link>
                   <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos populaires</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/explore" className={navClass(activeClass("/explore"))}>
-                CATÉGORIES
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/explore"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Gaming</Link>
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Musique</Link>
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Sport</Link>
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Technologie</Link>
                 </div>
               </div>
             </div>
@@ -479,7 +389,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <main className="mx-auto w-full max-w-[1680px] min-w-0 px-3 pb-24 pt-4 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
+        <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
       <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden">
