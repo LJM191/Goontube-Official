@@ -5,6 +5,7 @@ const LEGAL_LINKS = [
   { to: "/mentions-legales", label: "Mentions légales" },
   { to: "/confidentialite", label: "Confidentialité" },
   { to: "/cgu", label: "CGU" },
+  { to: "/credits", label: "Crédits" },
 ] as const;
 
 export function SiteFooter() {
