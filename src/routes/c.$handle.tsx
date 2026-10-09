@@ -49,7 +49,7 @@ function EditChannel({ channel }: { channel: Channel }) {
   async function save() {
     setBusy(true);
     try {
-      const patch: Partial<Channel> = { name: name.trim(), description: description.trim() || null };
+      const patch: { name: string; description: string; avatar_url?: string; banner_url?: string } = { name: name.trim(), description: description.trim() };
       if (avatar) patch.avatar_url = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
       if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
