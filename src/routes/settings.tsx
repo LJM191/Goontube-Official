@@ -47,6 +47,7 @@ function SettingsPage() {
           <label className="block text-sm"><span className="mb-2 flex items-center gap-2 font-medium"><Languages className="size-4" /> Langue</span><select value={prefs.language} onChange={(e) => update("language", e.target.value)} className="h-11 w-full rounded-xl border border-edge bg-background px-3 text-foreground"><option>Français</option><option>English</option><option>Español</option></select></label>
           <label className="block text-sm"><span className="mb-2 flex items-center gap-2 font-medium"><Globe className="size-4" /> Pays / région</span><select value={prefs.country} onChange={(e) => update("country", e.target.value)} className="h-11 w-full rounded-xl border border-edge bg-background px-3 text-foreground"><option>France</option><option>Belgique</option><option>Suisse</option><option>Canada</option><option>Colombie</option><option>Autre</option></select></label>
         </div>
+        <p className="px-4 pb-4 text-xs leading-5 text-muted-foreground sm:px-5">La langue et le pays sont enregistrés comme préférences sur cet appareil. La traduction complète de l'interface et l'adaptation du catalogue ne sont pas encore activées.</p>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
