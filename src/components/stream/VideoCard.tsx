@@ -4,7 +4,7 @@ import { Play } from "lucide-react";
 import { useMediaUrl } from "@/lib/media";
 import { formatDuration, formatViews, timeAgo } from "@/lib/format";
 import type { VideoCardData } from "@/lib/videos";
-import { ChannelAvatar, VerifiedDot } from "./ChannelAvatar";
+import { ChannelAvatar } from "./ChannelAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function Thumbnail({ video, className }: { video: VideoCardData; className?: string }) {
@@ -26,15 +26,9 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
           </div>
         )}
       </div>
-      {video.is_live ? (
-        <span className="absolute bottom-2 left-2 rounded-md bg-live/90 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-foreground">
-          En direct
-        </span>
-      ) : (
-        <span className="absolute bottom-2 right-2 rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-medium tabular-nums">
-          {formatDuration(video.duration_seconds)}
-        </span>
-      )}
+      <span className="absolute bottom-2 right-2 rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-medium tabular-nums">
+        {formatDuration(video.duration_seconds ?? 0)}
+      </span>
     </div>
   );
 }
@@ -59,7 +53,6 @@ export function VideoCard({ video }: { video: VideoCardData }) {
             className="mt-1 block text-sm text-muted-foreground hover:text-foreground"
           >
             {video.channel.name}
-            {video.channel.verified && <VerifiedDot />}
           </Link>
           <p className="text-sm text-faint">
             {formatViews(video.view_count)} · {timeAgo(video.created_at)}
