@@ -85,7 +85,7 @@ function Profile() {
     },
   });
   const { data: channel } = useQuery({
-    queryKey: ["profile-channel", profile?.id],
+    queryKey: ["profile-channel", profile?.user_id],
     enabled: !!profile,
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("channels").select("*").eq("user_id", profile!.user_id).maybeSingle();
