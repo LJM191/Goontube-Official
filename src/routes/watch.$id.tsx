@@ -300,7 +300,7 @@ function Watch() {
               : "Cette vidéo n'a pas encore de description. Un résumé automatique pourra être généré lorsque l'IA sera connectée au Studio."}
           </p>
         </div>
-        <Comments videoId={video.id} count={video.comment_count} />
+        <Comments videoId={video.id} count={video.comment_count} ownerId={ch.user_id} />
       </div>
       <UpNext currentId={video.id} />
     </div>
