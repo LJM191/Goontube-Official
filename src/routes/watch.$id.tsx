@@ -232,7 +232,7 @@ function Watch() {
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
-            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} />
+            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
