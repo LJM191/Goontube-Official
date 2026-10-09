@@ -138,7 +138,7 @@ function ChannelPage() {
             <Link to="/upload" className="flex items-center gap-2 rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground"><Upload className="size-4" /> Mettre en ligne</Link>
           </div>
         ) : (
-          <SubscribeButton channelId={channel.id} ownerId={channel.owner_id} />
+          <SubscribeButton channelId={channel.id} ownerId={channel.user_id} />
         )}
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
