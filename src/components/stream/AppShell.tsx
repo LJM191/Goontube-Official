@@ -475,6 +475,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           return <Link key={to} to={to} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-medium transition-colors active:bg-frost ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
         })}
       </nav>
+      <SiteFooter />
     </div>
   );
 }
