@@ -17,7 +17,7 @@ export const Route = createFileRoute("/photos")({
 type Media = { id: string; channel_id: string; media_type: "photo" | "gif"; title: string; url: string; created_at: string; channel?: { handle: string; name: string; user_id: string } | null };
 
 function MediaCard({ item, canDelete, onDelete }: { item: Media; canDelete: boolean; onDelete: (id: string) => void }) {
-  const url = useMediaUrl("photos", item.url);
+  const url = useMediaUrl("thumbnails", item.url);
   return <article className="overflow-hidden rounded-2xl bg-panel ring-1 ring-edge/40">
     <div className="aspect-square bg-frost">{url && <img src={url} alt={item.title || "Publication"} className="size-full object-cover" />}</div>
     <div className="p-4">
@@ -54,7 +54,7 @@ function PhotosPage() {
     if (file.size > 25 * 1024 * 1024) { toast.error("25 Mo maximum."); return; }
     setBusy(true);
     try {
-      const path = await uploadMedia("photos", user.id, file, file.name.split(".").pop()?.toLowerCase() || "jpg");
+      const path = await uploadMedia("thumbnails", user.id, file, file.name.split(".").pop()?.toLowerCase() || "jpg");
       const { error } = await (supabase as any).from("channel_media").insert({ channel_id: me.data.id, media_type: type, title: title.trim(), url: path });
       if (error) throw error;
       setFile(null); setTitle("");
