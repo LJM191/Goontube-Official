@@ -104,6 +104,7 @@ function Upload() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!file || !me?.channel) return;
+    if (!title.trim()) { toast.error("Ajoutez un titre à la vidéo."); return; }
     if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
     try {
       setStep("Envoi de la vidéo…");
