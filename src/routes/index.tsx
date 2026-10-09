@@ -8,9 +8,9 @@ import { APP_NAME } from "@/lib/config";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${APP_NAME} — Recommandé pour vous` },
+      { title: `${APP_NAME} — Vidéos chaudes` },
       { name: "description", content: "Découvrez les dernières vidéos publiées par les créateurs de la communauté." },
-      { property: "og:title", content: `${APP_NAME} — Recommandé pour vous` },
+      { property: "og:title", content: `${APP_NAME} — Vidéos chaudes` },
       { property: "og:description", content: "Découvrez les dernières vidéos publiées par les créateurs de la communauté." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,7 +27,7 @@ function Home() {
 
   return (
     <>
-      <h2 className="mb-6 text-xl font-normal">Recommandé pour vous</h2>
+      <h2 className="mx-auto mb-6 max-w-[1500px] text-xl font-semibold tracking-tight">Vidéos chaudes</h2>
       <VideoGrid
         videos={videos}
         loading={isLoading}
