@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, MessageSquare, Send } from "lucide-react";
+import { ArrowLeft, Copy, MessageSquare } from "lucide-react";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/feedback")({
