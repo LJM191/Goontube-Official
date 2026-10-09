@@ -236,12 +236,13 @@ function UserMenu() {
     (typeof user.user_metadata?.["name"] === "string" ? user.user_metadata["name"] : null) ??
     user.email?.split("@")[0] ??
     "Mon compte";
+  // Prefer the avatar selected on GoonTube; Google is only the initial fallback.
   const avatarPath =
-    (typeof user.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ??
-    (typeof user.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ??
     data?.channel?.avatar_url ??
     data?.profile?.profile_photo ??
     data?.profile?.avatar ??
+    (typeof user.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ??
+    (typeof user.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ??
     null;
   return (
     <DropdownMenu>
