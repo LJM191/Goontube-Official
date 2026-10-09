@@ -87,7 +87,7 @@ function Upload() {
 
   async function pick(f: File | undefined) {
     if (!f) return;
-    if (!f.type.startsWith("video/")) {
+    if (!["video/mp4", "video/webm", "video/quicktime", "video/ogg"].includes(f.type)) {
       toast.error("Choisissez un fichier vidéo (MP4, WebM, MOV).");
       return;
     }
@@ -147,7 +147,7 @@ function Upload() {
           <UploadCloud className="mb-4 size-10 text-glow" />
           <span className="font-medium">Glissez ou choisissez un fichier vidéo</span>
           <span className="mt-1 text-sm text-faint">MP4, WebM ou MOV — 500 Mo max</span>
-          <input type="file" accept="video/*" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
+          <input type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
       ) : (
         <form onSubmit={publish} className="grid gap-6 md:grid-cols-[1fr_300px]">
