@@ -57,7 +57,6 @@ function SettingsPage() {
       <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
         <div className="flex items-center gap-3 border-b border-edge/50 p-4 sm:p-5"><Monitor className="size-5 text-glow" /><div><h2 className="font-semibold">Apparence</h2><p className="text-sm text-muted-foreground">Thème de l'application.</p></div></div>
         <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"><div><p className="text-sm font-medium">Thème</p><p className="mt-1 text-sm text-muted-foreground">Choisis une interface sombre ou claire pour tout le site.</p></div><select value={prefs.theme} onChange={(e) => update("theme", e.target.value)} className="h-11 w-full rounded-xl border border-edge bg-background px-3 text-foreground sm:w-56"><option>Sombre</option><option>Clair</option></select></div>
-        {prefs.theme === "Thème de l'appareil" && <p className="px-4 pb-4 text-xs text-muted-foreground sm:px-5">Le choix est enregistré, mais l'interface claire n'est pas encore disponible. Le site reste sombre pour le moment.</p>}
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-edge/50 bg-panel/50">
