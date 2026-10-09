@@ -51,7 +51,7 @@ function EditChannel({ channel }: { channel: Channel }) {
     try {
       const patch: Partial<Channel> = { name: name.trim(), description: description.trim() || null };
       if (avatar) patch.avatar_url = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
-      if (banner) patch.banner_url = await uploadMedia("avatars", user!.id, banner, banner.name.split(".").pop() || "jpg");
+      if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
       if (error) throw error;
       await supabase.from("profiles").update({
@@ -112,7 +112,7 @@ function ChannelPage() {
       return data as unknown as VideoCardData[];
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_url);
+  const banner = useMediaUrl("banners", channel?.banner_url);
 
   if (isLoading) return null;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
