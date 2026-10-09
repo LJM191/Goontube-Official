@@ -93,7 +93,7 @@ function Profile() {
       return data;
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_url);
+  const banner = useMediaUrl("banners", channel?.banner_url);
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du profil…</div>;
   if (!profile) return <EmptyState title="Profil introuvable" />;
