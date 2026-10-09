@@ -181,7 +181,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
       toast.info("Cette vidéo ne fournit pas de pistes audio alternatives.");
       return;
     }
-    for (let i = 0; i < v.audioTracks.length; i++) v.audioTracks[i].enabled = i === index;
+    for (let i = 0; i < v.audioTracks.length; i++) { const track = v.audioTracks[i]; if (track) track.enabled = i === index; }
   };
 
   const fmt = (seconds: number) => {
