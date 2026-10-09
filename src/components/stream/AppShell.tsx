@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Bell,
   Clock,
   Compass,
   ChevronDown,
@@ -419,12 +418,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            {user && (
-              <Button variant="ghost" size="icon" aria-label="Notifications"
-                className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost">
-                <Bell className="size-4 text-muted-foreground" />
-              </Button>
-            )}
             <UserMenu />
           </div>
         </div>
