@@ -73,7 +73,7 @@ function Subs() {
       <EmptyState
         title="Aucun abonnement"
         text="Abonnez-vous à des chaînes pour les retrouver ici."
-        action={<Link to="/explore" className="text-sm font-medium text-glow">Explorer →</Link>}
+        action={<Link to="/explore" search={{}} className="text-sm font-medium text-glow">Explorer →</Link>}
       />
     );
   }
