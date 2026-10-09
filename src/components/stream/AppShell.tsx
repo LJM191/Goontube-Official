@@ -4,13 +4,24 @@ import {
   Bell,
   Clock,
   Compass,
+  CreditCard,
+  CircleHelp,
+  Globe,
   Home,
+  Keyboard,
+  Languages,
   Library,
   LogOut,
+  MessageSquare,
+  Monitor,
   Plus,
   Search,
+  Settings,
+  ShieldCheck,
+  Smartphone,
   Tv,
   User as UserIcon,
+  UserRound,
   X,
 } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
@@ -25,6 +36,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -237,36 +249,76 @@ function UserMenu() {
       <DropdownMenuTrigger className="rounded-full ring-1 ring-edge/40 outline-none focus-visible:ring-glow">
         <ChannelAvatar name={name} path={avatarPath} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={10} className="w-80 rounded-2xl border border-edge/70 bg-panel p-0 shadow-2xl">
-        <div className="flex items-center gap-3 p-4">
+      <DropdownMenuContent align="end" sideOffset={8} collisionPadding={8} className="w-[min(22rem,calc(100vw-1rem))] max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-2xl border border-edge/70 bg-panel p-0 shadow-2xl">
+        <div className="flex items-start gap-3 p-4">
           <ChannelAvatar name={name} path={avatarPath} className="size-12 shrink-0" />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-base font-semibold text-foreground">{name}</p>
             <p className="truncate text-sm text-muted-foreground">{user.email ?? "Compte connecté"}</p>
             {data?.channel?.handle && <p className="mt-0.5 truncate text-xs text-faint">@{data.channel.handle}</p>}
+            {data?.channel && (
+              <button type="button" onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel?.handle ?? "" } })} className="mt-2 text-sm font-medium text-sky-400 hover:underline">
+                Afficher votre chaîne
+              </button>
+            )}
           </div>
         </div>
         <DropdownMenuSeparator />
-        {data?.channel && (
-          <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/c/$handle", params: { handle: data.channel?.handle ?? "" } })}>
-            <Tv className="size-4" /> Votre chaîne
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/upload" })}>
-          <Plus className="size-4" /> Mettre en ligne une vidéo
+        <DropdownMenuLabel className="px-4 pt-2 text-xs font-normal text-muted-foreground">Compte</DropdownMenuLabel>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/account" })}>
+          <UserRound className="size-4" /> Compte GoonTube
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/library" })}>
-          <Library className="size-4" /> Bibliothèque
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-3" onClick={() => navigate({ to: "/history" })}>
-          <Clock className="size-4" /> Historique
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-3 px-4 py-3 text-red-400 focus:text-red-400" onClick={async () => {
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={async () => {
           await supabase.auth.signOut();
-          navigate({ to: "/", replace: true });
+          await navigate({ to: "/auth", replace: true });
+        }}>
+          <UserIcon className="size-4" /> Changer de compte
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5 text-red-400 focus:text-red-400" onClick={async () => {
+          await supabase.auth.signOut();
+          await navigate({ to: "/", replace: true });
         }}>
           <LogOut className="size-4" /> Se déconnecter
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/studio" })}>
+          <Monitor className="size-4" /> GoonTube Studio
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/subscriptions" })}>
+          <CreditCard className="size-4" /> Achats et abonnements
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/account" })}>
+          <ShieldCheck className="size-4" /> Vos données sur GoonTube
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="px-4 pt-2 text-xs font-normal text-muted-foreground">Préférences</DropdownMenuLabel>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <Smartphone className="size-4" /> Appareils connectés
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <Monitor className="size-4" /> Thème de l'appareil
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <Languages className="size-4" /> Langue
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <ShieldCheck className="size-4" /> Mode restreint
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <Globe className="size-4" /> Pays
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings#shortcuts" })}>
+          <Keyboard className="size-4" /> Raccourcis clavier
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
+          <Settings className="size-4" /> Paramètres
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings#help" })}>
+          <CircleHelp className="size-4" /> Aide
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/feedback" })}>
+          <MessageSquare className="size-4" /> Envoyer des commentaires
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
