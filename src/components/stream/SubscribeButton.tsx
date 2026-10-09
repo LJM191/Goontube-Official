@@ -16,7 +16,7 @@ export function SubscribeButton({ channelId, ownerId }: { channelId: string; own
       const { data } = await supabase
         .from("subscriptions")
         .select("channel_id")
-        .eq("subscriber_id", user!.id)
+        .eq("user_id", user!.id)
         .eq("channel_id", channelId)
         .maybeSingle();
       return !!data;
@@ -25,10 +25,10 @@ export function SubscribeButton({ channelId, ownerId }: { channelId: string; own
   const toggle = useMutation({
     mutationFn: async () => {
       if (subscribed) {
-        const { error } = await supabase.from("subscriptions").delete().eq("subscriber_id", user!.id).eq("channel_id", channelId);
+        const { error } = await supabase.from("subscriptions").delete().eq("user_id", user!.id).eq("channel_id", channelId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("subscriptions").insert({ subscriber_id: user!.id, channel_id: channelId });
+        const { error } = await supabase.from("subscriptions").insert({ user_id: user!.id, channel_id: channelId });
         if (error) throw error;
       }
     },
