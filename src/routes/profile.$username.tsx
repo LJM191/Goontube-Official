@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMediaUrl } from "@/lib/media";
 import { formatCount } from "@/lib/format";
-import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
+import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { EmptyState } from "@/components/stream/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -33,7 +33,7 @@ function EditUsername({ current }: { current: string }) {
     }
     setBusy(true);
     try {
-      const { error } = await (supabase as any).from("profiles").update({ username }).eq("id", user!.id);
+      const { error } = await (supabase as any).from("profiles").update({ pseudo: username }).eq("user_id", user!.id);
       if (error) {
         if (error.code === "23505") throw new Error("Cet arobase est déjà utilisé.");
         throw error;
@@ -79,7 +79,7 @@ function Profile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", username],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("profiles").select("*").eq("username", username).maybeSingle();
+      const { data, error } = await (supabase as any).from("profiles").select("*").eq("pseudo", username).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -88,16 +88,16 @@ function Profile() {
     queryKey: ["profile-channel", profile?.id],
     enabled: !!profile,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("channels").select("*").eq("owner_id", profile!.id).maybeSingle();
+      const { data, error } = await (supabase as any).from("channels").select("*").eq("user_id", profile!.user_id).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_path);
+  const banner = useMediaUrl("avatars", channel?.banner_url);
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du profil…</div>;
   if (!profile) return <EmptyState title="Profil introuvable" />;
-  const isMe = user?.id === profile.id;
+  const isMe = user?.id === profile.user_id;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -105,14 +105,14 @@ function Profile() {
         {banner && <img src={banner} alt="" className="size-full object-cover" />}
       </div>
       <div className="relative -mt-12 px-5 sm:px-8">
-        <ChannelAvatar name={profile.display_name} path={profile.avatar_path} className="size-24 border-4 border-background text-2xl" />
+        <ChannelAvatar name={profile.pseudo ?? "Utilisateur"} path={profile.profile_photo ?? profile.avatar} className="size-24 border-4 border-background text-2xl" />
       </div>
       <div className="mt-4 rounded-3xl bg-panel p-6 ring-1 ring-edge/30">
         <div className="flex flex-wrap items-start gap-5">
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-semibold">{profile.display_name}{channel?.verified && <VerifiedDot />}</h1>
-            <p className="text-sm text-muted-foreground">@{profile.username}</p>
-            {isMe && <EditUsername current={profile.username} />}
+            <h1 className="text-3xl font-semibold">{profile.pseudo ?? "Utilisateur"}</h1>
+            <p className="text-sm text-muted-foreground">@{profile.pseudo}</p>
+            {isMe && <EditUsername current={profile.pseudo ?? ""} />}
             {profile.bio && <p className="mt-3 max-w-2xl whitespace-pre-wrap text-sm text-faint">{profile.bio}</p>}
           </div>
           {channel && <Link to="/c/$handle" params={{ handle: channel.handle }} className="rounded-full bg-frost px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Voir la chaîne</Link>}
