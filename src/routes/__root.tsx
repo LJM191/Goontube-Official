@@ -108,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr">
       <head>
         <HeadContent />
       </head>
@@ -122,6 +122,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("goontube-preferences-v1");
+      const theme = stored ? JSON.parse(stored).theme : "Sombre";
+      document.documentElement.classList.toggle("dark", theme !== "Clair");
+    } catch {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
