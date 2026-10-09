@@ -35,18 +35,20 @@ export function useMe() {
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
-      const [{ data: profile }, { data: channel }] = await Promise.all([
+      const [{ data: profile, error: profileError }, { data: channel, error: channelError }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id,display_name,avatar_path,bio,created_at")
-          .eq("id", user!.id)
+          .select("user_id,pseudo,avatar,profile_photo,bio,created_at")
+          .eq("user_id", user!.id)
           .maybeSingle(),
         supabase
           .from("channels")
-          .select("id,owner_id,handle,name,avatar_path,banner_path,verified,subscriber_count,created_at,description")
-          .eq("owner_id", user!.id)
+          .select("id,user_id,handle,name,avatar_url,banner_url,subscriber_count,created_at,description")
+          .eq("user_id", user!.id)
           .maybeSingle(),
       ]);
+      if (profileError) throw profileError;
+      if (channelError) throw channelError;
       return { profile, channel };
     },
   });
