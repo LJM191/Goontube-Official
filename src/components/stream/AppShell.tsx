@@ -84,14 +84,14 @@ function SearchBar() {
       const [videos, channels] = await Promise.all([
         supabase
           .from("videos")
-          .select("id,title,thumbnail_path,view_count,channel:channels!inner(handle,name,avatar_path)")
+          .select("id,title,thumbnail_path:thumbnail_url,view_count,channel:channels!inner(handle,name,avatar_path:avatar_url)")
           .eq("visibility", "public")
           .or("title.ilike.%" + debouncedTerm + "%,description.ilike.%" + debouncedTerm + "%")
           .order("view_count", { ascending: false })
           .limit(5),
         supabase
           .from("channels")
-          .select("id,handle,name,avatar_path,subscriber_count,verified")
+          .select("id,handle,name,avatar_path:avatar_url,subscriber_count")
           .or("name.ilike.%" + debouncedTerm + "%,handle.ilike.%" + debouncedTerm + "%")
           .order("subscriber_count", { ascending: false })
           .limit(4),
