@@ -74,7 +74,6 @@ function Upload() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [tags, setTags] = useState("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
   const [step, setStep] = useState<string | null>(null);
 
@@ -88,7 +87,7 @@ function Upload() {
 
   async function pick(f: File | undefined) {
     if (!f) return;
-    if (!f.type.startsWith("video/")) {
+    if (!["video/mp4", "video/webm", "video/quicktime", "video/ogg"].includes(f.type)) {
       toast.error("Choisissez un fichier vidéo (MP4, WebM, MOV).");
       return;
     }
@@ -104,6 +103,7 @@ function Upload() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!file || !me?.channel) return;
+    if (!title.trim()) { toast.error("Ajoutez un titre à la vidéo."); return; }
     if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
     try {
       setStep("Envoi de la vidéo…");
@@ -119,14 +119,12 @@ function Upload() {
         .from("videos")
         .insert({
           channel_id: me.channel.id,
-          owner_id: user.id,
           title: title.trim(),
-          description: description.trim() || null,
-          video_path: videoPath,
-          thumbnail_path: thumbPath,
+          description: description.trim() || "",
+          video_url: videoPath,
+          thumbnail_url: thumbPath,
           duration_seconds: Math.round(probe?.duration ?? 0),
-          category_id: categoryId ? Number(categoryId) : null,
-          tags: Array.from(new Set(tags.split(/[\s,]+/).map((t) => t.trim().replace(/^#+/, "").toLowerCase()).filter((t) => /^[\p{L}\p{N}_-]+$/u.test(t))).values()).slice(0, 60),
+          category_id: categoryId || null,
           visibility,
         })
         .select("id")
@@ -149,7 +147,7 @@ function Upload() {
           <UploadCloud className="mb-4 size-10 text-glow" />
           <span className="font-medium">Glissez ou choisissez un fichier vidéo</span>
           <span className="mt-1 text-sm text-faint">MP4, WebM ou MOV — 500 Mo max</span>
-          <input type="file" accept="video/*" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
+          <input type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
       ) : (
         <form onSubmit={publish} className="grid gap-6 md:grid-cols-[1fr_300px]">
@@ -190,10 +188,6 @@ function Upload() {
                   <option value="private">Privée</option>
                 </select>
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="tags">Tags (séparés par des virgules)</Label>
-              <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} />
             </div>
           </div>
 

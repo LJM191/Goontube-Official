@@ -17,7 +17,6 @@ type SubChannel = {
   handle: string;
   name: string;
   avatar_path: string | null;
-  verified: boolean;
   subscriber_count: number;
 };
 
@@ -30,7 +29,7 @@ function Subs() {
       const { data: subs, error: subsError } = await supabase
         .from("subscriptions")
         .select("channel_id")
-        .eq("subscriber_id", user.id);
+        .eq("user_id", user.id);
       if (subsError) throw subsError;
 
       const ids = (subs ?? []).map((s) => s.channel_id);
@@ -39,7 +38,7 @@ function Subs() {
       const [{ data: channels, error: channelsError }, { data: videos, error: videosError }] = await Promise.all([
         supabase
           .from("channels")
-          .select("id,handle,name,avatar_path,verified,subscriber_count")
+          .select("id,handle,name,avatar_path:avatar_url,subscriber_count")
           .in("id", ids)
           .order("name"),
         supabase
@@ -74,7 +73,7 @@ function Subs() {
       <EmptyState
         title="Aucun abonnement"
         text="Abonnez-vous à des chaînes pour les retrouver ici."
-        action={<Link to="/explore" className="text-sm font-medium text-glow">Explorer →</Link>}
+        action={<Link to="/explore" search={{}} className="text-sm font-medium text-glow">Explorer →</Link>}
       />
     );
   }

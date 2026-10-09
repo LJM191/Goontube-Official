@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Eye, Heart, MessageSquare, Settings, Upload, Users, Video } from "lucide-react";
+import { BarChart3, Eye, Heart, MessageSquare, Settings, Upload, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
@@ -19,7 +19,7 @@ function Studio() {
     queryKey: ["studio-channel", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("channels").select("*").eq("owner_id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("channels").select("*").eq("user_id", user!.id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -28,7 +28,7 @@ function Studio() {
     queryKey: ["studio-videos", channel?.id],
     enabled: !!channel,
     queryFn: async () => {
-      const { data, error } = await supabase.from("videos").select("id,title,thumbnail_path,view_count,like_count,comment_count,visibility,created_at,duration_seconds").eq("channel_id", channel!.id).order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("videos").select("id,title,thumbnail_path:thumbnail_url,view_count,like_count,comment_count,visibility,created_at,duration_seconds").eq("channel_id", channel!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -89,7 +89,7 @@ function Studio() {
             {videos.slice(0, 10).map((v) => (
               <div key={v.id} className="flex items-center gap-4 py-3">
                 <Link to="/watch/$id" params={{ id: v.id }} className="w-36 shrink-0">
-                  <Thumbnail video={{ ...v, is_live: false, channel: { id: channel.id, handle: channel.handle, name: channel.name, avatar_path: channel.avatar_path, verified: channel.verified } } as any} className="rounded-lg" />
+                  <Thumbnail video={{ ...v, is_live: false, channel: { id: channel.id, handle: channel.handle, name: channel.name, avatar_path: channel.avatar_url, subscriber_count: channel.subscriber_count } } as any} className="rounded-lg" />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link to="/watch/$id" params={{ id: v.id }} className="line-clamp-2 text-sm font-medium hover:underline">{v.title}</Link>

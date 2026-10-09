@@ -11,7 +11,11 @@ export function ChannelAvatar({
   path: string | null | undefined;
   className?: string;
 }) {
-  const url = useMediaUrl("avatars", path);
+  // Google OAuth may provide a complete external avatar URL; legacy profile photos
+  // are storage paths and are resolved through Supabase Storage.
+  const isExternalUrl = !!path && /^https?:\/\//i.test(path);
+  const url = useMediaUrl("avatars", isExternalUrl ? null : path);
+  const imageUrl = isExternalUrl ? path : url;
   return (
     <div
       className={cn(
@@ -19,7 +23,7 @@ export function ChannelAvatar({
         className,
       )}
     >
-      {url ? <img src={url} alt={name} loading="lazy" decoding="async" className="size-full object-cover" /> : initials(name) || "?"}
+      {imageUrl ? <img src={imageUrl} alt={name} loading="lazy" decoding="async" className="size-full object-cover" /> : initials(name) || "?"}
     </div>
   );
 }

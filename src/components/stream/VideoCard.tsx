@@ -4,7 +4,7 @@ import { Play } from "lucide-react";
 import { useMediaUrl } from "@/lib/media";
 import { formatDuration, formatViews, timeAgo } from "@/lib/format";
 import type { VideoCardData } from "@/lib/videos";
-import { ChannelAvatar, VerifiedDot } from "./ChannelAvatar";
+import { ChannelAvatar } from "./ChannelAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function Thumbnail({ video, className }: { video: VideoCardData; className?: string }) {
@@ -17,7 +17,6 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
             src={url}
             alt={video.title}
             loading="lazy"
-            loading="lazy"
             decoding="async"
             className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
@@ -27,15 +26,9 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
           </div>
         )}
       </div>
-      {video.is_live ? (
-        <span className="absolute bottom-2 left-2 rounded-md bg-live/90 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-live-foreground">
-          En direct
-        </span>
-      ) : (
-        <span className="absolute bottom-2 right-2 rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-medium tabular-nums">
-          {formatDuration(video.duration_seconds)}
-        </span>
-      )}
+      <span className="absolute bottom-2 right-2 rounded-md bg-background/80 px-1.5 py-0.5 text-xs font-medium tabular-nums">
+        {formatDuration(video.duration_seconds ?? 0)}
+      </span>
     </div>
   );
 }
@@ -60,7 +53,6 @@ export function VideoCard({ video }: { video: VideoCardData }) {
             className="mt-1 block text-sm text-muted-foreground hover:text-foreground"
           >
             {video.channel.name}
-            {video.channel.verified && <VerifiedDot />}
           </Link>
           <p className="text-sm text-faint">
             {formatViews(video.view_count)} · {timeAgo(video.created_at)}
@@ -82,8 +74,8 @@ export function VideoGrid({
 }) {
   if (loading)
     return (
-      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
           <div key={i}>
             <Skeleton className="aspect-video w-full rounded-lg bg-frost" />
             <div className="mt-4 flex gap-3">
@@ -99,7 +91,7 @@ export function VideoGrid({
     );
   if (!videos?.length) return <>{empty}</>;
   return (
-    <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {videos.map((v) => (
         <VideoCard key={v.id} video={v} />
       ))}

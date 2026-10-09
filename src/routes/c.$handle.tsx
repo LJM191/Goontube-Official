@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { uploadMedia, useMediaUrl } from "@/lib/media";
 import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
 import { formatCount } from "@/lib/format";
-import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
+import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
@@ -32,8 +32,8 @@ export const Route = createFileRoute("/c/$handle")({
 });
 
 type Channel = {
-  id: string; owner_id: string; handle: string; name: string; description: string | null; created_at: string;
-  avatar_path: string | null; banner_path: string | null; verified: boolean; subscriber_count: number;
+  id: string; user_id: string; handle: string; name: string; description: string | null; created_at: string;
+  avatar_url: string | null; banner_url: string | null; subscriber_count: number;
 };
 
 function EditChannel({ channel }: { channel: Channel }) {
@@ -49,15 +49,15 @@ function EditChannel({ channel }: { channel: Channel }) {
   async function save() {
     setBusy(true);
     try {
-      const patch: Partial<Channel> = { name: name.trim(), description: description.trim() || null };
-      if (avatar) patch.avatar_path = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
-      if (banner) patch.banner_path = await uploadMedia("avatars", user!.id, banner, banner.name.split(".").pop() || "jpg");
+      const patch: { name: string; description: string; avatar_url?: string; banner_url?: string } = { name: name.trim(), description: description.trim() };
+      if (avatar) patch.avatar_url = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
+      if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
       if (error) throw error;
       await supabase.from("profiles").update({
-        display_name: patch.name!,
-        ...(patch.avatar_path ? { avatar_path: patch.avatar_path } : {}),
-      }).eq("id", user!.id);
+        pseudo: patch.name!,
+        ...(patch.avatar_url ? { profile_photo: patch.avatar_url } : {}),
+      }).eq("user_id", user!.id);
       qc.invalidateQueries();
       toast.success("Chaîne mise à jour");
       setOpen(false);
@@ -100,7 +100,7 @@ function ChannelPage() {
       return data as Channel | null;
     },
   });
-  const isOwner = !!user && channel?.owner_id === user.id;
+  const isOwner = !!user && channel?.user_id === user.id;
   const { data: videos, isLoading: loadingVideos } = useQuery({
     queryKey: ["channel-videos", channel?.id, isOwner],
     enabled: !!channel,
@@ -112,7 +112,7 @@ function ChannelPage() {
       return data as unknown as VideoCardData[];
     },
   });
-  const banner = useMediaUrl("avatars", channel?.banner_path);
+  const banner = useMediaUrl("banners", channel?.banner_url);
 
   if (isLoading) return null;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
@@ -123,9 +123,9 @@ function ChannelPage() {
         {banner && <img src={banner} alt="" className="size-full object-cover" />}
       </div>
       <div className="mt-6 flex flex-wrap items-center gap-5">
-        <ChannelAvatar name={channel.name} path={channel.avatar_path} className="size-20 text-xl" />
+        <ChannelAvatar name={channel.name} path={channel.avatar_url} className="size-20 text-xl" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold">{channel.name}{channel.verified && <VerifiedDot />}</h1>
+          <h1 className="text-2xl font-semibold">{channel.name}</h1>
           <p className="text-sm text-muted-foreground">
             @{channel.handle} · {formatCount(channel.subscriber_count)} abonné{channel.subscriber_count > 1 ? "s" : ""} · {videos?.length ?? 0} vidéo{(videos?.length ?? 0) > 1 ? "s" : ""}
           </p>
@@ -138,7 +138,7 @@ function ChannelPage() {
             <Link to="/upload" className="flex items-center gap-2 rounded-full bg-glow px-4 py-1.5 text-sm font-medium text-primary-foreground"><Upload className="size-4" /> Mettre en ligne</Link>
           </div>
         ) : (
-          <SubscribeButton channelId={channel.id} ownerId={channel.owner_id} />
+          <SubscribeButton channelId={channel.id} ownerId={channel.user_id} />
         )}
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">

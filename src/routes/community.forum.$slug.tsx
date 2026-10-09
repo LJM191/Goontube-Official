@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowLeft, Lock, MessageSquare, Pin, Send } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/community/forum/$slug")({
 });
 
 type Forum = { id: string; name: string; slug: string; description: string | null };
-type Thread = { id: string; forum_id: string; author_id: string; title: string; body: string; is_pinned: boolean; is_locked: boolean; view_count: number; created_at: string; updated_at: string };
+type Thread = { id: string; forum_id: string; user_id: string; title: string; content: string; created_at: string; updated_at: string };
 
 function ForumPage() {
   const { slug } = Route.useParams();
@@ -38,7 +38,7 @@ function ForumPage() {
     queryKey: ["community-threads", forum?.id],
     enabled: !!forum,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("forum_id", forum!.id).order("is_pinned", { ascending: false }).order("updated_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("forum_id", forum!.id).order("updated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Thread[];
     },
@@ -48,7 +48,7 @@ function ForumPage() {
     e.preventDefault();
     if (!user || !forum || !title.trim() || !body.trim()) return;
     try {
-      const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, author_id: user.id, title: title.trim(), body: body.trim() }).select("id").single();
+      const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, user_id: user.id, title: title.trim(), content: body.trim() }).select("id").single();
       if (error) throw error;
       setTitle(""); setBody(""); setShowNew(false);
       qc.invalidateQueries({ queryKey: ["community-threads", forum.id] });
@@ -74,7 +74,7 @@ function ForumPage() {
         {isLoading ? <div className="p-8 text-center text-muted-foreground">Chargement…</div> : (threads ?? []).length === 0 ? <div className="rounded-2xl bg-panel p-10 text-center text-muted-foreground">Aucune discussion. Lance la première !</div> :
           (threads ?? []).map((t) => <Link key={t.id} to="/community/thread/$id" params={{ id: t.id }} className="flex gap-4 rounded-2xl bg-panel p-4 ring-1 ring-edge/40 hover:ring-glow/50">
             <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-frost"><MessageSquare className="size-5 text-glow" /></div>
-            <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{t.title}</h2>{t.is_pinned && <Pin className="size-3 text-glow" />}{t.is_locked && <Lock className="size-3 text-faint" />}</div><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.body}</p><p className="mt-2 text-xs text-faint">{new Date(t.updated_at).toLocaleString("fr-FR")} · {t.view_count} vue{t.view_count > 1 ? "s" : ""}</p></div>
+            <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold">{t.title}</h2></div><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.content}</p><p className="mt-2 text-xs text-faint">{new Date(t.updated_at).toLocaleString("fr-FR")}</p></div>
           </Link>)}
       </section>
     </div>

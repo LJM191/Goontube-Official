@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMediaUrl } from "@/lib/media";
 import { fetchFeed, type VideoCardData } from "@/lib/videos";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
-import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
+import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { Comments } from "@/components/stream/Comments";
 import { VideoPlayer } from "@/components/stream/VideoPlayer";
@@ -47,29 +47,39 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
     queryKey: key,
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await (supabase as any).from("video_reactions").select("value").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
-      return data?.value ?? 0;
+      const { data, error } = await supabase.from("video_reactions").select("reaction").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
+      if (error) throw error;
+      return data?.reaction ?? null;
     },
   });
   const react = useMutation({
     mutationFn: async (value: 1 | -1) => {
-      if (mine === value) await (supabase as any).from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
-      else await (supabase as any).from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, value });
+      const reaction = value === 1 ? "like" : "dislike";
+      if (mine === reaction) {
+        const { error } = await supabase.from("video_reactions").delete().eq("video_id", videoId).eq("user_id", user!.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("video_reactions").upsert({ video_id: videoId, user_id: user!.id, reaction });
+        if (error) throw error;
+      }
     },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Impossible d’enregistrer la réaction"),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
       qc.invalidateQueries({ queryKey: ["video", videoId] });
     },
   });
   const click = (v: 1 | -1) => (user ? react.mutate(v) : navigate({ to: "/auth" }));
+  const liked = mine === "like";
+  const disliked = mine === "dislike";
   return (
     <div className="flex overflow-hidden rounded-full bg-panel/80 ring-1 ring-edge/40">
       <button onClick={() => click(1)} className="flex items-center gap-2 px-4 py-1.5 text-sm hover:bg-frost" aria-label="J'aime">
-        <ThumbsUp className={`size-4 ${mine === 1 ? "fill-glow text-glow" : ""}`} /> {formatCount(likes)}
+        <ThumbsUp className={`size-4 ${liked ? "fill-glow text-glow" : ""}`} /> {formatCount(likes)}
       </button>
       <span className="my-1.5 w-px bg-edge" />
       <button onClick={() => click(-1)} className="flex items-center gap-2 px-4 py-1.5 text-sm hover:bg-frost" aria-label="Je n'aime pas">
-        <ThumbsDown className={`size-4 ${mine === -1 ? "fill-foreground" : ""}`} /> {dislikes > 0 ? formatCount(dislikes) : ""}
+        <ThumbsDown className={`size-4 ${disliked ? "fill-foreground" : ""}`} /> {dislikes > 0 ? formatCount(dislikes) : ""}
       </button>
     </div>
   );
@@ -192,25 +202,23 @@ function Watch() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("videos")
-        .select("*, channel:channels(id,owner_id,handle,name,avatar_path,verified,subscriber_count)")
+        .select("*, channel:channels(id,user_id,handle,name,avatar_url,subscriber_count)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
-  const src = useMediaUrl("videos", video?.video_path);
-  const poster = useMediaUrl("thumbnails", video?.thumbnail_path);
+  const src = useMediaUrl("videos", video?.video_url);
+  const poster = useMediaUrl("thumbnails", video?.thumbnail_url);
 
   useEffect(() => {
     if (video && counted.current !== video.id) {
       counted.current = video.id;
       void (async () => {
-        const { data: newCount, error } = await supabase.rpc("increment_view", { _video_id: video.id });
-        if (!error && typeof newCount === "number") {
-          qc.setQueryData(["video", video.id], (current: typeof video | undefined) =>
-            current ? { ...current, view_count: newCount } : current,
-          );
+        const { error } = await supabase.rpc("increment_view", { video_uuid: video.id });
+        if (!error) {
+          qc.invalidateQueries({ queryKey: ["video", video.id] });
           qc.invalidateQueries({ queryKey: ["feed"] });
         }
       })();
@@ -232,7 +240,7 @@ function Watch() {
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
-            <VideoPlayer src={src} poster={poster} title={video.title} />
+            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
@@ -243,13 +251,13 @@ function Watch() {
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <Link to="/c/$handle" params={{ handle: ch.handle }} className="flex items-center gap-3">
-            <ChannelAvatar name={ch.name} path={ch.avatar_path} className="size-10" />
+            <ChannelAvatar name={ch.name} path={ch.avatar_url} className="size-10" />
             <div>
-              <p className="text-sm font-medium">{ch.name}{ch.verified && <VerifiedDot />}</p>
+              <p className="text-sm font-medium">{ch.name}</p>
               <p className="text-xs text-faint">{formatCount(ch.subscriber_count)} abonné{ch.subscriber_count > 1 ? "s" : ""}</p>
             </div>
           </Link>
-          <SubscribeButton channelId={ch.id} ownerId={ch.owner_id} />
+          <SubscribeButton channelId={ch.id} ownerId={ch.user_id} />
           <div className="ml-auto flex gap-2">
             <Reactions videoId={video.id} likes={video.like_count} dislikes={video.dislike_count} />
             <SaveActions videoId={video.id} />
@@ -271,9 +279,7 @@ function Watch() {
           {video.description && (
             <p className={`mt-2 whitespace-pre-wrap text-muted-foreground ${expanded ? "" : "line-clamp-3"}`}>{video.description}</p>
           )}
-          {video.tags.length > 0 && (
-            <p className="mt-2 text-glow">{video.tags.map((t: string) => `#${t}`).join(" ")}</p>
-          )}
+          
           {video.description && video.description.length > 200 && (
             <button onClick={() => setExpanded(!expanded)} className="mt-2 font-medium">
               {expanded ? "Moins" : "Plus"}
