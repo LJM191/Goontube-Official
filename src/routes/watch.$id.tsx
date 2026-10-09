@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMediaUrl } from "@/lib/media";
 import { fetchFeed, type VideoCardData } from "@/lib/videos";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
-import { ChannelAvatar, VerifiedDot } from "@/components/stream/ChannelAvatar";
+import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { Comments } from "@/components/stream/Comments";
 import { VideoPlayer } from "@/components/stream/VideoPlayer";
@@ -47,7 +47,8 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
     queryKey: key,
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await (supabase as any).from("video_reactions").select("reaction").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("video_reactions").select("reaction").eq("video_id", videoId).eq("user_id", user!.id).maybeSingle();
+      if (error) throw error;
       return data?.reaction ?? null;
     },
   });
@@ -62,6 +63,7 @@ function Reactions({ videoId, likes, dislikes }: { videoId: string; likes: numbe
         if (error) throw error;
       }
     },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Impossible d’enregistrer la réaction"),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: key });
       qc.invalidateQueries({ queryKey: ["video", videoId] });
@@ -214,11 +216,9 @@ function Watch() {
     if (video && counted.current !== video.id) {
       counted.current = video.id;
       void (async () => {
-        const { data: newCount, error } = await supabase.rpc("increment_view", { video_uuid: video.id });
-        if (!error && typeof newCount === "number") {
-          qc.setQueryData(["video", video.id], (current: typeof video | undefined) =>
-            current ? { ...current, view_count: newCount } : current,
-          );
+        const { error } = await supabase.rpc("increment_view", { video_uuid: video.id });
+        if (!error) {
+          qc.invalidateQueries({ queryKey: ["video", video.id] });
           qc.invalidateQueries({ queryKey: ["feed"] });
         }
       })();
