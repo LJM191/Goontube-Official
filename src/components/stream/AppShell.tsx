@@ -233,13 +233,13 @@ function UserMenu() {
   const name =
     data?.channel?.name ??
     data?.profile?.pseudo ??
-    (typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : null) ??
-    (typeof user.user_metadata?.name === "string" ? user.user_metadata.name : null) ??
+    (typeof user.user_metadata?.["full_name"] === "string" ? user.user_metadata["full_name"] : null) ??
+    (typeof user.user_metadata?.["name"] === "string" ? user.user_metadata["name"] : null) ??
     user.email?.split("@")[0] ??
     "Mon compte";
   const avatarPath =
-    (typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null) ??
-    (typeof user.user_metadata?.picture === "string" ? user.user_metadata.picture : null) ??
+    (typeof user.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ??
+    (typeof user.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ??
     data?.channel?.avatar_url ??
     data?.profile?.profile_photo ??
     data?.profile?.avatar ??
@@ -373,7 +373,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                 <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
                   <Link to="/" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Accueil</Link>
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Explorer</Link>
+                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Explorer</Link>
                   <Link to="/subscriptions" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Abonnements</Link>
                   <Link to="/library" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Bibliothèque</Link>
                   <Link to="/history" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Historique</Link>
@@ -397,15 +397,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="group relative flex h-full items-stretch">
-              <Link to="/explore" className={navClass(activeClass("/explore"))}>
+              <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>
                 CRÉATEURS
                 <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
                 <span className={underlineClass(activeClass("/explore"))} />
               </Link>
               <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                 <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
-                  <Link to="/explore" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Nouveaux créateurs</Link>
+                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
+                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Nouveaux créateurs</Link>
                 </div>
               </div>
             </div>
