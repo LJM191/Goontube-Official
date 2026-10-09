@@ -465,7 +465,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="group relative flex h-full items-stretch">
-              <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>
+              <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>
                 CRÉATEURS
                 <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
                 <span className={underlineClass(activeClass("/explore"))} />
