@@ -86,7 +86,7 @@ function VideoManagerRow({ video, userId, channel }: { video: ManagedVideo; user
         <div className="min-w-0 flex-1">
           <Link to="/watch/$id" params={{ id: video.id }} className="line-clamp-2 text-sm font-semibold hover:underline sm:text-base">{video.title}</Link>
           <p className="mt-1 text-xs text-faint">{timeAgo(video.created_at)} · {video.visibility === "public" ? "Publique" : video.visibility === "unlisted" ? "Non répertoriée" : "Privée"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{formatViews(video.view_count)} vues · {formatCount(video.like_count)} J’aime · {formatCount(video.comment_count)} commentaires</p>
+          <p className="mt-1 text-xs text-muted-foreground">{formatViews(video.view_count ?? 0)} vues · {formatCount(video.like_count ?? 0)} J’aime · {formatCount(video.comment_count ?? 0)} commentaires</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => setEditing((value) => !value)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-panel px-3 py-1.5 text-xs font-medium ring-1 ring-edge/50 hover:bg-frost">
               {editing ? <X className="size-3.5" /> : <Pencil className="size-3.5" />}{editing ? "Fermer" : "Modifier"}
