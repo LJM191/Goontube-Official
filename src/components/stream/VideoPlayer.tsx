@@ -45,20 +45,10 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   }, [src]);
 
   useEffect(() => {
-    const video = ref.current as (HTMLVideoElement & { webkitDisplayingFullscreen?: boolean }) | null;
-    const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement || video?.webkitDisplayingFullscreen));
-    const onNativeFullscreenStart = () => setFullscreen(true);
-    const onNativeFullscreenEnd = () => setFullscreen(false);
-
+    const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", onFullscreen);
-    video?.addEventListener("webkitbeginfullscreen", onNativeFullscreenStart);
-    video?.addEventListener("webkitendfullscreen", onNativeFullscreenEnd);
-    return () => {
-      document.removeEventListener("fullscreenchange", onFullscreen);
-      video?.removeEventListener("webkitbeginfullscreen", onNativeFullscreenStart);
-      video?.removeEventListener("webkitendfullscreen", onNativeFullscreenEnd);
-    };
-  }, [activeSrc]);
+    return () => document.removeEventListener("fullscreenchange", onFullscreen);
+  }, []);
 
   useEffect(() => {
     const v = ref.current;
@@ -114,44 +104,13 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   };
 
   const toggleFullscreen = async () => {
-    const video = ref.current as (HTMLVideoElement & {
-      webkitEnterFullscreen?: () => void;
-      webkitExitFullscreen?: () => void;
-      webkitDisplayingFullscreen?: boolean;
-    }) | null;
-    const container = video?.parentElement;
-    if (!video || !container) return;
-
-    if (video.webkitDisplayingFullscreen) {
-      video.webkitExitFullscreen?.();
-      return;
-    }
-    if (document.fullscreenElement) {
-      try {
-        await document.exitFullscreen();
-      } catch {
-        toast.error("Impossible de quitter le plein écran.");
-      }
-      return;
-    }
-
+    const el = ref.current?.parentElement;
+    if (!el) return;
     try {
-      if (typeof container.requestFullscreen === "function") {
-        await container.requestFullscreen();
-        return;
-      }
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await el.requestFullscreen();
     } catch {
-      // iPhone Safari doesn't support fullscreen on a wrapper element; use the native video fullscreen instead.
-    }
-
-    try {
-      if (typeof video.webkitEnterFullscreen === "function") {
-        video.webkitEnterFullscreen();
-        return;
-      }
       toast.error("Le plein écran n'est pas disponible sur cet appareil.");
-    } catch {
-      toast.error("Impossible d'activer le plein écran sur cet appareil.");
     }
   };
 
@@ -235,7 +194,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
 
   return (
     <div
-      className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10 touch-manipulation", fullscreen && "h-[100dvh] w-screen !aspect-auto rounded-none")}
+      className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10", fullscreen && "rounded-none")}
       onDoubleClick={toggleFullscreen}
       onPointerMove={showControls}
       onTouchStart={showControls}
