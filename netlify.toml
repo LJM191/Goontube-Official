@@ -5,3 +5,13 @@
 [dev]
   command = "vite dev"
   port = 3000
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Permitted-Cross-Domain-Policies = "none"
+    Strict-Transport-Security = "max-age=31536000"
