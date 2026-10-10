@@ -1,10 +1,3 @@
-[build]
-  command = "npm run build"
-  publish = "dist/client"
-
-[build.environment]
-  NODE_VERSION = "20.19.6"
-
 [[headers]]
   for = "/*"
   [headers.values]
@@ -14,6 +7,13 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     X-Permitted-Cross-Domain-Policies = "none"
     Strict-Transport-Security = "max-age=31536000"
+
+[build]
+  command = "npm run build"
+  publish = "dist/client"
+
+[build.environment]
+  NODE_VERSION = "20.19.6"
 
 [dev]
   command = "vite dev"
