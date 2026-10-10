@@ -27,20 +27,15 @@ const csrfMiddleware = createCsrfMiddleware({
 
 // Apply security headers to server-rendered responses as well as static assets.
 const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
-  const response = await next();
-  const headers = new Headers(response.headers);
+  const result = await next();
+  const headers = result.response.headers;
   headers.set("X-Frame-Options", "DENY");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   headers.set("X-Permitted-Cross-Domain-Policies", "none");
   headers.set("Strict-Transport-Security", "max-age=31536000");
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return result;
 });
 
 export const startInstance = createStart(() => ({
