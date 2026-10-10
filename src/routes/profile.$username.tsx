@@ -79,7 +79,7 @@ function Profile() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", username],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("profiles").select("*").eq("pseudo", username).maybeSingle();
+      const { data, error } = await (supabase as any).from("profiles").select("user_id,pseudo,avatar,profile_photo,bio,created_at,updated_at").eq("pseudo", username).maybeSingle();
       if (error) throw error;
       return data;
     },
