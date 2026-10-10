@@ -136,7 +136,7 @@ function SearchBar() {
   };
 
   return (
-    <div className="relative w-full max-w-2xl">
+    <div className="relative w-full max-w-none">
       <form onSubmit={(e) => { e.preventDefault(); submit(); }}
         className="flex h-12 items-center gap-3 rounded-full bg-panel/90 px-5 ring-1 ring-edge/50 shadow-sm focus-within:ring-glow/60"
       >
@@ -412,7 +412,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
-          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 md:block">
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
