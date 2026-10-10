@@ -263,8 +263,13 @@ function Watch() {
             <SaveActions videoId={video.id} />
             <button
               onClick={async () => {
-                await navigator.clipboard.writeText(window.location.href);
-                toast.success("Lien copié");
+                try {
+                  if (!navigator.clipboard?.writeText) throw new Error("Presse-papiers indisponible");
+                  await navigator.clipboard.writeText(window.location.href);
+                  toast.success("Lien copié");
+                } catch {
+                  toast.error("Impossible de copier le lien dans ce navigateur.");
+                }
               }}
               className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost"
             >
@@ -300,7 +305,7 @@ function Watch() {
               : "Cette vidéo n'a pas encore de description. Un résumé automatique pourra être généré lorsque l'IA sera connectée au Studio."}
           </p>
         </div>
-        <Comments videoId={video.id} count={video.comment_count} />
+        <Comments videoId={video.id} count={video.comment_count} ownerId={ch.user_id} />
       </div>
       <UpNext currentId={video.id} />
     </div>

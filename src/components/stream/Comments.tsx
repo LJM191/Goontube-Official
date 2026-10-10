@@ -60,13 +60,13 @@ function Composer({ videoId, parentId, onDone }: { videoId: string; parentId?: s
   );
 }
 
-function CommentItem({ c, replies, videoId }: { c: Comment; replies: Comment[]; videoId: string }) {
+function CommentItem({ c, replies, videoId, canModerate = false }: { c: Comment; replies: Comment[]; videoId: string; canModerate?: boolean }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [replying, setReplying] = useState(false);
   const name = c.author?.pseudo ?? "Utilisateur";
   async function remove() {
-    const { error } = await supabase.from("comments").delete().eq("id", c.id).eq("user_id", user?.id ?? "");
+    const { error } = await supabase.from("comments").delete().eq("id", c.id);
     if (error) {
       toast.error("Suppression impossible");
       return;
@@ -83,16 +83,18 @@ function CommentItem({ c, replies, videoId }: { c: Comment; replies: Comment[]; 
         <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.content}</p>
         <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
           {!c.parent_id && user && <button onClick={() => setReplying((v) => !v)}>Répondre</button>}
-          {user?.id === c.user_id && <button onClick={() => void remove()}>Supprimer</button>}
+          {(user?.id === c.user_id || canModerate) && <button onClick={() => void remove()} className="text-red-400 hover:text-red-300">Supprimer</button>}
         </div>
         {replying && <div className="mt-3"><Composer videoId={videoId} parentId={c.id} onDone={() => setReplying(false)} /></div>}
-        {replies.length > 0 && <div className="mt-4 space-y-4">{replies.map((r) => <CommentItem key={r.id} c={r} replies={[]} videoId={videoId} />)}</div>}
+        {replies.length > 0 && <div className="mt-4 space-y-4">{replies.map((r) => <CommentItem key={r.id} c={r} replies={[]} videoId={videoId} canModerate={canModerate} />)}</div>}
       </div>
     </div>
   );
 }
 
-export function Comments({ videoId, count }: { videoId: string; count: number }) {
+export function Comments({ videoId, count, ownerId }: { videoId: string; count: number; ownerId?: string }) {
+  const { user } = useAuth();
+  const canModerate = !!user && !!ownerId && user.id === ownerId;
   const { data, isLoading, error } = useQuery({
     queryKey: ["comments", videoId],
     queryFn: async () => {
@@ -117,10 +119,11 @@ export function Comments({ videoId, count }: { videoId: string; count: number })
   return (
     <section className="mt-8">
       <h2 className="mb-4 text-lg font-semibold">{count} commentaire{count > 1 ? "s" : ""}</h2>
+      {canModerate && <p className="mb-4 text-xs text-muted-foreground">Modération de votre chaîne : vous pouvez supprimer les commentaires inappropriés sous cette vidéo.</p>}
       <Composer videoId={videoId} />
       {error && <p className="mt-4 text-sm text-red-300">Impossible de charger les commentaires.</p>}
       {isLoading && <p className="mt-4 text-sm text-muted-foreground">Chargement des commentaires…</p>}
-      <div className="mt-6 space-y-6">{top.map((c) => <CommentItem key={c.id} c={c} replies={repliesOf(c.id)} videoId={videoId} />)}</div>
+      <div className="mt-6 space-y-6">{top.map((c) => <CommentItem key={c.id} c={c} replies={repliesOf(c.id)} videoId={videoId} canModerate={canModerate} />)}</div>
     </section>
   );
 }

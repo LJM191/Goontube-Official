@@ -106,9 +106,61 @@
   --shadow-glow: 0 0 14px -6px color-mix(in oklab, var(--glow) 30%, transparent);
 }
 
+
+/* Light theme overrides */
+html:not(.dark) {
+  color-scheme: light;
+  --background: oklch(0.985 0.003 20);
+  --foreground: oklch(0.22 0.008 20);
+  --panel: oklch(1 0 0);
+  --frost: oklch(0.96 0.006 20);
+  --edge: oklch(0.83 0.012 20);
+  --faint: oklch(0.48 0.012 20);
+  --glow: oklch(0.53 0.19 12);
+  --glow-2: oklch(0.64 0.13 15);
+  --live: oklch(0.55 0.19 12);
+  --live-foreground: oklch(0.99 0 0);
+  --card: var(--panel);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --primary: var(--glow);
+  --primary-foreground: oklch(0.99 0.002 10);
+  --secondary: oklch(0.95 0.006 20);
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.95 0.006 20);
+  --muted-foreground: oklch(0.42 0.01 20);
+  --accent: var(--frost);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.56 0.21 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.82 0.01 20 / 80%);
+  --input: oklch(0.82 0.01 20);
+  --ring: var(--glow);
+  --sidebar: var(--frost);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--glow);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--panel);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--glow);
+  --gradient-brand: linear-gradient(135deg, var(--glow), var(--glow-2));
+  --gradient-ambient: none;
+  --shadow-glow: 0 0 14px -6px color-mix(in oklab, var(--glow) 18%, transparent);
+}
+
 @layer base {
   * { border-color: var(--color-border); }
+  html {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
   body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
     background-color: var(--color-background);
     background-image: var(--gradient-ambient);
     color: var(--color-foreground);

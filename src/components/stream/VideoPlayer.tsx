@@ -45,10 +45,23 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   }, [src]);
 
   useEffect(() => {
+    const video = ref.current as (HTMLVideoElement & {
+      webkitDisplayingFullscreen?: boolean;
+    }) | null;
     const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
+    const onNativeFullscreenStart = () => setFullscreen(true);
+    const onNativeFullscreenEnd = () => setFullscreen(false);
+
     document.addEventListener("fullscreenchange", onFullscreen);
-    return () => document.removeEventListener("fullscreenchange", onFullscreen);
-  }, []);
+    video?.addEventListener("webkitbeginfullscreen", onNativeFullscreenStart);
+    video?.addEventListener("webkitendfullscreen", onNativeFullscreenEnd);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreen);
+      video?.removeEventListener("webkitbeginfullscreen", onNativeFullscreenStart);
+      video?.removeEventListener("webkitendfullscreen", onNativeFullscreenEnd);
+    };
+  }, [activeSrc]);
 
   useEffect(() => {
     const v = ref.current;
@@ -104,13 +117,34 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   };
 
   const toggleFullscreen = async () => {
-    const el = ref.current?.parentElement;
-    if (!el) return;
+    const video = ref.current as (HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitDisplayingFullscreen?: boolean;
+    }) | null;
+    const el = video?.parentElement;
+    if (!video || !el) return;
+
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await el.requestFullscreen();
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      // iPhone/iPad Safari supports native fullscreen on the video element,
+      // even when the Fullscreen API is unavailable for regular page elements.
+      if (typeof video.webkitEnterFullscreen === "function") {
+        video.webkitEnterFullscreen();
+        return;
+      }
+
+      if (typeof el.requestFullscreen === "function") {
+        await el.requestFullscreen();
+        return;
+      }
+
+      toast.info("Le plein écran n'est pas pris en charge par ce navigateur.");
     } catch {
-      toast.error("Le plein écran n'est pas disponible sur cet appareil.");
+      toast.error("Impossible d'activer le plein écran sur cet appareil.");
     }
   };
 
@@ -194,7 +228,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
 
   return (
     <div
-      className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10", fullscreen && "rounded-none")}
+      className={cn("group relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10", fullscreen && "h-dvh w-screen max-w-none aspect-auto rounded-none")}
       onDoubleClick={toggleFullscreen}
       onPointerMove={showControls}
       onTouchStart={showControls}

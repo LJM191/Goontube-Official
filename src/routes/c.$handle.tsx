@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { BarChart3, Settings, Upload, Video, Eye, Users, Image as ImageIcon } from "lucide-react";
@@ -39,8 +39,10 @@ type Channel = {
 function EditChannel({ channel }: { channel: Channel }) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(channel.name);
+  const [handle, setHandle] = useState(channel.handle);
   const [description, setDescription] = useState(channel.description ?? "");
   const [avatar, setAvatar] = useState<File | null>(null);
   const [banner, setBanner] = useState<File | null>(null);
@@ -49,7 +51,12 @@ function EditChannel({ channel }: { channel: Channel }) {
   async function save() {
     setBusy(true);
     try {
-      const patch: { name: string; description: string; avatar_url?: string; banner_url?: string } = { name: name.trim(), description: description.trim() };
+      const cleanHandle = handle.trim().replace(/^@/, "").toLowerCase();
+      if (!/^[a-z0-9_-]{3,30}$/.test(cleanHandle)) {
+        toast.error("L’arobase doit contenir 3 à 30 caractères : lettres, chiffres, tiret ou underscore.");
+        return;
+      }
+      const patch: { name: string; handle: string; description: string; avatar_url?: string; banner_url?: string } = { name: name.trim(), handle: cleanHandle, description: description.trim() };
       if (avatar) patch.avatar_url = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
       if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
@@ -58,9 +65,10 @@ function EditChannel({ channel }: { channel: Channel }) {
         pseudo: patch.name!,
         ...(patch.avatar_url ? { profile_photo: patch.avatar_url } : {}),
       }).eq("user_id", user!.id);
-      qc.invalidateQueries();
+      await qc.invalidateQueries();
       toast.success("Chaîne mise à jour");
       setOpen(false);
+      if (cleanHandle !== channel.handle) await navigate({ to: "/c/$handle", params: { handle: cleanHandle }, replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erreur");
     } finally {
@@ -77,6 +85,7 @@ function EditChannel({ channel }: { channel: Channel }) {
         <DialogHeader><DialogTitle>Personnaliser la chaîne</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" maxLength={60} />
+          <div className="space-y-1"><label htmlFor="channel-handle" className="text-sm font-medium">Arobase / identifiant</label><div className="flex items-center gap-2"><span className="text-muted-foreground">@</span><Input id="channel-handle" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="monidentifiant" maxLength={30} autoCapitalize="none" /></div><p className="text-xs text-muted-foreground">3 à 30 caractères : lettres, chiffres, tirets et underscores. L’adresse de la chaîne changera si tu le modifies.</p></div>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={4} maxLength={1000} />
           <label className="block text-sm">Avatar <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setAvatar(e.target.files?.[0] ?? null)} /></label>
           <label className="block text-sm">Bannière <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setBanner(e.target.files?.[0] ?? null)} /></label>
@@ -119,8 +128,8 @@ function ChannelPage() {
 
   return (
     <div>
-      <div className="aspect-[6/1] min-h-28 overflow-hidden rounded-2xl bg-brand opacity-90 ring-1 ring-edge/40">
-        {banner && <img src={banner} alt="" className="size-full object-cover" />}
+      <div className="relative aspect-[2.4/1] w-full min-w-0 overflow-hidden rounded-2xl bg-brand opacity-90 ring-1 ring-edge/40 sm:aspect-[4/1] lg:aspect-[5/1]">
+        {banner && <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />}
       </div>
       <div className="mt-6 flex flex-wrap items-center gap-5">
         <ChannelAvatar name={channel.name} path={channel.avatar_url} className="size-20 text-xl" />
@@ -143,13 +152,8 @@ function ChannelPage() {
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
         <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
-        <a href="#photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</a>
+        <Link to="/photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</Link>
         <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
-        {isOwner && (
-          <Link to="/studio" className="ml-auto flex items-center gap-2 rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30 hover:bg-frost">
-            <BarChart3 className="size-4" /> Studio
-          </Link>
-        )}
       </div>
       <div className="my-6 h-px bg-edge/60" />
       <div id="about" className="mb-6 rounded-2xl bg-panel/50 p-5 ring-1 ring-edge/30">

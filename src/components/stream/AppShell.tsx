@@ -1,24 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Bell,
   Clock,
   Compass,
-  CreditCard,
-  CircleHelp,
+  ChevronDown,
   Globe,
   Home,
-  Keyboard,
-  Languages,
   Library,
   LogOut,
-  MessageSquare,
   Monitor,
-  Plus,
+  MessageSquare,
   Search,
-  Settings,
   ShieldCheck,
-  Smartphone,
+  Settings,
   Tv,
   User as UserIcon,
   UserRound,
@@ -27,6 +21,7 @@ import {
 import goontubeLogo from "@/assets/goontube-logo.png";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/config";
+import { useMediaUrl } from "@/lib/media";
 import { useAuth, useMe } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -57,6 +52,27 @@ export function Logo() {
   );
 }
 
+type SearchVideoSuggestionData = {
+  id: string;
+  title: string;
+  thumbnail_path: string | null;
+  view_count: number;
+  channel: { name: string } | null;
+};
+
+function SearchVideoSuggestion({ video, onSelect }: { video: SearchVideoSuggestionData; onSelect: () => void }) {
+  const thumbnail = useMediaUrl("thumbnails", video.thumbnail_path);
+  return (
+    <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={onSelect}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
+      <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-frost text-faint">
+        {thumbnail ? <img src={thumbnail} alt="" className="size-full object-cover" /> : <div className="grid size-full place-items-center"><Search className="size-5" /></div>}
+      </div>
+      <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
+    </Link>
+  );
+}
+
 function SearchBar() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -65,7 +81,8 @@ function SearchBar() {
 
   useEffect(() => {
     try {
-      setRecent(JSON.parse(localStorage.getItem("goontube-recent-searches") ?? "[]"));
+      const stored: unknown = JSON.parse(localStorage.getItem("goontube-recent-searches") ?? "[]");
+      setRecent(Array.isArray(stored) ? stored.filter((item): item is string => typeof item === "string").slice(0, 6) : []);
     } catch {}
   }, []);
 
@@ -119,7 +136,7 @@ function SearchBar() {
   };
 
   return (
-    <div className="relative w-full max-w-2xl">
+    <div className="relative w-full max-w-none">
       <form onSubmit={(e) => { e.preventDefault(); submit(); }}
         className="flex h-12 items-center gap-3 rounded-full bg-panel/90 px-5 ring-1 ring-edge/50 shadow-sm focus-within:ring-glow/60"
       >
@@ -197,11 +214,7 @@ function SearchBar() {
                 <div className="pt-1">
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Vidéos</p>
                   {suggestions.videos.map((video) => (
-                    <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
-                      <div className="grid size-16 shrink-0 place-items-center rounded-lg bg-frost text-faint"><Search className="size-5" /></div>
-                      <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
-                    </Link>
+                    <SearchVideoSuggestion key={video.id} video={video} onSelect={() => setOpen(false)} />
                   ))}
                 </div>
               )}
@@ -237,12 +250,13 @@ function UserMenu() {
     (typeof user.user_metadata?.["name"] === "string" ? user.user_metadata["name"] : null) ??
     user.email?.split("@")[0] ??
     "Mon compte";
+  // Prefer the avatar selected on GoonTube; Google is only the initial fallback.
   const avatarPath =
-    (typeof user.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ??
-    (typeof user.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ??
     data?.channel?.avatar_url ??
     data?.profile?.profile_photo ??
     data?.profile?.avatar ??
+    (typeof user.user_metadata?.["avatar_url"] === "string" ? user.user_metadata["avatar_url"] : null) ??
+    (typeof user.user_metadata?.["picture"] === "string" ? user.user_metadata["picture"] : null) ??
     null;
   return (
     <DropdownMenu>
@@ -284,44 +298,98 @@ function UserMenu() {
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/studio" })}>
           <Monitor className="size-4" /> GoonTube Studio
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/subscriptions" })}>
-          <CreditCard className="size-4" /> Achats et abonnements
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/account" })}>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/confidentialite" })}>
           <ShieldCheck className="size-4" /> Vos données sur GoonTube
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="px-4 pt-2 text-xs font-normal text-muted-foreground">Préférences</DropdownMenuLabel>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Smartphone className="size-4" /> Appareils connectés
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Monitor className="size-4" /> Thème de l'appareil
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Languages className="size-4" /> Langue
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <ShieldCheck className="size-4" /> Mode restreint
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Globe className="size-4" /> Pays
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Keyboard className="size-4" /> Raccourcis clavier
-        </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <Settings className="size-4" /> Paramètres
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <CircleHelp className="size-4" /> Aide
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/feedback" })}>
           <MessageSquare className="size-4" /> Envoyer des commentaires
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function OrientationIcon({ type }: { type: string }) {
+  if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
+  if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
+  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣ ❤️</span>;
+  if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
+  if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
+  if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
+  if (type === "Pansexuel") {
+    return (
+      <span aria-hidden="true" className="flex w-5 flex-col gap-px overflow-hidden rounded-sm">
+        <span className="h-1 bg-pink-500" />
+        <span className="h-1 bg-yellow-300" />
+        <span className="h-1 bg-cyan-400" />
+      </span>
+    );
+  }
+  return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
+}
+
+const ORIENTATION_OPTIONS = [
+  { label: "Hétéro", slug: "orientation-hetero" },
+  { label: "Bi", slug: "orientation-bi" },
+  { label: "Gay", slug: "orientation-gay" },
+  { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
+  { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
+  { label: "S'identifie comme un chien", slug: "orientation-chien" },
+  { label: "S'identifie comme un chat", slug: "orientation-chat" },
+  { label: "Pansexuel", slug: "orientation-pansexuel" },
+] as const;
+
+function OrientationMenu() {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState("Hétéro");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("goontube-orientation");
+    if (saved && ORIENTATION_OPTIONS.some((option) => option.label === saved)) setSelected(saved);
+  }, []);
+
+  const choose = (option: (typeof ORIENTATION_OPTIONS)[number]) => {
+    setSelected(option.label);
+    localStorage.setItem("goontube-orientation", option.label);
+    setOpen(false);
+    window.location.href = `/explore?category=${encodeURIComponent(option.slug)}`;
+  };
+
+  return (
+    <div className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-label={`Catégorie ${selected}`}
+        title={selected}
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"
+      >
+        <OrientationIcon type={selected} />
+        <span className="flex-1 truncate text-left">{selected}</span>
+        <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl bg-panel p-1.5 shadow-xl ring-1 ring-edge/60">
+          {ORIENTATION_OPTIONS.map((option) => (
+            <button
+              key={option.slug}
+              type="button"
+              onClick={() => choose(option)}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
+            >
+              <OrientationIcon type={option.label} />
+              <span>{option.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -340,20 +408,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     (active ? "scale-x-100 bg-glow" : "scale-x-0 bg-glow group-hover:scale-x-100");
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
-          <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 md:block">
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            {user && (
-              <Button variant="ghost" size="icon" aria-label="Notifications"
-                className="relative grid size-9 place-items-center rounded-full bg-panel/80 ring-1 ring-edge/40 transition-colors hover:bg-frost">
-                <Bell className="size-4 text-muted-foreground" />
-              </Button>
-            )}
             <UserMenu />
           </div>
         </div>
@@ -363,78 +425,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
+          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
+            <OrientationMenu />
+          </div>
           <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/" className={navClass(activeClass("/"))}>
-                ACCUEIL
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Accueil</Link>
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Explorer</Link>
-                  <Link to="/subscriptions" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Abonnements</Link>
-                  <Link to="/library" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Bibliothèque</Link>
-                  <Link to="/history" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Historique</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/search" className={navClass(activeClass("/search"))}>
-                VIDÉOS
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/search"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Toutes les vidéos</Link>
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos récentes</Link>
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos populaires</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>
-                CRÉATEURS
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/explore"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Nouveaux créateurs</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>
-                COMMUNAUTÉ
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/subscriptions"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Découvrir la communauté</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Concours de créateurs</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Flux de la communauté</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres populaires</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs récents</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres en ligne</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Rechercher un membre</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Devenir contributeur</Link>
-                </div>
-              </div>
-            </div>
-
-            <Link to="/photos" className={navClass(activeClass("/photos"))}>
-              PHOTOS ET GIFS
-              <span className={underlineClass(activeClass("/photos"))} />
-            </Link>
+            <Link to="/" className={navClass(activeClass("/"))}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
+            <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
+            <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>ABONNEMENTS<span className={underlineClass(activeClass("/subscriptions"))} /></Link>
+            <Link to="/community" className={navClass(activeClass("/community"))}>COMMUNAUTÉ<span className={underlineClass(activeClass("/community"))} /></Link>
+            <Link to="/photos" className={navClass(activeClass("/photos"))}>PHOTOS ET GIFS<span className={underlineClass(activeClass("/photos"))} /></Link>
           </div>
         </nav>
       </header>
@@ -443,10 +442,22 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav className="glass-bar fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-edge/60 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] lg:hidden">
-        {[NAV[0], NAV[1], { to: "/upload", label: "Créer", icon: Plus } as const, NAV[2], NAV[4]].map(({ to, label, icon: Icon }) => {
+      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
+        {[
+          { to: "/", label: "Accueil", icon: Home },
+          { to: "/explore", label: "Explorer", icon: Compass },
+          { to: "/subscriptions", label: "Abonnements", icon: Tv },
+          { to: "/community", label: "Communauté", icon: MessageSquare },
+          { to: "/photos", label: "Photos", icon: Globe },
+        ].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          return <Link key={to} to={to} className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-medium transition-colors active:bg-frost ${active ? "text-glow" : "text-muted-foreground"}`}><Icon className="size-5" />{label}</Link>;
+          return (
+            <Link key={to} to={to} aria-current={active ? "page" : undefined}
+              className={`flex min-w-0 min-h-12 flex-col items-center justify-center gap-1 rounded-lg px-0.5 py-1 text-[10px] leading-tight font-medium transition-colors active:bg-frost sm:text-[11px] ${active ? "text-glow" : "text-muted-foreground"}`}>
+              <Icon className="size-5 shrink-0" />
+              <span className="max-w-full truncate">{label}</span>
+            </Link>
+          );
         })}
       </nav>
       <SiteFooter />

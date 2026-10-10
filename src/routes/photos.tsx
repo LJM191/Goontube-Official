@@ -50,8 +50,8 @@ function PhotosPage() {
     if (!user || !file) return;
     const me = await (supabase as any).from("channels").select("id").eq("user_id", user.id).maybeSingle();
     if (me.error || !me.data) { toast.error("Créez d'abord votre chaîne."); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Choisissez une image ou un GIF."); return; }
-    if (file.size > 25 * 1024 * 1024) { toast.error("25 Mo maximum."); return; }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) { toast.error("Formats acceptés : JPEG, PNG, WebP ou GIF."); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("10 Mo maximum pour une image."); return; }
     setBusy(true);
     try {
       const path = await uploadMedia("thumbnails", user.id, file, file.name.split(".").pop()?.toLowerCase() || "jpg");
