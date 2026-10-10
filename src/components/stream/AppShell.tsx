@@ -4,20 +4,15 @@ import {
   Clock,
   Compass,
   ChevronDown,
-  CreditCard,
-  CircleHelp,
   Globe,
   Home,
-  Languages,
   Library,
   LogOut,
   Monitor,
   MessageSquare,
-  Plus,
   Search,
   ShieldCheck,
   Settings,
-  Smartphone,
   Tv,
   User as UserIcon,
   UserRound,
@@ -26,6 +21,7 @@ import {
 import goontubeLogo from "@/assets/goontube-logo.png";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/config";
+import { useMediaUrl } from "@/lib/media";
 import { useAuth, useMe } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -56,6 +52,27 @@ export function Logo() {
   );
 }
 
+type SearchVideoSuggestionData = {
+  id: string;
+  title: string;
+  thumbnail_path: string | null;
+  view_count: number;
+  channel: { name: string } | null;
+};
+
+function SearchVideoSuggestion({ video, onSelect }: { video: SearchVideoSuggestionData; onSelect: () => void }) {
+  const thumbnail = useMediaUrl("thumbnails", video.thumbnail_path);
+  return (
+    <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={onSelect}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
+      <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-frost text-faint">
+        {thumbnail ? <img src={thumbnail} alt="" className="size-full object-cover" /> : <div className="grid size-full place-items-center"><Search className="size-5" /></div>}
+      </div>
+      <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
+    </Link>
+  );
+}
+
 function SearchBar() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -64,7 +81,8 @@ function SearchBar() {
 
   useEffect(() => {
     try {
-      setRecent(JSON.parse(localStorage.getItem("goontube-recent-searches") ?? "[]"));
+      const stored: unknown = JSON.parse(localStorage.getItem("goontube-recent-searches") ?? "[]");
+      setRecent(Array.isArray(stored) ? stored.filter((item): item is string => typeof item === "string").slice(0, 6) : []);
     } catch {}
   }, []);
 
@@ -196,11 +214,7 @@ function SearchBar() {
                 <div className="pt-1">
                   <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-faint">Vidéos</p>
                   {suggestions.videos.map((video) => (
-                    <Link key={video.id} to="/watch/$id" params={{ id: video.id }} onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-frost">
-                      <div className="grid size-16 shrink-0 place-items-center rounded-lg bg-frost text-faint"><Search className="size-5" /></div>
-                      <div className="min-w-0"><p className="line-clamp-2 text-sm font-medium">{video.title}</p><p className="text-xs text-faint">{video.channel?.name ?? "Chaîne"} · {video.view_count} vues</p></div>
-                    </Link>
+                    <SearchVideoSuggestion key={video.id} video={video} onSelect={() => setOpen(false)} />
                   ))}
                 </div>
               )}
@@ -284,29 +298,12 @@ function UserMenu() {
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/studio" })}>
           <Monitor className="size-4" /> GoonTube Studio
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/subscriptions" })}>
-          <CreditCard className="size-4" /> Achats et abonnements
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/account" })}>
+        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/confidentialite" })}>
           <ShieldCheck className="size-4" /> Vos données sur GoonTube
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="px-4 pt-2 text-xs font-normal text-muted-foreground">Préférences</DropdownMenuLabel>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Smartphone className="size-4" /> Appareils connectés
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Languages className="size-4" /> Langue
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <Globe className="size-4" /> Pays
-        </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
           <Settings className="size-4" /> Paramètres
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/settings" })}>
-          <CircleHelp className="size-4" /> Aide
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-3 px-4 py-2.5" onClick={() => navigate({ to: "/feedback" })}>
           <MessageSquare className="size-4" /> Envoyer des commentaires
@@ -431,79 +428,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
             <OrientationMenu />
           </div>
-
           <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/" className={navClass(activeClass("/"))}>
-                ACCUEIL
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Accueil</Link>
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Explorer</Link>
-                  <Link to="/subscriptions" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Abonnements</Link>
-                  <Link to="/library" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Bibliothèque</Link>
-                  <Link to="/history" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Historique</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/search" className={navClass(activeClass("/search"))}>
-                VIDÉOS
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/search"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Toutes les vidéos</Link>
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos récentes</Link>
-                  <Link to="/search" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Vidéos populaires</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>
-                CRÉATEURS
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/explore"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
-                  <Link to="/explore" search={{}} className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Nouveaux créateurs</Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="group relative flex h-full items-stretch">
-              <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>
-                COMMUNAUTÉ
-                <span className="text-[10px] opacity-80 transition-transform group-hover:rotate-180">▼</span>
-                <span className={underlineClass(activeClass("/subscriptions"))} />
-              </Link>
-              <div className="invisible absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 translate-y-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                <div className="mt-2 rounded-xl bg-panel p-2 shadow-2xl ring-1 ring-edge/60">
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Découvrir la communauté</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Concours de créateurs</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Flux de la communauté</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres populaires</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs récents</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Créateurs populaires</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Membres en ligne</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Rechercher un membre</Link>
-                  <Link to="/community" className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-frost hover:text-foreground">Devenir contributeur</Link>
-                </div>
-              </div>
-            </div>
-
-            <Link to="/photos" className={navClass(activeClass("/photos"))}>
-              PHOTOS ET GIFS
-              <span className={underlineClass(activeClass("/photos"))} />
-            </Link>
+            <Link to="/" className={navClass(activeClass("/"))}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
+            <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
+            <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>ABONNEMENTS<span className={underlineClass(activeClass("/subscriptions"))} /></Link>
+            <Link to="/community" className={navClass(activeClass("/community"))}>COMMUNAUTÉ<span className={underlineClass(activeClass("/community"))} /></Link>
+            <Link to="/photos" className={navClass(activeClass("/photos"))}>PHOTOS ET GIFS<span className={underlineClass(activeClass("/photos"))} /></Link>
           </div>
         </nav>
       </header>
@@ -512,14 +442,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
+      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
         {[
           { to: "/", label: "Accueil", icon: Home },
-          { to: "/search", label: "Vidéo", icon: Tv },
-          { to: "/subscriptions", label: "Créateur", icon: UserRound },
+          { to: "/explore", label: "Explorer", icon: Compass },
+          { to: "/subscriptions", label: "Abonnements", icon: Tv },
           { to: "/community", label: "Communauté", icon: MessageSquare },
-          { to: "/photos", label: "Photo", icon: Globe },
-          { to: "/shorts", label: "Diff", icon: Plus },
+          { to: "/photos", label: "Photos", icon: Globe },
         ].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
           return (
