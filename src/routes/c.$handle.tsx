@@ -129,7 +129,7 @@ function ChannelPage() {
   return (
     <div>
       <div className="relative aspect-[2.4/1] w-full min-w-0 overflow-hidden rounded-2xl bg-brand opacity-90 ring-1 ring-edge/40 sm:aspect-[4/1] lg:aspect-[5/1]">
-        {banner && <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />}}
+        {banner && <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />}
       </div>
       <div className="mt-6 flex flex-wrap items-center gap-5">
         <ChannelAvatar name={channel.name} path={channel.avatar_url} className="size-20 text-xl" />
