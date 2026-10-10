@@ -101,8 +101,8 @@ function Profile() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="relative h-48 overflow-hidden rounded-3xl bg-brand ring-1 ring-edge/40 sm:h-64">
-        {banner && <img src={banner} alt="" className="size-full object-cover" />}
+      <div className="relative aspect-[2/1] w-full min-w-0 max-h-64 overflow-hidden rounded-3xl bg-brand ring-1 ring-edge/40 sm:aspect-[3/1] lg:aspect-[4/1]">
+        {banner && <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />}}
       </div>
       <div className="relative -mt-12 px-5 sm:px-8">
         <ChannelAvatar name={profile.pseudo ?? "Utilisateur"} path={profile.profile_photo ?? profile.avatar} className="size-24 border-4 border-background text-2xl" />
