@@ -41,7 +41,7 @@ export async function uploadMedia(bucket: Bucket, userId: string, file: Blob, ex
   if (file.size > rules.maxBytes) {
     throw new Error(`Fichier trop volumineux pour le stockage ${bucket}.`);
   }
-  if (file.type && !rules.mimeTypes.includes(file.type)) {
+  if (!file.type || !rules.mimeTypes.includes(file.type)) {
     throw new Error(`Format de fichier non autorisé pour le stockage ${bucket}.`);
   }
 
