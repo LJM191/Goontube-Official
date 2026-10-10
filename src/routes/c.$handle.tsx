@@ -152,13 +152,8 @@ function ChannelPage() {
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
         <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
-        <a href="#photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</a>
+        <Link to="/photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</Link>
         <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
-        {isOwner && (
-          <Link to="/studio" className="ml-auto flex items-center gap-2 rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30 hover:bg-frost">
-            <BarChart3 className="size-4" /> Studio
-          </Link>
-        )}
       </div>
       <div className="my-6 h-px bg-edge/60" />
       <div id="about" className="mb-6 rounded-2xl bg-panel/50 p-5 ring-1 ring-edge/30">
