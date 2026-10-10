@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/cgu")({
@@ -51,6 +51,17 @@ function TermsPage() {
               Les contenus peuvent être signalés, modérés ou retirés lorsqu’ils
               ne respectent pas les présentes conditions ou les règles
               applicables.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-foreground">Éditeur et contact</h2>
+            <p className="mt-2">
+              Les informations relatives à l’éditeur du service et les moyens de contact sont regroupés dans les{" "}
+              <Link to="/mentions-legales" className="text-glow underline underline-offset-4">
+                mentions légales
+              </Link>
+              . Elles doivent être vérifiées et complétées par le responsable du site avant sa mise à disposition publique définitive.
             </p>
           </section>
         </div>
