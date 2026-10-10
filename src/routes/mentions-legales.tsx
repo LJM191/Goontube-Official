@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/mentions-legales")({
@@ -18,7 +18,7 @@ function LegalPage() {
         <p className="text-sm font-medium text-glow">Informations légales</p>
         <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Mentions légales</h1>
         <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm leading-6 text-muted-foreground">
-          Cette page doit être complétée par le responsable du site avant une mise à disposition publique définitive. Les champs entre crochets sont des informations à renseigner avec des coordonnées réelles ; ils ne doivent pas rester tels quels.
+          À vérifier et compléter par le responsable du site avant toute mise à disposition publique définitive. Le nom ci-dessous est une information fournie pour cette page ; l’identité de l’éditeur, son statut et ses coordonnées de contact doivent être confirmés. Ne publiez une adresse personnelle qu’avec l’autorisation de la personne concernée.
         </p>
 
         <div className="mt-8 space-y-7 text-sm leading-7 text-muted-foreground">
@@ -26,10 +26,10 @@ function LegalPage() {
             <h2 className="text-lg font-semibold text-foreground">Éditeur du site</h2>
             <p className="mt-2">
               Nom du site : {APP_NAME}.<br />
-              Responsable de publication : [nom et prénom ou raison sociale à renseigner].<br />
+              Responsable de publication indiqué : Jacques Dutrout (à confirmer).<br />
               Statut juridique : [à renseigner selon la situation réelle de l’éditeur].<br />
-              Adresse de contact : [adresse postale à renseigner selon les obligations applicables].<br />
-              Contact : [adresse e-mail de contact à renseigner].
+              Adresse postale professionnelle ou autorisée à publier : [à compléter].<br />
+              Contact : [adresse e-mail de contact à compléter].
             </p>
           </section>
 
@@ -50,7 +50,7 @@ function LegalPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">Contenus et signalements</h2>
             <p className="mt-2">
-              Les utilisateurs doivent disposer des droits nécessaires sur les contenus qu’ils publient et respecter la loi. Pour signaler un contenu illicite ou une atteinte à des droits, contactez le responsable à l’adresse qui doit être renseignée ci-dessus, en indiquant l’URL concernée et les éléments utiles à l’examen du signalement.
+              Les utilisateurs doivent disposer des droits nécessaires sur les contenus qu’ils publient et respecter la loi. Pour signaler un contenu illicite ou une atteinte à des droits, contactez le responsable à l’adresse e-mail de contact qui doit être renseignée ci-dessus, en indiquant l’URL concernée et les éléments utiles à l’examen du signalement.
             </p>
           </section>
 
