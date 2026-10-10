@@ -5,12 +5,6 @@
 [build.environment]
   NODE_VERSION = "20.19.6"
 
-[dev]
-  command = "vite dev"
-  port = 3000
-
-# Keep the production deploy configuration explicit for Netlify.
-
 [[headers]]
   for = "/*"
   [headers.values]
@@ -20,3 +14,9 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     X-Permitted-Cross-Domain-Policies = "none"
     Strict-Transport-Security = "max-age=31536000"
+
+[dev]
+  command = "vite dev"
+  port = 3000
+
+# Keep the production deploy configuration explicit for Netlify.
