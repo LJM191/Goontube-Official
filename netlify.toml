@@ -1,10 +1,15 @@
 [build]
-  command = "vite build"
+  command = "npm run build"
   publish = "dist/client"
+
+[build.environment]
+  NODE_VERSION = "20.19.6"
 
 [dev]
   command = "vite dev"
   port = 3000
+
+# Keep the production deploy configuration explicit for Netlify.
 
 [[headers]]
   for = "/*"
