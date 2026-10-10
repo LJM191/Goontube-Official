@@ -58,7 +58,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
       video?.removeEventListener("webkitbeginfullscreen", onNativeFullscreenStart);
       video?.removeEventListener("webkitendfullscreen", onNativeFullscreenEnd);
     };
-  }, []);
+  }, [activeSrc]);
 
   useEffect(() => {
     const v = ref.current;
