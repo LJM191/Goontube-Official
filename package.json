@@ -66,7 +66,8 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "zod": "^3.25.76",
-    "@radix-ui/react-scroll-area": "^1.2.10"
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@ffmpeg/ffmpeg": "^0.12.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
