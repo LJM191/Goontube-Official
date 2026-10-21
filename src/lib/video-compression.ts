@@ -1,6 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 
-const MAX_COMPRESSED_BYTES = 46_000_000;
+export const MAX_VIDEO_UPLOAD_BYTES = 46_000_000;
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 
 export type VideoCompressionUpdate = {
@@ -54,7 +54,7 @@ export async function compressVideo(
   file: File,
   onProgress: (update: VideoCompressionUpdate) => void,
 ): Promise<File> {
-  if (file.size <= MAX_COMPRESSED_BYTES) return file;
+  if (file.size <= MAX_VIDEO_UPLOAD_BYTES) return file;
 
   onProgress({ phase: "loading", progress: 0, attempt: 0, attempts: 6 });
   const ffmpeg = await getFFmpeg((progress) => {
@@ -96,7 +96,7 @@ export async function compressVideo(
     { width: 720, factor: 0.42 },
   ];
   const audioBitrate = 96_000;
-  const budgetBitrate = Math.max(180_000, Math.floor((MAX_COMPRESSED_BYTES * 8) / duration - audioBitrate));
+  const budgetBitrate = Math.max(180_000, Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8) / duration - audioBitrate));
 
   try {
     for (let index = 0; index < attempts.length; index += 1) {
@@ -128,7 +128,7 @@ export async function compressVideo(
       const output = await ffmpeg.readFile(outputName);
       if (typeof output === "string") throw new Error("Le fichier compressé est illisible.");
       const outputBuffer = new Uint8Array(output).buffer as ArrayBuffer;
-      if (outputBuffer.byteLength <= MAX_COMPRESSED_BYTES) {
+      if (outputBuffer.byteLength <= MAX_VIDEO_UPLOAD_BYTES) {
         const baseName = file.name.replace(/\.[^.]+$/, "") || "video";
         return new File([outputBuffer], `${baseName}-compressed.mp4`, {
           type: "video/mp4",
