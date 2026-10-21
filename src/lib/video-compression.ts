@@ -88,15 +88,16 @@ export async function compressVideo(
   }
 
   const attempts = [
-    { width: 1920, factor: 0.88 },
-    { width: 1920, factor: 0.72 },
-    { width: 1280, factor: 0.66 },
-    { width: 1280, factor: 0.54 },
-    { width: 960, factor: 0.48 },
-    { width: 720, factor: 0.42 },
+    { width: 1920, factor: 1 },
+    { width: 1920, factor: 0.85 },
+    { width: 1280, factor: 0.72 },
+    { width: 1280, factor: 0.58 },
+    { width: 960, factor: 0.46 },
+    { width: 720, factor: 0.35 },
   ];
-  const audioBitrate = 96_000;
-  const budgetBitrate = Math.max(180_000, Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8) / duration - audioBitrate));
+  const targetTotalBitrate = Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8 * 0.9) / duration);
+  const audioBitrate = Math.max(16_000, Math.min(96_000, Math.floor(targetTotalBitrate * 0.18)));
+  const budgetBitrate = Math.max(24_000, targetTotalBitrate - audioBitrate);
   let currentAttempt = 0;
   const handleProgress = ({ progress }: { progress: number }) => {
     onProgress({
@@ -119,8 +120,8 @@ export async function compressVideo(
         // The output file does not exist on the first attempt.
       }
 
-      const videoBitrate = Math.max(100_000, Math.floor(budgetBitrate * attempt.factor));
-      const scale = `scale='min(${attempt.width},iw)':-2:force_original_aspect_ratio=decrease`;
+      const videoBitrate = Math.max(18_000, Math.floor(budgetBitrate * attempt.factor));
+      const scale = `scale='min(${attempt.width},iw)':'min(${attempt.width},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
       await ffmpeg.exec([
         "-i", inputName,
         "-vf", scale,
