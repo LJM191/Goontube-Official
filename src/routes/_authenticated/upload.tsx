@@ -44,7 +44,6 @@ export const Route = createFileRoute("/_authenticated/upload")({
 // Source files are compressed locally when needed. Keep the source limit generous,
 // while the final object uploaded to storage must remain below the 50 Mo bucket cap.
 const MAX_SOURCE_BYTES = 500 * 1024 * 1024;
-const STORAGE_LIMIT_BYTES = 50_000_000;
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
 const ACCEPTED_VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".ogg"];
 
@@ -145,7 +144,7 @@ function Upload() {
       return;
     }
     if (f.size > MAX_SOURCE_BYTES) {
-      toast.error("Cette vidéo dépasse la limite de fichier source de 500 Mo.");
+      toast.error("Ce fichier est trop volumineux pour être traité dans le navigateur. Choisissez une vidéo plus courte ou plus légère.");
       return;
     }
     setFile(f);
@@ -162,6 +161,7 @@ function Upload() {
     setFile(null);
     setProbe(null);
     setThumb(null);
+    setTitle("");
     setCompression(null);
     setStep(null);
     if (inputRef.current) inputRef.current.value = "";
@@ -294,7 +294,7 @@ function Upload() {
             >
               Choisir une vidéo
             </button>
-            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Fichier source jusqu’à 500 Mo</p>
+            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Limite de publication : 50 Mo, compression automatique au-delà</p>
             <input
               ref={inputRef}
               type="file"
@@ -435,7 +435,7 @@ function Upload() {
                     <div className="flex justify-between text-xs text-muted-foreground"><span>Progression de cet essai</span><span className="font-semibold text-foreground">{compressionPercent} %</span></div>
                   </div>
                 ) : (
-                  <div className="mt-3"><Progress value={undefined} className="h-2.5 animate-pulse bg-glow/15" /></div>
+                  <div className="mt-3"><Progress value={45} className="h-2.5 animate-pulse bg-glow/15" /></div>
                 )}
                 <div className="mt-4 rounded-xl bg-background/60 p-3">
                   <p className="text-sm font-semibold">Pas de panique si ça dure longtemps !</p>
