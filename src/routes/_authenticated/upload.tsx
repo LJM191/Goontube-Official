@@ -294,7 +294,7 @@ function Upload() {
             >
               Choisir une vidéo
             </button>
-            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Limite de publication : 50 Mo, compression automatique au-delà</p>
+            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Limite de 50 Mo, compression automatique dès environ 46 Mo</p>
             <input
               ref={inputRef}
               type="file"
