@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { UploadCloud, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadMedia } from "@/lib/media";
+import { compressVideo, MAX_VIDEO_UPLOAD_BYTES } from "@/lib/video-compression";
 import { fetchCategories } from "@/lib/videos";
 import { formatDuration } from "@/lib/format";
 import { useMe } from "@/hooks/use-auth";
@@ -106,9 +107,20 @@ function Upload() {
     if (!title.trim()) { toast.error("Ajoutez un titre à la vidéo."); return; }
     if (!categoryId) { toast.error("Choisissez une catégorie avant de publier."); return; }
     try {
+      let uploadFile = file;
+      if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
+        setStep("Préparation de la compression…");
+        uploadFile = await compressVideo(file, ({ phase, progress, attempt, attempts }) => {
+          if (phase === "loading") {
+            setStep("Préparation du moteur de compression…");
+          } else {
+            setStep(`Compression en cours… ${Math.round(progress * 100)} % (essai ${attempt}/${attempts})`);
+          }
+        });
+      }
       setStep("Envoi de la vidéo…");
-      const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
-      const videoPath = await uploadMedia("videos", user.id, file, ext);
+      const ext = uploadFile.name.split(".").pop()?.toLowerCase() || "mp4";
+      const videoPath = await uploadMedia("videos", user.id, uploadFile, ext);
       setStep("Envoi de la miniature…");
       const thumbBlob = thumb ?? probe?.frame;
       const thumbPath = thumbBlob
@@ -211,6 +223,12 @@ function Upload() {
             >
               {step ? <><Loader2 className="size-4 animate-spin" /> {step}</> : "Publier"}
             </button>
+            {step?.toLowerCase().includes("compression") && (
+              <div role="status" aria-live="polite" className="rounded-xl border border-glow/20 bg-glow/5 px-3 py-3 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Pas de panique si ça dure longtemps !</p>
+                <p className="mt-1">La compression se fait directement sur votre appareil. Les vidéos longues peuvent prendre plusieurs minutes. Gardez cette page ouverte : l’envoi commencera automatiquement une fois la vidéo prête.</p>
+              </div>
+            )}
             {!step && (
               <button type="button" onClick={() => { setFile(null); setProbe(null); setThumb(null); }} className="w-full text-sm text-muted-foreground hover:text-foreground">
                 Choisir un autre fichier
