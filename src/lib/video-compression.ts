@@ -97,10 +97,21 @@ export async function compressVideo(
   ];
   const audioBitrate = 96_000;
   const budgetBitrate = Math.max(180_000, Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8) / duration - audioBitrate));
+  let currentAttempt = 0;
+  const handleProgress = ({ progress }: { progress: number }) => {
+    onProgress({
+      phase: "encoding",
+      progress: Math.max(0, Math.min(1, progress)),
+      attempt: currentAttempt,
+      attempts: attempts.length,
+    });
+  };
+  ffmpeg.on("progress", handleProgress);
 
   try {
     for (let index = 0; index < attempts.length; index += 1) {
       const attempt = attempts[index]!;
+      currentAttempt = index + 1;
       onProgress({ phase: "encoding", progress: 0, attempt: index + 1, attempts: attempts.length });
       try {
         await ffmpeg.deleteFile(outputName);
@@ -137,10 +148,13 @@ export async function compressVideo(
       }
     }
   } finally {
-    try {
-      await ffmpeg.deleteFile(inputName);
-    } catch {
-      // Ignore cleanup failures after a compression error.
+    ffmpeg.off("progress", handleProgress);
+    for (const name of [inputName, outputName]) {
+      try {
+        await ffmpeg.deleteFile(name);
+      } catch {
+        // Ignore cleanup failures after a compression error.
+      }
     }
   }
 
