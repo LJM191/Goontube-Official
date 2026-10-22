@@ -22,18 +22,22 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
+function escapePostgrestFilterValue(value: string) {
+  // Keep user-supplied search text inside a single quoted PostgREST filter value.
+  return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
 function SearchPage() {
   const { q } = Route.useSearch();
   const { data, isLoading } = useQuery({
     queryKey: ["search", q],
-    enabled: !!q,
+    enabled: q.trim().length > 0,
     queryFn: async () => {
-      const term = q.replace(/[%,()]/g, " ");
       const { data, error } = await supabase
         .from("videos")
         .select(VIDEO_SELECT)
         .eq("visibility", "public")
-        .or(`title.ilike.%${term}%,description.ilike.%${term}%`)
+        .or("title.ilike." + escapePostgrestFilterValue("%" + q.trim() + "%") + ",description.ilike." + escapePostgrestFilterValue("%" + q.trim() + "%"))
         .order("view_count", { ascending: false })
         .limit(48);
       if (error) throw error;
