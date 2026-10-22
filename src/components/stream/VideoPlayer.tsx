@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AudioLines, Captions, Cast, Check, Languages, Maximize, Minimize, Pause, PictureInPicture2, Play, Settings, Volume2, VolumeX } from "lucide-react";
+import { AudioLines, Captions, Cast, Check, Languages, Maximize, Minimize, Pause, PictureInPicture2, Play, RectangleHorizontal, Settings, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -12,11 +12,13 @@ type PlayerProps = {
   autoPlay?: boolean;
   sources?: QualitySource[] | null;
   subtitleSources?: SubtitleSource[] | null;
+  theaterMode?: boolean;
+  onToggleTheaterMode?: () => void;
 };
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [] }: PlayerProps) {
+export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [], theaterMode = false, onToggleTheaterMode }: PlayerProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [activeSrc, setActiveSrc] = useState(src);
   const [playing, setPlaying] = useState(autoPlay);
@@ -312,6 +314,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
                 </div>
               )}
             </div>
+            <button onClick={(event) => { event.stopPropagation(); onToggleTheaterMode?.(); showControls(); }} aria-label={theaterMode ? "Quitter le mode cinéma" : "Mode cinéma"} title={theaterMode ? "Quitter le mode cinéma" : "Mode cinéma"} className={cn("grid size-9 place-items-center rounded-full p-1.5 hover:bg-white/15 sm:size-8", theaterMode && "bg-white/20")}><RectangleHorizontal className="size-5" /></button>
             <button onClick={pictureInPicture} aria-label="Image dans l'image" title="Image dans l'image" className="hidden rounded-full p-1.5 hover:bg-white/15 sm:block"><PictureInPicture2 className="size-5" /></button>
             <button onClick={toggleFullscreen} aria-label="Plein écran" title="Plein écran" className="grid size-9 place-items-center rounded-full p-1.5 hover:bg-white/15 sm:size-8">{fullscreen ? <Minimize className="size-5" /> : <Maximize className="size-5" />}</button>
           </div>
