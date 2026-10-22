@@ -23,8 +23,6 @@ function Home() {
   const { data: videos, isLoading } = useQuery({
     queryKey: ["feed"],
     queryFn: () => fetchFeed(),
-    // Reuse the feed briefly when navigating back instead of refetching on every return.
-    staleTime: 30_000,
   });
 
   return (
