@@ -240,14 +240,13 @@ function Watch() {
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
-            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} />
+            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} theaterMode={cinema} onToggleTheaterMode={() => setCinema((value) => !value)} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <h1 className="min-w-0 flex-1 text-xl font-semibold text-balance">{video.title}</h1>
-          <button onClick={() => setCinema(!cinema)} className="rounded-full bg-panel/80 px-4 py-2 text-sm font-medium ring-1 ring-edge/40 hover:bg-frost">{cinema ? "Quitter le mode cinéma" : "Mode cinéma"}</button>
+        <div className="mt-4">
+          <h1 className="text-xl font-semibold text-balance">{video.title}</h1>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <Link to="/c/$handle" params={{ handle: ch.handle }} className="flex items-center gap-3">
