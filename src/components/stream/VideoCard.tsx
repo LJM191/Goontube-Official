@@ -7,7 +7,7 @@ import type { VideoCardData } from "@/lib/videos";
 import { ChannelAvatar } from "./ChannelAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function Thumbnail({ video, className }: { video: VideoCardData; className?: string }) {
+export function Thumbnail({ video, className, priority = false }: { video: VideoCardData; className?: string; priority?: boolean }) {
   const url = useMediaUrl("thumbnails", video.thumbnail_path);
   return (
     <div className={`relative overflow-hidden rounded-lg bg-frost outline-1 -outline-offset-1 outline-edge/40 ${className ?? ""}`}>
@@ -16,7 +16,8 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
           <img
             src={url}
             alt={video.title}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
@@ -33,11 +34,11 @@ export function Thumbnail({ video, className }: { video: VideoCardData; classNam
   );
 }
 
-export function VideoCard({ video }: { video: VideoCardData }) {
+export function VideoCard({ video, priority = false }: { video: VideoCardData; priority?: boolean }) {
   return (
     <article className="group">
       <Link to="/watch/$id" params={{ id: video.id }} className="block">
-        <Thumbnail video={video} />
+        <Thumbnail video={video} priority={priority} />
       </Link>
       <div className="mt-4 flex gap-3">
         <Link to="/c/$handle" params={{ handle: video.channel.handle }} className="mt-0.5">
@@ -92,8 +93,8 @@ export function VideoGrid({
   if (!videos?.length) return <>{empty}</>;
   return (
     <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {videos.map((v) => (
-        <VideoCard key={v.id} video={v} />
+      {videos.map((v, index) => (
+        <VideoCard key={v.id} video={v} priority={index === 0} />
       ))}
     </div>
   );
