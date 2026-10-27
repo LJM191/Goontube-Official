@@ -52,6 +52,11 @@ export function Logo() {
   );
 }
 
+function escapePostgrestFilterValue(value: string) {
+  // Quote user input so PostgREST filter punctuation cannot alter the .or() expression.
+  return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
 type SearchVideoSuggestionData = {
   id: string;
   title: string;
@@ -103,13 +108,13 @@ function SearchBar() {
           .from("videos")
           .select("id,title,thumbnail_path:thumbnail_url,view_count,channel:channels!inner(handle,name,avatar_path:avatar_url)")
           .eq("visibility", "public")
-          .or("title.ilike.%" + debouncedTerm + "%,description.ilike.%" + debouncedTerm + "%")
+          .or("title.ilike." + escapePostgrestFilterValue("%" + debouncedTerm + "%") + ",description.ilike." + escapePostgrestFilterValue("%" + debouncedTerm + "%"))
           .order("view_count", { ascending: false })
           .limit(5),
         supabase
           .from("channels")
           .select("id,handle,name,avatar_path:avatar_url,subscriber_count")
-          .or("name.ilike.%" + debouncedTerm + "%,handle.ilike.%" + debouncedTerm + "%")
+          .or("name.ilike." + escapePostgrestFilterValue("%" + debouncedTerm + "%") + ",handle.ilike." + escapePostgrestFilterValue("%" + debouncedTerm + "%"))
           .order("subscriber_count", { ascending: false })
           .limit(4),
       ]);

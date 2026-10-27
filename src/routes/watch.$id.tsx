@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { FolderPlus, ListPlus, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Check, Copy, FolderPlus, ListPlus, Mail, MessageCircle, Share2, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -196,6 +196,8 @@ function Watch() {
   const qc = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [cinema, setCinema] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const counted = useRef<string | null>(null);
   const { data: video, isLoading } = useQuery({
     queryKey: ["video", id],
@@ -240,14 +242,13 @@ function Watch() {
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
-            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} />
+            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} theaterMode={cinema} onToggleTheaterMode={() => setCinema((value) => !value)} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <h1 className="min-w-0 flex-1 text-xl font-semibold text-balance">{video.title}</h1>
-          <button onClick={() => setCinema(!cinema)} className="rounded-full bg-panel/80 px-4 py-2 text-sm font-medium ring-1 ring-edge/40 hover:bg-frost">{cinema ? "Quitter le mode cinéma" : "Mode cinéma"}</button>
+        <div className="mt-4">
+          <h1 className="text-xl font-semibold text-balance">{video.title}</h1>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <Link to="/c/$handle" params={{ handle: ch.handle }} className="flex items-center gap-3">
@@ -263,13 +264,17 @@ function Watch() {
             <SaveActions videoId={video.id} />
             <button
               onClick={async () => {
-                try {
-                  if (!navigator.clipboard?.writeText) throw new Error("Presse-papiers indisponible");
-                  await navigator.clipboard.writeText(window.location.href);
-                  toast.success("Lien copié");
-                } catch {
-                  toast.error("Impossible de copier le lien dans ce navigateur.");
+                const shareData = { title: video.title, text: `Regarde cette vidéo sur ${APP_NAME}`, url: window.location.href };
+                if (typeof navigator.share === "function" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                  try {
+                    await navigator.share(shareData);
+                    return;
+                  } catch (error) {
+                    if (error instanceof Error && error.name === "AbortError") return;
+                  }
                 }
+                setLinkCopied(false);
+                setShareOpen(true);
               }}
               className="flex items-center gap-2 rounded-full bg-panel/80 px-4 py-1.5 text-sm ring-1 ring-edge/40 hover:bg-frost"
             >
@@ -277,6 +282,46 @@ function Watch() {
             </button>
           </div>
         </div>
+        {shareOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setShareOpen(false); }}>
+            <section role="dialog" aria-modal="true" aria-labelledby="share-dialog-title" className="w-full max-w-lg rounded-2xl bg-panel p-5 shadow-2xl ring-1 ring-edge/60 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="share-dialog-title" className="text-lg font-semibold">Partager la vidéo</h2>
+                <button onClick={() => setShareOpen(false)} aria-label="Fermer" className="grid size-9 place-items-center rounded-full hover:bg-frost"><X className="size-5" /></button>
+              </div>
+              <div className="mt-4 flex gap-3 rounded-xl bg-frost/60 p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-medium">{video.title}</p>
+                  <p className="mt-1 truncate text-xs text-faint">{window.location.href}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <a href={`mailto:?subject=${encodeURIComponent(video.title)}&body=${encodeURIComponent(window.location.href)}`} onClick={() => setShareOpen(false)} className="flex flex-col items-center gap-2 rounded-xl p-3 text-sm hover:bg-frost"><Mail className="size-6" />E-mail</a>
+                <a href={`https://wa.me/?text=${encodeURIComponent(video.title + " " + window.location.href)}`} target="_blank" rel="noreferrer" onClick={() => setShareOpen(false)} className="flex flex-col items-center gap-2 rounded-xl p-3 text-sm hover:bg-frost"><MessageCircle className="size-6" />WhatsApp</a>
+                <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" onClick={() => setShareOpen(false)} className="flex flex-col items-center gap-2 rounded-xl p-3 text-sm hover:bg-frost"><Share2 className="size-6" />Facebook</a>
+                <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(video.title)}`} target="_blank" rel="noreferrer" onClick={() => setShareOpen(false)} className="flex flex-col items-center gap-2 rounded-xl p-3 text-sm hover:bg-frost"><MessageCircle className="size-6" />X</a>
+              </div>
+              <div className="mt-4 flex flex-col gap-2 rounded-xl border border-edge/50 p-2 sm:flex-row">
+                <input aria-label="Lien de la vidéo" readOnly value={window.location.href} onFocus={(event) => event.currentTarget.select()} className="h-10 min-w-0 flex-1 bg-transparent px-2 text-sm outline-none" />
+                <button onClick={async () => {
+                  try {
+                    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(window.location.href);
+                    else {
+                      const input = document.querySelector<HTMLInputElement>('input[aria-label="Lien de la vidéo"]');
+                      if (!input) throw new Error("Lien indisponible");
+                      input.select();
+                      if (!document.execCommand("copy")) throw new Error("Copie impossible");
+                    }
+                    setLinkCopied(true);
+                    toast.success("Lien copié");
+                  } catch {
+                    toast.error("Impossible de copier le lien. Sélectionne-le puis copie-le manuellement.");
+                  }
+                }} className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-glow px-4 text-sm font-semibold text-background hover:opacity-90">{linkCopied ? <Check className="size-4" /> : <Copy className="size-4" />}{linkCopied ? "Copié" : "Copier le lien"}</button>
+              </div>
+            </section>
+          </div>
+        )}
         <div className="mt-4 rounded-2xl bg-panel/60 p-4 text-sm ring-1 ring-edge/30">
           <p className="font-medium">
             {formatViews(video.view_count)} · {timeAgo(video.created_at)}
