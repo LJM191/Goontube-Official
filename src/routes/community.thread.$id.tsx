@@ -75,7 +75,7 @@ function ThreadPage() {
     <main className="mx-auto w-full max-w-3xl px-3 pb-10 pt-4 sm:px-6 sm:pt-7">
       <Link to="/community" className="mb-4 inline-flex min-h-9 items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"><ArrowLeft className="size-4" /> Retour au fil</Link>
       <article className="rounded-2xl border border-edge/60 bg-panel p-4 shadow-sm sm:p-6">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Link to="/community/forum/$slug" params={{ slug: forum?.slug ?? "" }} className="font-semibold text-glow hover:underline">{forum?.name ?? "Communauté"}</Link><span>·</span><span>{new Date(thread.created_at).toLocaleString("fr-FR")}</span></div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{forum?.slug ? <Link to="/community/forum/$slug" params={{ slug: forum.slug }} className="font-semibold text-glow hover:underline">{forum.name}</Link> : <span>Communauté</span>}<span>·</span><span>{new Date(thread.created_at).toLocaleString("fr-FR")}</span></div>
         <h1 className="mt-3 break-words text-2xl font-black tracking-tight sm:text-3xl">{thread.title}</h1>
         {thread.body?.trim() && <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 sm:text-base">{thread.body}</p>}
         {thread.media_path && thread.media_type && <CommunityMedia path={thread.media_path} type={thread.media_type} title={thread.title} />}
