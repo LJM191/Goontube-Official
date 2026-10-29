@@ -52,15 +52,11 @@ export function CommunityMedia({ path, type, title }: { path: string; type: "pho
         autoJoinPolicy: w.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
       });
       const session = context.getCurrentSession() ?? await context.requestSession();
-      const mediaInfo = new w.cast.framework.messages.MediaInformation();
-      mediaInfo.contentId = url;
-      mediaInfo.contentType = type === "gif" ? "image/gif" : (url.match(/\.png(?:\?|$)/i) ? "image/png" : "image/jpeg");
-      mediaInfo.streamType = w.cast.framework.messages.StreamType.NONE;
-      const metadata = new w.cast.framework.messages.GenericMediaMetadata();
+      const mediaInfo = new w.chrome.cast.media.MediaInfo(url, type === "gif" ? "image/gif" : (url.match(/\.png(?:\?|$)/i) ? "image/png" : "image/jpeg"));
+      const metadata = new w.chrome.cast.media.GenericMediaMetadata();
       metadata.title = title || (type === "gif" ? "GIF Goontube" : "Photo Goontube");
       mediaInfo.metadata = metadata;
-      const request = new w.cast.framework.messages.LoadRequestData();
-      request.media = mediaInfo;
+      const request = new w.chrome.cast.media.LoadRequest(mediaInfo);
       await session.loadMedia(request);
       toast.success("Demande de diffusion envoyée.");
     } catch (error) {
