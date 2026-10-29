@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy, FolderPlus, ListPlus, Mail, MessageCircle, Share2, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,7 +202,9 @@ function Watch() {
   const [cinema, setCinema] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const counted = useRef<string | null>(null);
+  const viewSessionId = useRef<string | null>(null);
+  const pendingQualifiedView = useRef<{ watchedSeconds: number; watchedToEnd: boolean } | null>(null);
+  const viewCompletionStarted = useRef(false);
   const { data: video, isLoading, isError: videoError, refetch: refetchVideo } = useQuery({
     queryKey: ["video", id],
     queryFn: async () => {
@@ -218,18 +220,49 @@ function Watch() {
   const src = useMediaUrl("videos", video?.video_url);
   const poster = useMediaUrl("thumbnails", video?.thumbnail_url);
 
-  useEffect(() => {
-    if (video && counted.current !== video.id) {
-      counted.current = video.id;
-      void (async () => {
-        const { error } = await supabase.rpc("increment_view", { video_uuid: video.id });
-        if (!error) {
-          qc.invalidateQueries({ queryKey: ["video", video.id] });
-          qc.invalidateQueries({ queryKey: ["feed"] });
-        }
-      })();
+  const reportQualifiedView = useCallback((watchedSeconds: number, watchedToEnd: boolean) => {
+    if (viewCompletionStarted.current) return;
+    const sessionId = viewSessionId.current;
+    if (!sessionId) {
+      pendingQualifiedView.current = { watchedSeconds, watchedToEnd };
+      return;
     }
-  }, [video]);
+
+    viewCompletionStarted.current = true;
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("complete_video_view", {
+        session_uuid: sessionId,
+        watched_seconds: watchedSeconds,
+        watched_to_end: watchedToEnd,
+      });
+      if (error) {
+        viewCompletionStarted.current = false;
+        return;
+      }
+      if (data === true) {
+        qc.invalidateQueries({ queryKey: ["video", video?.id] });
+        qc.invalidateQueries({ queryKey: ["feed"] });
+      }
+    })();
+  }, [qc, video?.id]);
+
+  useEffect(() => {
+    if (!video?.id) return;
+    let cancelled = false;
+    viewSessionId.current = null;
+    pendingQualifiedView.current = null;
+    viewCompletionStarted.current = false;
+
+    void (async () => {
+      const { data, error } = await (supabase as any).rpc("start_video_view", { video_uuid: video.id });
+      if (cancelled || error || !data) return;
+      viewSessionId.current = data as string;
+      const pending = pendingQualifiedView.current;
+      if (pending) reportQualifiedView(pending.watchedSeconds, pending.watchedToEnd);
+    })();
+
+    return () => { cancelled = true; };
+  }, [video?.id, reportQualifiedView]);
 
   if (isLoading)
     return (
@@ -247,7 +280,7 @@ function Watch() {
       <div className="min-w-0">
         <div className={cinema ? "overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-edge/40" : "mx-auto max-w-5xl overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-edge/40"}>
           {src ? (
-            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} theaterMode={cinema} onToggleTheaterMode={() => setCinema((value) => !value)} />
+            <VideoPlayer src={src} poster={poster} title={video.title} sources={video.quality_sources ?? []} subtitleSources={video.subtitle_tracks ?? []} theaterMode={cinema} onToggleTheaterMode={() => setCinema((value) => !value)} onQualifiedView={reportQualifiedView} />
           ) : (
             <div className="aspect-video w-full animate-pulse bg-frost" />
           )}
