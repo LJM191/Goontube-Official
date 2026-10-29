@@ -9,6 +9,7 @@ import { uploadMedia } from "@/lib/media";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
 import { Thumbnail } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/studio")({
@@ -124,7 +125,7 @@ function Studio() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [moderatingId, setModeratingId] = useState<string | null>(null);
-  const { data: channel, isLoading } = useQuery({
+  const { data: channel, isLoading, isError: channelError, refetch: refetchChannel } = useQuery({
     queryKey: ["studio-channel", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -133,7 +134,7 @@ function Studio() {
       return data;
     },
   });
-  const { data: videos = [], isLoading: videosLoading } = useQuery({
+  const { data: videos = [], isLoading: videosLoading, isError: videosError, refetch: refetchVideos } = useQuery({
     queryKey: ["studio-videos", channel?.id],
     enabled: !!channel,
     queryFn: async () => {
@@ -193,6 +194,7 @@ function Studio() {
 
   if (!user) return <EmptyState title="Connectez-vous" text="Le Studio est réservé aux créateurs." />;
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du Studio…</div>;
+  if (channelError) return <QueryErrorState title="Impossible de charger le Studio" onRetry={() => void refetchChannel()} />;
   if (!channel) return <EmptyState title="Chaîne introuvable" text="Créez une chaîne pour accéder au Studio." />;
 
   const totalViews = videos.reduce((n, v) => n + Number(v.view_count || 0), 0);
@@ -256,7 +258,7 @@ function Studio() {
           <div><h2 className="font-semibold">Gestion des vidéos</h2><p className="text-sm text-faint">Modifiez le titre, la description, la visibilité et la miniature, ou supprimez une vidéo.</p></div>
           <Settings className="size-5 text-muted-foreground" />
         </div>
-        {videosLoading ? <p className="py-8 text-center text-sm text-muted-foreground">Chargement des vidéos…</p> : videos.length === 0 ? <EmptyState title="Aucune vidéo" text="Publiez votre première vidéo pour commencer." /> : (
+        {videosError ? <QueryErrorState title="Impossible de charger les vidéos du Studio" onRetry={() => void refetchVideos()} /> : videosLoading ? <p className="py-8 text-center text-sm text-muted-foreground">Chargement des vidéos…</p> : videos.length === 0 ? <EmptyState title="Aucune vidéo" text="Publiez votre première vidéo pour commencer." /> : (
           <div className="space-y-3">{videos.map((video) => <VideoManagerRow key={video.id} video={video} userId={user.id} channel={channel} />)}</div>
         )}
       </section>

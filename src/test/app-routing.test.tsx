@@ -14,4 +14,31 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it.each([
+    "/explore",
+    "/search",
+    "/auth",
+    "/community",
+    "/community/forum/test",
+    "/community/thread/test",
+    "/watch/test",
+    "/c/test",
+    "/profile/test",
+    "/hashtag/test",
+    "/upload",
+    "/history",
+    "/library",
+    "/subscriptions",
+    "/settings",
+    "/account",
+    "/studio",
+    "/shorts",
+  ])("matches a route for %s", (path) => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    const matches = router.matchRoutes(path);
+
+    expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
+  });
 });

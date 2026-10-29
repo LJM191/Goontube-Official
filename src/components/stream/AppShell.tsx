@@ -3,7 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Clock,
   Compass,
-  Globe,
   Home,
   Library,
   LogOut,
@@ -128,7 +127,7 @@ function SearchBar() {
     if (!clean) return;
     const next = [clean, ...recent.filter((x) => x.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
     setRecent(next);
-    localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+    try { localStorage.setItem("goontube-recent-searches", JSON.stringify(next)); } catch { /* Search still works without browser storage. */ }
   };
 
   const submit = (value = q) => {
@@ -188,7 +187,7 @@ function SearchBar() {
                     onClick={() => {
                       const next = recent.filter((search) => search !== item);
                       setRecent(next);
-                      localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+                      try { localStorage.setItem("goontube-recent-searches", JSON.stringify(next)); } catch { /* Recent searches are optional. */ }
                     }}
                     aria-label={`Supprimer la recherche « ${item} »`}
                     className="mr-2 grid size-7 shrink-0 place-items-center rounded-full text-faint hover:bg-panel hover:text-foreground"
@@ -336,7 +335,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
-          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 md:block">
+          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 lg:block">
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
@@ -344,20 +343,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="px-3 pb-3 md:hidden">
+        <div className="px-3 pb-3 lg:hidden">
           <SearchBar />
         </div>
 
-        <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
-          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
+        <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 lg:flex lg:gap-3 lg:px-8">
+          <div className="flex h-full w-60 shrink-0 items-center pr-2">
             <Link to="/explore" search={{}} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"><Compass className="size-5" /><span>Tout</span></Link>
           </div>
-          <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
+          <div className="flex h-full min-w-0 flex-1 items-stretch justify-center gap-1 lg:gap-3">
             <Link to="/" className={navClass(activeClass("/"))}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
             <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
             <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>ABONNEMENTS<span className={underlineClass(activeClass("/subscriptions"))} /></Link>
             <Link to="/community" className={navClass(activeClass("/community"))}>COMMUNAUTÉ<span className={underlineClass(activeClass("/community"))} /></Link>
-            <Link to="/photos" className={navClass(activeClass("/photos"))}>PHOTOS ET GIFS<span className={underlineClass(activeClass("/photos"))} /></Link>
           </div>
         </nav>
       </header>
@@ -366,13 +364,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
+      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
         {[
           { to: "/", label: "Accueil", icon: Home },
           { to: "/explore", label: "Explorer", icon: Compass },
           { to: "/subscriptions", label: "Abonnements", icon: Tv },
           { to: "/community", label: "Communauté", icon: MessageSquare },
-          { to: "/photos", label: "Photos", icon: Globe },
         ].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
           return (

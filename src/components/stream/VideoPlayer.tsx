@@ -14,6 +14,7 @@ type PlayerProps = {
   subtitleSources?: SubtitleSource[] | null;
   theaterMode?: boolean;
   onToggleTheaterMode?: () => void;
+  onQualifiedView?: (watchedSeconds: number, watchedToEnd: boolean) => void;
 };
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -32,10 +33,14 @@ function loadGoogleCastSdk(): Promise<boolean> {
 
   w.__goontubeCastSdkPromise = new Promise<boolean>((resolve) => {
     let settled = false;
+    let timeoutId: number | undefined;
     const finish = (available: boolean) => {
       if (settled) return;
       settled = true;
-      resolve(available && Boolean(w.cast?.framework && w.chrome?.cast));
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      const ready = available && Boolean(w.cast?.framework && w.chrome?.cast);
+      if (!ready) delete w.__goontubeCastSdkPromise;
+      resolve(ready);
     };
     w.__onGCastApiAvailable = (available) => finish(available);
     const script = document.createElement("script");
@@ -43,15 +48,21 @@ function loadGoogleCastSdk(): Promise<boolean> {
     script.async = true;
     script.onerror = () => finish(false);
     document.head.appendChild(script);
-    window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
+    timeoutId = window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
   });
   return w.__goontubeCastSdkPromise;
 }
 
-export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [], theaterMode = false, onToggleTheaterMode }: PlayerProps) {
+export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [], theaterMode = false, onToggleTheaterMode, onQualifiedView }: PlayerProps) {
   const ref = useRef<HTMLVideoElement>(null);
+  const onQualifiedViewRef = useRef(onQualifiedView);
+  const accumulatedWatchedSeconds = useRef(0);
+  const previousPlaybackTime = useRef<number | null>(null);
+  const qualifiedViewReported = useRef(false);
+  onQualifiedViewRef.current = onQualifiedView;
   const [activeSrc, setActiveSrc] = useState(src);
   const [playing, setPlaying] = useState(autoPlay);
+  const [playbackError, setPlaybackError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -104,22 +115,59 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    const onTime = () => setProgress(v.currentTime);
+    const onTime = () => {
+      setProgress(v.currentTime);
+      if (v.paused || v.seeking) {
+        previousPlaybackTime.current = null;
+        return;
+      }
+      const currentTime = v.currentTime;
+      const previousTime = previousPlaybackTime.current;
+      if (previousTime !== null) {
+        const delta = currentTime - previousTime;
+        if (delta > 0 && delta <= 1.5) accumulatedWatchedSeconds.current += delta;
+      }
+      previousPlaybackTime.current = currentTime;
+      if (!qualifiedViewReported.current && Number.isFinite(v.duration) && v.duration >= 5 && accumulatedWatchedSeconds.current >= 5) {
+        qualifiedViewReported.current = true;
+        if (onQualifiedViewRef.current) onQualifiedViewRef.current(accumulatedWatchedSeconds.current, false);
+      }
+    };
     const onMeta = () => {
       setDuration(v.duration || 0);
       setPlaying(!v.paused);
     };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
+    const onPlay = () => {
+      setPlaying(true);
+      previousPlaybackTime.current = v.currentTime;
+    };
+    const onPause = () => {
+      setPlaying(false);
+      previousPlaybackTime.current = null;
+    };
+    const onSeeking = () => { previousPlaybackTime.current = null; };
+    const onSeeked = () => { previousPlaybackTime.current = v.currentTime; };
+    const onEnded = () => {
+      if (!qualifiedViewReported.current && Number.isFinite(v.duration) && v.duration > 0 && v.duration < 5) {
+        qualifiedViewReported.current = true;
+        if (onQualifiedViewRef.current) onQualifiedViewRef.current(v.duration, true);
+      }
+    };
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("loadedmetadata", onMeta);
     v.addEventListener("play", onPlay);
     v.addEventListener("pause", onPause);
+    v.addEventListener("seeking", onSeeking);
+    v.addEventListener("seeked", onSeeked);
+    v.addEventListener("ended", onEnded);
     return () => {
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("loadedmetadata", onMeta);
       v.removeEventListener("play", onPlay);
       v.removeEventListener("pause", onPause);
+      v.removeEventListener("seeking", onSeeking);
+      v.removeEventListener("seeked", onSeeked);
+      v.removeEventListener("ended", onEnded);
     };
   }, [activeSrc]);
 
@@ -136,8 +184,14 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   const togglePlay = () => {
     const v = ref.current;
     if (!v) return;
-    if (v.paused) void v.play();
-    else v.pause();
+    if (v.paused) {
+      void v.play().catch(() => {
+        setPlaying(false);
+        toast.error("La lecture n’a pas pu démarrer. Vérifiez le format ou réessayez.");
+      });
+    } else {
+      v.pause();
+    }
     showControls();
   };
 
@@ -208,7 +262,17 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
         });
         const session = context.getCurrentSession();
         const activeSession = session ?? await context.requestSession();
-        const mediaInfo = new w.chrome.cast.media.MediaInfo(src, v.currentSrc.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4");
+        const mediaPath = new URL(src, window.location.href).pathname.toLowerCase();
+        const mediaContentType = mediaPath.endsWith(".m3u8")
+          ? "application/x-mpegURL"
+          : mediaPath.endsWith(".webm")
+            ? "video/webm"
+            : mediaPath.endsWith(".ogg") || mediaPath.endsWith(".ogv")
+              ? "video/ogg"
+              : mediaPath.endsWith(".mov")
+                ? "video/quicktime"
+                : "video/mp4";
+        const mediaInfo = new w.chrome.cast.media.MediaInfo(src, mediaContentType);
         const metadata = new w.chrome.cast.media.GenericMediaMetadata();
         metadata.title = title;
         if (poster) metadata.images = [{ url: poster }];
@@ -244,22 +308,23 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   };
 
   const changeQuality = (value: string) => {
-    if (value === "auto") {
-      setSelectedQuality("auto");
-      setActiveSrc(src);
-      return;
-    }
-    const option = qualitySources.find((item) => item.label === value);
-    if (!option) return;
-    const v = ref.current;
-    const time = v?.currentTime ?? 0;
-    const wasPlaying = v ? !v.paused : false;
+    const option = value === "auto" ? null : qualitySources.find((item) => item.label === value);
+    if (value !== "auto" && !option) return;
+
+    const video = ref.current;
+    const time = video?.currentTime ?? 0;
+    const wasPlaying = video ? !video.paused : false;
     setSelectedQuality(value);
-    setActiveSrc(option.src);
+    setActiveSrc(option?.src ?? src);
+
     window.setTimeout(() => {
       const next = ref.current;
       if (!next) return;
-      next.currentTime = Math.min(time, next.duration || time);
+      try {
+        next.currentTime = Math.min(time, next.duration || time);
+      } catch {
+        // Some browsers reject seeking until metadata is available.
+      }
       if (wasPlaying) void next.play().catch(() => undefined);
     }, 0);
   };
@@ -305,6 +370,19 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
       </video>
 
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 transition-opacity duration-200", controlsVisible ? "opacity-100" : "opacity-0")} />
+      {playbackError && (
+        <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/85 px-5 text-center text-white">
+          <p className="text-sm font-semibold sm:text-base">Impossible de lire cette vidéo.</p>
+          <p className="max-w-sm text-xs leading-5 text-white/70">Vérifiez votre connexion ou réessayez la lecture.</p>
+          <button type="button" onClick={() => {
+            const video = ref.current;
+            if (!video) return;
+            setPlaybackError(false);
+            video.load();
+            void video.play().catch(() => { setPlaybackError(true); setPlaying(false); });
+          }} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-black">Réessayer</button>
+        </div>
+      )}
       <div className={cn("pointer-events-none absolute left-3 right-3 top-3 transition-opacity sm:left-5 sm:right-5 sm:top-4", controlsVisible ? "opacity-100" : "opacity-0")}>
         <p className="line-clamp-2 text-sm font-medium text-white drop-shadow-lg">{title}</p>
       </div>

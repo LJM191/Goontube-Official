@@ -16,9 +16,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === "SIGNED_IN" || event === "USER_UPDATED") void qc.invalidateQueries();
       if (event === "SIGNED_OUT") qc.clear();
     });
-    void supabase.auth.getSession().then(({ data }) => {
-      setState({ user: data.session?.user ?? null, session: data.session, loading: false });
-    });
+    void supabase.auth.getSession()
+      .then(({ data }) => {
+        setState({ user: data.session?.user ?? null, session: data.session, loading: false });
+      })
+      .catch(() => {
+        setState({ user: null, session: null, loading: false });
+      });
     return () => sub.subscription.unsubscribe();
   }, [qc]);
 

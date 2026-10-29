@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/_authenticated/history")({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/history")({
 
 function History() {
   const { user } = Route.useRouteContext();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["history", user.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,7 +39,7 @@ function History() {
   return (
     <>
       <h1 className="mb-6 text-2xl font-semibold">Historique</h1>
-      <VideoGrid videos={data} loading={isLoading} empty={<EmptyState title="Historique vide" text="Les vidéos regardées apparaîtront ici." />} />
+      {isError ? <QueryErrorState title="Impossible de charger l’historique" onRetry={() => void refetch()} /> : <VideoGrid videos={data} loading={isLoading} empty={<EmptyState title="Historique vide" text="Les vidéos regardées apparaîtront ici." />} />}
     </>
   );
 }

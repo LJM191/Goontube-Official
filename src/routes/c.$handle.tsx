@@ -12,6 +12,7 @@ import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -56,15 +57,35 @@ function EditChannel({ channel }: { channel: Channel }) {
         toast.error("L’arobase doit contenir 3 à 30 caractères : lettres, chiffres, tiret ou underscore.");
         return;
       }
+      const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (avatar && !acceptedImageTypes.includes(avatar.type)) {
+        toast.error("Formats d’avatar acceptés : JPEG, PNG, WebP et GIF.");
+        return;
+      }
+      if (avatar && avatar.size > 5 * 1024 * 1024) {
+        toast.error("L’avatar doit faire 5 Mo maximum.");
+        return;
+      }
+      if (banner && !acceptedImageTypes.includes(banner.type)) {
+        toast.error("Formats de bannière acceptés : JPEG, PNG, WebP et GIF.");
+        return;
+      }
+      if (banner && banner.size > 10 * 1024 * 1024) {
+        toast.error("La bannière doit faire 10 Mo maximum.");
+        return;
+      }
       const patch: { name: string; handle: string; description: string; avatar_url?: string; banner_url?: string } = { name: name.trim(), handle: cleanHandle, description: description.trim() };
       if (avatar) patch.avatar_url = await uploadMedia("avatars", user!.id, avatar, avatar.name.split(".").pop() || "jpg");
       if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
       if (error) throw error;
-      await supabase.from("profiles").update({
-        pseudo: patch.name!,
-        ...(patch.avatar_url ? { profile_photo: patch.avatar_url } : {}),
-      }).eq("user_id", user!.id);
+      if (patch.avatar_url) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ profile_photo: patch.avatar_url })
+          .eq("user_id", user!.id);
+        if (profileError) toast.info("La chaîne a été mise à jour, mais la photo du profil n’a pas pu être synchronisée.");
+      }
       await qc.invalidateQueries();
       toast.success("Chaîne mise à jour");
       setOpen(false);
@@ -87,8 +108,8 @@ function EditChannel({ channel }: { channel: Channel }) {
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom" maxLength={60} />
           <div className="space-y-1"><label htmlFor="channel-handle" className="text-sm font-medium">Arobase / identifiant</label><div className="flex items-center gap-2"><span className="text-muted-foreground">@</span><Input id="channel-handle" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="monidentifiant" maxLength={30} autoCapitalize="none" /></div><p className="text-xs text-muted-foreground">3 à 30 caractères : lettres, chiffres, tirets et underscores. L’adresse de la chaîne changera si tu le modifies.</p></div>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" rows={4} maxLength={1000} />
-          <label className="block text-sm">Avatar <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setAvatar(e.target.files?.[0] ?? null)} /></label>
-          <label className="block text-sm">Bannière <input type="file" accept="image/*" className="mt-1 block text-xs" onChange={(e) => setBanner(e.target.files?.[0] ?? null)} /></label>
+          <label className="block text-sm">Avatar <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-1 block text-xs" onChange={(e) => setAvatar(e.target.files?.[0] ?? null)} /></label>
+          <label className="block text-sm">Bannière <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-1 block text-xs" onChange={(e) => setBanner(e.target.files?.[0] ?? null)} /></label>
           <button disabled={busy || !name.trim()} onClick={save} className="w-full rounded-full bg-glow py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
             {busy ? "Enregistrement…" : "Enregistrer"}
           </button>
@@ -101,7 +122,7 @@ function EditChannel({ channel }: { channel: Channel }) {
 function ChannelPage() {
   const { handle } = Route.useParams();
   const { user } = useAuth();
-  const { data: channel, isLoading } = useQuery({
+  const { data: channel, isLoading, isError: channelError, refetch: refetchChannel } = useQuery({
     queryKey: ["channel", handle],
     queryFn: async () => {
       const { data, error } = await supabase.from("channels").select("*").eq("handle", handle).maybeSingle();
@@ -110,7 +131,7 @@ function ChannelPage() {
     },
   });
   const isOwner = !!user && channel?.user_id === user.id;
-  const { data: videos, isLoading: loadingVideos } = useQuery({
+  const { data: videos, isLoading: loadingVideos, isError: videosError, refetch: refetchVideos } = useQuery({
     queryKey: ["channel-videos", channel?.id, isOwner],
     enabled: !!channel,
     queryFn: async () => {
@@ -123,7 +144,8 @@ function ChannelPage() {
   });
   const banner = useMediaUrl("banners", channel?.banner_url);
 
-  if (isLoading) return null;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Chargement de la chaîne…</div>;
+  if (channelError) return <QueryErrorState title="Impossible de charger cette chaîne" onRetry={() => void refetchChannel()} />;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
 
   return (
@@ -152,7 +174,6 @@ function ChannelPage() {
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
         <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
-        <Link to="/photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</Link>
         <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
       </div>
       <div className="my-6 h-px bg-edge/60" />
@@ -169,11 +190,11 @@ function ChannelPage() {
         </div>
       </div>
       <div id="videos" />
-      <VideoGrid
+      {videosError ? <QueryErrorState title="Impossible de charger les vidéos de cette chaîne" onRetry={() => void refetchVideos()} /> : <VideoGrid
         videos={videos}
         loading={loadingVideos}
         empty={<EmptyState title="Aucune vidéo" text={isOwner ? "Publiez votre première vidéo." : "Cette chaîne n'a encore rien publié."} />}
-      />
+      />}
     </div>
   );
 }

@@ -99,6 +99,13 @@ export async function compressVideo(
   const audioBitrate = Math.max(16_000, Math.min(96_000, Math.floor(targetTotalBitrate * 0.18)));
   const budgetBitrate = Math.max(24_000, targetTotalBitrate - audioBitrate);
   let currentAttempt = 0;
+  let successfulEncodes = 0;
+  let lastEncodingError = "";
+  const handleLog = ({ message }: { message: string }) => {
+    if (/error|failed|invalid|unsupported|unable/i.test(message)) {
+      lastEncodingError = message.trim().slice(-500);
+    }
+  };
   const handleProgress = ({ progress }: { progress: number }) => {
     onProgress({
       phase: "encoding",
@@ -108,6 +115,7 @@ export async function compressVideo(
     });
   };
   ffmpeg.on("progress", handleProgress);
+  ffmpeg.on("log", handleLog);
 
   try {
     for (let index = 0; index < attempts.length; index += 1) {
@@ -122,23 +130,44 @@ export async function compressVideo(
 
       const videoBitrate = Math.max(18_000, Math.floor(budgetBitrate * attempt.factor));
       const scale = `scale='min(${attempt.width},iw)':'min(${attempt.width},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
-      await ffmpeg.exec([
-        "-i", inputName,
-        "-vf", scale,
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-b:v", String(videoBitrate),
-        "-maxrate", String(videoBitrate),
-        "-bufsize", String(videoBitrate * 2),
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", String(audioBitrate),
-        "-movflags", "+faststart",
-        "-y", outputName,
-      ]);
+      let exitCode: number;
+      try {
+        exitCode = await ffmpeg.exec([
+          "-i", inputName,
+          "-vf", scale,
+          "-c:v", "libx264",
+          "-preset", "veryfast",
+          "-b:v", String(videoBitrate),
+          "-maxrate", String(videoBitrate),
+          "-bufsize", String(videoBitrate * 2),
+          "-pix_fmt", "yuv420p",
+          "-c:a", "aac",
+          "-b:a", String(audioBitrate),
+          "-movflags", "+faststart",
+          "-y", outputName,
+        ]);
+      } catch (error) {
+        lastEncodingError = error instanceof Error ? error.message : String(error);
+        continue;
+      }
 
-      const output = await ffmpeg.readFile(outputName);
-      if (typeof output === "string") throw new Error("Le fichier compressé est illisible.");
+      if (exitCode !== 0) {
+        if (!lastEncodingError) lastEncodingError = `FFmpeg a terminé avec le code ${exitCode}.`;
+        continue;
+      }
+
+      let output: Awaited<ReturnType<typeof ffmpeg.readFile>>;
+      try {
+        output = await ffmpeg.readFile(outputName);
+      } catch (error) {
+        lastEncodingError = error instanceof Error ? error.message : String(error);
+        continue;
+      }
+      if (typeof output === "string") {
+        lastEncodingError = "Le fichier compressé est illisible.";
+        continue;
+      }
+      successfulEncodes += 1;
       const outputBuffer = new Uint8Array(output).buffer as ArrayBuffer;
       if (outputBuffer.byteLength <= MAX_VIDEO_UPLOAD_BYTES) {
         const baseName = file.name.replace(/\.[^.]+$/, "") || "video";
@@ -150,6 +179,7 @@ export async function compressVideo(
     }
   } finally {
     ffmpeg.off("progress", handleProgress);
+    ffmpeg.off("log", handleLog);
     for (const name of [inputName, outputName]) {
       try {
         await ffmpeg.deleteFile(name);
@@ -159,7 +189,13 @@ export async function compressVideo(
     }
   }
 
+  if (successfulEncodes === 0) {
+    throw new Error(
+      `La compression n’a pas réussi à encoder cette vidéo. Essayez un fichier MP4 ou MOV standard. ${lastEncodingError}`.trim(),
+    );
+  }
+
   throw new Error(
-    "Cette vidéo reste trop volumineuse après plusieurs essais de compression. Essayez une vidéo plus courte.",
+    "La vidéo reste trop volumineuse après six essais de compression. Essayez une vidéo plus courte ou une résolution inférieure.",
   );
 }

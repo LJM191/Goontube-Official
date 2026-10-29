@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Eye, Users, Video, Pencil } from "lucide-react";
@@ -8,6 +8,7 @@ import { useMediaUrl } from "@/lib/media";
 import { formatCount } from "@/lib/format";
 import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/profile/$username")({
 function EditUsername({ current }: { current: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(current);
   const [busy, setBusy] = useState(false);
@@ -41,6 +43,9 @@ function EditUsername({ current }: { current: string }) {
       await qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Arobase modifié !");
       setOpen(false);
+      if (username !== current) {
+        await navigate({ to: "/profile/$username", params: { username }, replace: true });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Impossible de modifier l'arobase.");
     } finally {
@@ -76,7 +81,7 @@ function EditUsername({ current }: { current: string }) {
 function Profile() {
   const { username } = Route.useParams();
   const { user } = useAuth();
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError: profileError, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", username],
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("profiles").select("user_id,pseudo,avatar,profile_photo,bio,created_at,updated_at").eq("pseudo", username).maybeSingle();
@@ -96,6 +101,7 @@ function Profile() {
   const banner = useMediaUrl("banners", channel?.banner_url);
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du profil…</div>;
+  if (profileError) return <QueryErrorState title="Impossible de charger ce profil" onRetry={() => void refetchProfile()} />;
   if (!profile) return <EmptyState title="Profil introuvable" />;
   const isMe = user?.id === profile.user_id;
 

@@ -56,31 +56,56 @@ type CompressionStatus = {
 function probeVideo(file: File): Promise<{ duration: number; frame: Blob | null }> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
-    const v = document.createElement("video");
-    v.preload = "metadata";
-    v.muted = true;
-    v.src = url;
-    v.onloadedmetadata = () => {
-      v.currentTime = Math.min(2, (v.duration || 0) / 3);
-    };
-    v.onseeked = () => {
-      const c = document.createElement("canvas");
-      c.width = 1280;
-      c.height = Math.round((1280 * v.videoHeight) / (v.videoWidth || 1)) || 720;
-      c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
-      c.toBlob(
-        (b) => {
-          URL.revokeObjectURL(url);
-          resolve({ duration: v.duration || 0, frame: b });
-        },
-        "image/jpeg",
-        0.85,
-      );
-    };
-    v.onerror = () => {
+    const video = document.createElement("video");
+    let settled = false;
+    let timeout = 0;
+    let knownDuration = 0;
+
+    const finish = (result: { duration: number; frame: Blob | null }) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
       URL.revokeObjectURL(url);
-      resolve({ duration: 0, frame: null });
+      video.onloadedmetadata = null;
+      video.onseeked = null;
+      video.onerror = null;
+      video.removeAttribute("src");
+      video.load();
+      resolve(result);
     };
+
+    timeout = window.setTimeout(() => finish({ duration: knownDuration, frame: null }), 15_000);
+    video.preload = "metadata";
+    video.muted = true;
+    video.onloadedmetadata = () => {
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      knownDuration = duration;
+      if (duration <= 0 || video.videoWidth <= 0 || video.videoHeight <= 0) {
+        finish({ duration, frame: null });
+        return;
+      }
+      try {
+        video.currentTime = Math.min(2, duration / 3);
+      } catch {
+        finish({ duration, frame: null });
+      }
+    };
+    video.onseeked = () => {
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      const scale = Math.min(1, 1280 / Math.max(1, video.videoWidth), 720 / Math.max(1, video.videoHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+      canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        finish({ duration, frame: null });
+        return;
+      }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((frame) => finish({ duration, frame }), "image/jpeg", 0.85);
+    };
+    video.onerror = () => finish({ duration: 0, frame: null });
+    video.src = url;
   });
 }
 
@@ -91,7 +116,7 @@ function formatFileSize(bytes: number) {
 
 function Upload() {
   const { user } = Route.useRouteContext();
-  const { data: me } = useMe();
+  const { data: me, error: meError, isLoading: meLoading, refetch: refetchMe } = useMe();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -138,13 +163,37 @@ function Upload() {
       toast.error("Ce fichier est trop volumineux pour être traité dans le navigateur. Choisissez une vidéo plus courte ou plus légère.");
       return;
     }
-    setFile(f);
+    const mimeByExtension: Record<string, string> = {
+      ".mp4": "video/mp4",
+      ".webm": "video/webm",
+      ".mov": "video/quicktime",
+      ".ogg": "video/ogg",
+    };
+    const normalizedFile =
+      ACCEPTED_VIDEO_TYPES.includes(f.type) || !mimeByExtension[extension]
+        ? f
+        : new File([f], f.name, { type: mimeByExtension[extension], lastModified: f.lastModified });
+
+    setFile(normalizedFile);
     setProbe(null);
     setThumb(null);
     setCompression(null);
     setStep(null);
-    setTitle((current) => current || f.name.replace(/\.[^.]+$/, ""));
-    setProbe(await probeVideo(f));
+    setTitle((current) => current || normalizedFile.name.replace(/\.[^.]+$/, ""));
+    setProbe(await probeVideo(normalizedFile));
+  }
+
+  function pickThumbnail(file: File | undefined) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("Formats de miniature acceptés : JPEG, PNG, WebP et GIF.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La miniature doit faire 10 Mo maximum.");
+      return;
+    }
+    setThumb(file);
   }
 
   function resetFile() {
@@ -166,6 +215,8 @@ function Upload() {
       return;
     }
 
+    let uploadedVideoPath: string | null = null;
+    let uploadedThumbnailPath: string | null = null;
     try {
       let uploadFile = file;
       setCompression(null);
@@ -185,11 +236,13 @@ function Upload() {
       setStep("Envoi de la vidéo…");
       const ext = uploadFile.name.split(".").pop()?.toLowerCase() || "mp4";
       const videoPath = await uploadMedia("videos", user.id, uploadFile, ext);
+      uploadedVideoPath = videoPath;
       setStep("Envoi de la miniature…");
       const thumbBlob = thumb ?? probe?.frame;
       const thumbPath = thumbBlob
         ? await uploadMedia("thumbnails", user.id, thumbBlob, thumb ? thumb.name.split(".").pop() || "jpg" : "jpg")
         : null;
+      uploadedThumbnailPath = thumbPath;
       setStep("Publication…");
       const { data, error } = await supabase
         .from("videos")
@@ -206,9 +259,15 @@ function Upload() {
         .select("id")
         .single();
       if (error) throw error;
+      uploadedVideoPath = null;
+      uploadedThumbnailPath = null;
       toast.success("Vidéo publiée !");
       navigate({ to: "/watch/$id", params: { id: data.id } });
     } catch (err) {
+      await Promise.allSettled([
+        ...(uploadedVideoPath ? [supabase.storage.from("videos").remove([uploadedVideoPath])] : []),
+        ...(uploadedThumbnailPath ? [supabase.storage.from("thumbnails").remove([uploadedThumbnailPath])] : []),
+      ]);
       toast.error(err instanceof Error ? err.message : "Échec de la mise en ligne");
       setStep(null);
       setCompression(null);
@@ -359,7 +418,7 @@ function Upload() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <label className={`inline-flex cursor-pointer items-center gap-2 rounded-full border border-edge px-4 py-2 text-sm font-medium transition hover:bg-background/70 ${isBusy ? "pointer-events-none opacity-50" : ""}`}>
                       <ImagePlus className="size-4" /> Importer une image
-                      <input type="file" accept="image/*" className="hidden" disabled={isBusy} onChange={(event) => setThumb(event.target.files?.[0] ?? null)} />
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={isBusy} onChange={(event) => pickThumbnail(event.target.files?.[0])} />
                     </label>
                     {thumb && <button type="button" disabled={isBusy} onClick={() => setThumb(null)} className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-background/70 hover:text-foreground">Utiliser l’image automatique</button>}
                   </div>
@@ -429,13 +488,13 @@ function Upload() {
 
             <div className="space-y-3 rounded-2xl border border-edge/70 bg-panel/60 p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-glow" /> Vérifiez les détails avant de publier.</div>
-              <button type="submit" disabled={isBusy || !me?.channel} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
+              <button type="submit" disabled={isBusy || meLoading || !me?.channel} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
                 {isBusy ? <><Loader2 className="size-4 animate-spin" /> {step}</> : <><UploadCloud className="size-4" /> Publier la vidéo</>}
               </button>
               <button type="button" disabled={isBusy} onClick={resetFile} className="flex w-full items-center justify-center gap-2 rounded-full border border-edge px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-background/70 hover:text-foreground disabled:opacity-50">
                 <X className="size-4" /> Changer de vidéo
               </button>
-              {!me?.channel && <p className="text-center text-xs text-destructive">Créez une chaîne avant de publier une vidéo.</p>}
+              {meError ? <p role="alert" className="text-center text-xs text-destructive">Impossible de vérifier votre chaîne. <button type="button" onClick={() => void refetchMe()} className="underline">Réessayer</button></p> : !meLoading && !me?.channel && <p className="text-center text-xs text-destructive">Créez une chaîne avant de publier une vidéo.</p>}
             </div>
           </aside>
         </form>
