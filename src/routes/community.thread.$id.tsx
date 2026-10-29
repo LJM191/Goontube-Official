@@ -70,7 +70,7 @@ function ThreadPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <Link to={forum?.slug ? "/community/forum/$slug" : "/community"} params={forum?.slug ? { slug: forum.slug } : undefined as never} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> {forum?.name ?? "Communauté"}</Link>
+      {forum?.slug ? <Link to="/community/forum/$slug" params={{ slug: forum.slug }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> {forum.name}</Link> : <Link to="/community" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Communauté</Link>}
       <article className="rounded-3xl bg-panel p-6 ring-1 ring-edge/50">
         <p className="text-xs font-semibold uppercase tracking-wider text-glow">Discussion</p>
         <h1 className="mt-2 text-3xl font-black">{thread.title}</h1>
