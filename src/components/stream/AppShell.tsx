@@ -364,7 +364,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="mx-auto min-h-[calc(100vh-12rem)] w-full max-w-[1760px] min-w-0 bg-background px-4 pb-24 pt-5 sm:px-8 sm:pt-8 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>
 
-      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
+      <nav aria-label="Navigation mobile" className="glass-bar fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 gap-0 border-t border-edge/60 px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
         {[
           { to: "/", label: "Accueil", icon: Home },
           { to: "/explore", label: "Explorer", icon: Compass },
