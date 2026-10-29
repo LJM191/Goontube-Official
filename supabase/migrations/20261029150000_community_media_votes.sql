@@ -20,6 +20,9 @@ create table if not exists public.community_votes (
 );
 
 create index if not exists community_votes_thread_idx on public.community_votes(thread_id);
+grant select on public.community_votes to anon, authenticated;
+grant insert, update, delete on public.community_votes to authenticated;
+grant all on public.community_votes to service_role;
 alter table public.community_votes enable row level security;
 
 drop policy if exists "community votes are readable" on public.community_votes;
