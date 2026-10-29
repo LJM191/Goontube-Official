@@ -56,6 +56,7 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   const ref = useRef<HTMLVideoElement>(null);
   const [activeSrc, setActiveSrc] = useState(src);
   const [playing, setPlaying] = useState(autoPlay);
+  const [playbackError, setPlaybackError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -326,6 +327,19 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
       </video>
 
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-black/80 transition-opacity duration-200", controlsVisible ? "opacity-100" : "opacity-0")} />
+      {playbackError && (
+        <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/85 px-5 text-center text-white">
+          <p className="text-sm font-semibold sm:text-base">Impossible de lire cette vidéo.</p>
+          <p className="max-w-sm text-xs leading-5 text-white/70">Vérifiez votre connexion ou réessayez la lecture.</p>
+          <button type="button" onClick={() => {
+            const video = ref.current;
+            if (!video) return;
+            setPlaybackError(false);
+            video.load();
+            void video.play().catch(() => { setPlaybackError(true); setPlaying(false); });
+          }} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-black">Réessayer</button>
+        </div>
+      )}
       <div className={cn("pointer-events-none absolute left-3 right-3 top-3 transition-opacity sm:left-5 sm:right-5 sm:top-4", controlsVisible ? "opacity-100" : "opacity-0")}>
         <p className="line-clamp-2 text-sm font-medium text-white drop-shadow-lg">{title}</p>
       </div>
