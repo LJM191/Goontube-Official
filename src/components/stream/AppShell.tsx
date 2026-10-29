@@ -3,7 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Clock,
   Compass,
-  ChevronDown,
   Globe,
   Home,
   Library,
@@ -318,86 +317,6 @@ function UserMenu() {
   );
 }
 
-function OrientationIcon({ type }: { type: string }) {
-  if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
-  if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
-  if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣ ❤️</span>;
-  if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
-  if (type === "S'identifie comme un chien") return <span aria-hidden="true" className="text-lg leading-none">🐶</span>;
-  if (type === "S'identifie comme un chat") return <span aria-hidden="true" className="text-lg leading-none">🐱</span>;
-  if (type === "Pansexuel") {
-    return (
-      <span aria-hidden="true" className="flex w-5 flex-col gap-px overflow-hidden rounded-sm">
-        <span className="h-1 bg-pink-500" />
-        <span className="h-1 bg-yellow-300" />
-        <span className="h-1 bg-cyan-400" />
-      </span>
-    );
-  }
-  return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
-}
-
-const ORIENTATION_OPTIONS = [
-  { label: "Hétéro", slug: "orientation-hetero" },
-  { label: "Bi", slug: "orientation-bi" },
-  { label: "Gay", slug: "orientation-gay" },
-  { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
-  { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
-  { label: "S'identifie comme un chien", slug: "orientation-chien" },
-  { label: "S'identifie comme un chat", slug: "orientation-chat" },
-  { label: "Pansexuel", slug: "orientation-pansexuel" },
-] as const;
-
-function OrientationMenu() {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("Hétéro");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("goontube-orientation");
-    if (saved && ORIENTATION_OPTIONS.some((option) => option.label === saved)) setSelected(saved);
-  }, []);
-
-  const choose = (option: (typeof ORIENTATION_OPTIONS)[number]) => {
-    setSelected(option.label);
-    localStorage.setItem("goontube-orientation", option.label);
-    setOpen(false);
-    window.location.href = `/explore?category=${encodeURIComponent(option.slug)}`;
-  };
-
-  return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        aria-label={`Catégorie ${selected}`}
-        title={selected}
-        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"
-      >
-        <OrientationIcon type={selected} />
-        <span className="flex-1 truncate text-left">{selected}</span>
-        <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl bg-panel p-1.5 shadow-xl ring-1 ring-edge/60">
-          {ORIENTATION_OPTIONS.map((option) => (
-            <button
-              key={option.slug}
-              type="button"
-              onClick={() => choose(option)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground"
-            >
-              <OrientationIcon type={option.label} />
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
@@ -431,7 +350,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
           <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
-            <OrientationMenu />
+            <Link to="/explore" search={{}} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"><Compass className="size-5" /><span>Tout</span></Link>
           </div>
           <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
             <Link to="/" className={navClass(activeClass("/"))}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
