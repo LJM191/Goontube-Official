@@ -14,6 +14,7 @@ type PlayerProps = {
   subtitleSources?: SubtitleSource[] | null;
   theaterMode?: boolean;
   onToggleTheaterMode?: () => void;
+  onQualifiedView?: (watchedSeconds: number, watchedToEnd: boolean) => void;
 };
 
 const speeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -52,8 +53,13 @@ function loadGoogleCastSdk(): Promise<boolean> {
   return w.__goontubeCastSdkPromise;
 }
 
-export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [], theaterMode = false, onToggleTheaterMode }: PlayerProps) {
+export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [], subtitleSources = [], theaterMode = false, onToggleTheaterMode, onQualifiedView }: PlayerProps) {
   const ref = useRef<HTMLVideoElement>(null);
+  const onQualifiedViewRef = useRef(onQualifiedView);
+  const accumulatedWatchedSeconds = useRef(0);
+  const previousPlaybackTime = useRef<number | null>(null);
+  const qualifiedViewReported = useRef(false);
+  onQualifiedViewRef.current = onQualifiedView;
   const [activeSrc, setActiveSrc] = useState(src);
   const [playing, setPlaying] = useState(autoPlay);
   const [playbackError, setPlaybackError] = useState(false);
