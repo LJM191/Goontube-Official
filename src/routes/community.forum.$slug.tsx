@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowLeft, MessageSquare, Heart } from "lucide-react";
@@ -19,6 +19,7 @@ type Thread = { id: string; forum_id: string; user_id: string; title: string; co
 
 function ForumPage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
@@ -55,7 +56,7 @@ function ForumPage() {
       setTitle(""); setBody(""); setShowNew(false);
       await qc.invalidateQueries({ queryKey: ["community-threads", forum.id] });
       toast.success("Discussion publiée !");
-      if (data) window.location.href = `/community/thread/${data.id}`;
+      if (data) await navigate({ to: "/community/thread/$id", params: { id: data.id } });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Impossible de publier"); }
     finally { setBusy(false); }
   }
