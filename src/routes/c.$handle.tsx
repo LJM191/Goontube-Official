@@ -152,7 +152,6 @@ function ChannelPage() {
       </div>
       <div className="mt-6 flex flex-wrap gap-2 border-b border-edge/60 pb-2">
         <a href="#videos" className="rounded-full bg-panel px-4 py-2 text-sm font-medium ring-1 ring-edge/30">Vidéos</a>
-        <Link to="/photos" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">Photos & GIFs</Link>
         <a href="#about" className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-frost">À propos</a>
       </div>
       <div className="my-6 h-px bg-edge/60" />
