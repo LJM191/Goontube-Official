@@ -32,10 +32,14 @@ function loadGoogleCastSdk(): Promise<boolean> {
 
   w.__goontubeCastSdkPromise = new Promise<boolean>((resolve) => {
     let settled = false;
+    let timeoutId: number | undefined;
     const finish = (available: boolean) => {
       if (settled) return;
       settled = true;
-      resolve(available && Boolean(w.cast?.framework && w.chrome?.cast));
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      const ready = available && Boolean(w.cast?.framework && w.chrome?.cast);
+      if (!ready) delete w.__goontubeCastSdkPromise;
+      resolve(ready);
     };
     w.__onGCastApiAvailable = (available) => finish(available);
     const script = document.createElement("script");
@@ -43,7 +47,7 @@ function loadGoogleCastSdk(): Promise<boolean> {
     script.async = true;
     script.onerror = () => finish(false);
     document.head.appendChild(script);
-    window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
+    timeoutId = window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
   });
   return w.__goontubeCastSdkPromise;
 }
@@ -136,8 +140,14 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   const togglePlay = () => {
     const v = ref.current;
     if (!v) return;
-    if (v.paused) void v.play();
-    else v.pause();
+    if (v.paused) {
+      void v.play().catch(() => {
+        setPlaying(false);
+        toast.error("La lecture n’a pas pu démarrer. Vérifiez le format ou réessayez.");
+      });
+    } else {
+      v.pause();
+    }
     showControls();
   };
 
@@ -244,22 +254,23 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   };
 
   const changeQuality = (value: string) => {
-    if (value === "auto") {
-      setSelectedQuality("auto");
-      setActiveSrc(src);
-      return;
-    }
-    const option = qualitySources.find((item) => item.label === value);
-    if (!option) return;
-    const v = ref.current;
-    const time = v?.currentTime ?? 0;
-    const wasPlaying = v ? !v.paused : false;
+    const option = value === "auto" ? null : qualitySources.find((item) => item.label === value);
+    if (value !== "auto" && !option) return;
+
+    const video = ref.current;
+    const time = video?.currentTime ?? 0;
+    const wasPlaying = video ? !video.paused : false;
     setSelectedQuality(value);
-    setActiveSrc(option.src);
+    setActiveSrc(option?.src ?? src);
+
     window.setTimeout(() => {
       const next = ref.current;
       if (!next) return;
-      next.currentTime = Math.min(time, next.duration || time);
+      try {
+        next.currentTime = Math.min(time, next.duration || time);
+      } catch {
+        // Some browsers reject seeking until metadata is available.
+      }
       if (wasPlaying) void next.play().catch(() => undefined);
     }, 0);
   };
