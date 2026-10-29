@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as PhotosRouteImport } from './routes/photos'
+import { Route as CastRouteImport } from './routes/cast'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShortsRouteImport } from './routes/shorts'
 import { Route as StudioRouteImport } from './routes/studio'
@@ -56,6 +57,11 @@ const ExploreRoute = ExploreRouteImport.update({
 const PhotosRoute = PhotosRouteImport.update({
   id: '/photos',
   path: '/photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CastRoute = CastRouteImport.update({
+  id: '/cast',
+  path: '/cast',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
   '/photos': typeof PhotosRoute
+  '/cast': typeof CastRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
   '/studio': typeof StudioRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
   '/photos': typeof PhotosRoute
+  '/cast': typeof CastRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
   '/studio': typeof StudioRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/community': typeof CommunityRouteWithChildren
   '/explore': typeof ExploreRoute
   '/photos': typeof PhotosRoute
+  '/cast': typeof CastRoute
   '/search': typeof SearchRoute
   '/shorts': typeof ShortsRoute
   '/studio': typeof StudioRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/explore'
     | '/photos'
+    | '/cast'
     | '/search'
     | '/shorts'
     | '/studio'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/explore'
     | '/photos'
+    | '/cast'
     | '/search'
     | '/shorts'
     | '/studio'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/explore'
     | '/photos'
+    | '/cast'
     | '/search'
     | '/shorts'
     | '/studio'
@@ -258,6 +270,7 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRouteWithChildren
   ExploreRoute: typeof ExploreRoute
   PhotosRoute: typeof PhotosRoute
+  CastRoute: typeof CastRoute
   SearchRoute: typeof SearchRoute
   ShortsRoute: typeof ShortsRoute
   StudioRoute: typeof StudioRoute
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/photos'
       fullPath: '/photos'
       preLoaderRoute: typeof PhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cast': {
+      id: '/cast'
+      path: '/cast'
+      fullPath: '/cast'
+      preLoaderRoute: typeof CastRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -443,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRouteWithChildren,
   ExploreRoute: ExploreRoute,
   PhotosRoute: PhotosRoute,
+  CastRoute: CastRoute,
   SearchRoute: SearchRoute,
   ShortsRoute: ShortsRoute,
   StudioRoute: StudioRoute,

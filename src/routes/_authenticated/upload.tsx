@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,7 +17,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { uploadMedia } from "@/lib/media";
 import { compressVideo, MAX_VIDEO_UPLOAD_BYTES } from "@/lib/video-compression";
-import { fetchCategories } from "@/lib/videos";
 import { formatDuration } from "@/lib/format";
 import { useMe } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
@@ -96,12 +94,6 @@ function Upload() {
   const { data: me } = useMe();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data: categories, isLoading: categoriesLoading, isError: categoriesError } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
-    staleTime: Infinity,
-  });
-
   const [file, setFile] = useState<File | null>(null);
   const [probe, setProbe] = useState<{ duration: number; frame: Blob | null } | null>(null);
   const [thumb, setThumb] = useState<File | null>(null);
@@ -109,7 +101,6 @@ function Upload() {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
   const [step, setStep] = useState<string | null>(null);
   const [compression, setCompression] = useState<CompressionStatus | null>(null);
@@ -174,10 +165,6 @@ function Upload() {
       toast.error("Ajoutez un titre à la vidéo.");
       return;
     }
-    if (!categoryId) {
-      toast.error("Choisissez une catégorie avant de publier.");
-      return;
-    }
 
     try {
       let uploadFile = file;
@@ -213,7 +200,7 @@ function Upload() {
           video_url: videoPath,
           thumbnail_url: thumbPath,
           duration_seconds: Math.round(probe?.duration ?? 0),
-          category_id: categoryId,
+          category_id: null,
           visibility,
         })
         .select("id")
@@ -230,7 +217,6 @@ function Upload() {
 
   const isBusy = !!step;
   const compressionPercent = Math.round((compression?.progress ?? 0) * 100);
-  const categoryName = categories?.find((category) => category.id === categoryId)?.name;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:pt-10">
@@ -314,7 +300,7 @@ function Upload() {
             </div>
             <div className="flex gap-3 rounded-xl p-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-glow/10 text-glow"><ShieldCheck className="size-5" /></div>
-              <div><p className="text-sm font-medium">Vous gardez le contrôle</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Titre, catégorie, miniature et visibilité restent modifiables avant publication.</p></div>
+              <div><p className="text-sm font-medium">Vous gardez le contrôle</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Titre, description, miniature et visibilité restent modifiables avant publication.</p></div>
             </div>
           </div>
         </section>
@@ -341,16 +327,7 @@ function Upload() {
                   <Textarea id="desc" rows={6} maxLength={5000} value={description} onChange={(event) => setDescription(event.target.value)} disabled={isBusy} placeholder="De quoi parle cette vidéo ? Ajoutez des détails utiles aux spectateurs…" className="resize-y bg-background/60" />
                   <div className="text-right text-xs text-muted-foreground">{description.length}/5000</div>
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="cat">Catégorie <span className="text-destructive">*</span></Label>
-                    <select id="cat" required value={categoryId} onChange={(event) => setCategoryId(event.target.value)} disabled={isBusy || categoriesLoading || categoriesError} className="h-11 w-full rounded-lg border border-input bg-background/60 px-3 text-sm outline-none transition focus:border-glow focus:ring-2 focus:ring-glow/20 disabled:opacity-60">
-                      <option value="">{categoriesLoading ? "Chargement des catégories…" : categoriesError ? "Catégories indisponibles" : "Choisir une catégorie…"}</option>
-                      {categories?.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-                    </select>
-                    {categoriesError && <p className="text-xs text-destructive">Impossible de charger les catégories. Rechargez la page avant de publier.</p>}
-                    {categoryName && <p className="text-xs text-muted-foreground">Votre vidéo sera classée dans « {categoryName} ».</p>}
-                  </div>
+                <div className="space-y-2">
                   <div className="space-y-2">
                     <Label htmlFor="vis">Visibilité</Label>
                     <select id="vis" value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)} disabled={isBusy} className="h-11 w-full rounded-lg border border-input bg-background/60 px-3 text-sm outline-none transition focus:border-glow focus:ring-2 focus:ring-glow/20 disabled:opacity-60">
@@ -404,7 +381,6 @@ function Upload() {
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                   <span>{formatDuration(probe?.duration ?? 0)}</span><span>·</span><span>{formatFileSize(file.size)}</span>
                 </div>
-                {categoryName && <span className="inline-flex rounded-full bg-glow/10 px-2.5 py-1 text-xs text-glow">{categoryName}</span>}
               </div>
             </section>
 
@@ -453,7 +429,7 @@ function Upload() {
 
             <div className="space-y-3 rounded-2xl border border-edge/70 bg-panel/60 p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-glow" /> Vérifiez les détails avant de publier.</div>
-              <button type="submit" disabled={isBusy || !me?.channel || !categoryId || categoriesLoading || categoriesError} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
+              <button type="submit" disabled={isBusy || !me?.channel} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
                 {isBusy ? <><Loader2 className="size-4 animate-spin" /> {step}</> : <><UploadCloud className="size-4" /> Publier la vidéo</>}
               </button>
               <button type="button" disabled={isBusy} onClick={resetFile} className="flex w-full items-center justify-center gap-2 rounded-full border border-edge px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-background/70 hover:text-foreground disabled:opacity-50">
