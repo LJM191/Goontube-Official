@@ -335,7 +335,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="glass-bar sticky top-0 z-30 border-b border-edge/60">
         <div className="relative flex min-h-16 items-center gap-2 px-3 sm:min-h-24 sm:gap-8 sm:px-8 lg:px-10">
           <div className="flex shrink-0 items-center lg:w-64"><Logo /></div>
-          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 md:block">
+          <div className="absolute left-1/2 top-1/2 hidden w-[min(44vw,48rem)] -translate-x-1/2 -translate-y-1/2 lg:block">
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
@@ -343,11 +343,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="px-3 pb-3 md:hidden">
+        <div className="px-3 pb-3 lg:hidden">
           <SearchBar />
         </div>
 
-        <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 md:flex lg:gap-3 lg:px-8">
+        <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 lg:flex lg:gap-3 lg:px-8">
           <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
             <Link to="/explore" search={{}} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"><Compass className="size-5" /><span>Tout</span></Link>
           </div>
