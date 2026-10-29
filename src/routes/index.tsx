@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchFeed } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { data: videos, isLoading } = useQuery({
+  const { data: videos, isLoading, isError, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: () => fetchFeed(),
   });
@@ -28,7 +29,7 @@ function Home() {
   return (
     <>
       <h2 className="mx-auto mb-6 max-w-[1500px] text-xl font-semibold tracking-tight">Vidéos chaudes</h2>
-      <VideoGrid
+      {isError ? <QueryErrorState title="Impossible de charger les vidéos" onRetry={() => void refetch()} /> : <VideoGrid
         videos={videos}
         loading={isLoading}
         empty={
@@ -42,7 +43,7 @@ function Home() {
             }
           />
         }
-      />
+      />}
     </>
   );
 }
