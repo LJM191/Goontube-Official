@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useMediaUrl } from "@/lib/media";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,8 @@ export function ChannelAvatar({
   const isExternalUrl = !!path && /^https?:\/\//i.test(path);
   const url = useMediaUrl("avatars", isExternalUrl ? null : path);
   const imageUrl = isExternalUrl ? path : url;
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => setImageFailed(false), [imageUrl]);
   return (
     <div
       className={cn(
@@ -23,7 +26,7 @@ export function ChannelAvatar({
         className,
       )}
     >
-      {imageUrl ? <img src={imageUrl} alt={name} loading="lazy" decoding="async" className="size-full object-cover" /> : initials(name) || "?"}
+      {imageUrl && !imageFailed ? <img src={imageUrl} alt={name} loading="lazy" decoding="async" onError={() => setImageFailed(true)} className="size-full object-cover" /> : initials(name) || "?"}
     </div>
   );
 }
