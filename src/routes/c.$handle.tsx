@@ -12,6 +12,7 @@ import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
 import { SubscribeButton } from "@/components/stream/SubscribeButton";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -101,7 +102,7 @@ function EditChannel({ channel }: { channel: Channel }) {
 function ChannelPage() {
   const { handle } = Route.useParams();
   const { user } = useAuth();
-  const { data: channel, isLoading } = useQuery({
+  const { data: channel, isLoading, isError: channelError, refetch: refetchChannel } = useQuery({
     queryKey: ["channel", handle],
     queryFn: async () => {
       const { data, error } = await supabase.from("channels").select("*").eq("handle", handle).maybeSingle();
@@ -110,7 +111,7 @@ function ChannelPage() {
     },
   });
   const isOwner = !!user && channel?.user_id === user.id;
-  const { data: videos, isLoading: loadingVideos } = useQuery({
+  const { data: videos, isLoading: loadingVideos, isError: videosError, refetch: refetchVideos } = useQuery({
     queryKey: ["channel-videos", channel?.id, isOwner],
     enabled: !!channel,
     queryFn: async () => {
@@ -123,7 +124,8 @@ function ChannelPage() {
   });
   const banner = useMediaUrl("banners", channel?.banner_url);
 
-  if (isLoading) return null;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Chargement de la chaîne…</div>;
+  if (channelError) return <QueryErrorState title="Impossible de charger cette chaîne" onRetry={() => void refetchChannel()} />;
   if (!channel) return <EmptyState title="Chaîne introuvable" />;
 
   return (
@@ -168,11 +170,11 @@ function ChannelPage() {
         </div>
       </div>
       <div id="videos" />
-      <VideoGrid
+      {videosError ? <QueryErrorState title="Impossible de charger les vidéos de cette chaîne" onRetry={() => void refetchVideos()} /> : <VideoGrid
         videos={videos}
         loading={loadingVideos}
         empty={<EmptyState title="Aucune vidéo" text={isOwner ? "Publiez votre première vidéo." : "Cette chaîne n'a encore rien publié."} />}
-      />
+      />}
     </div>
   );
 }
