@@ -53,6 +53,29 @@ create policy "community votes are readable" on public.community_votes
     )
   );
 
+-- Prevent ordinary users from pinning or locking their own threads via direct API calls.
+drop policy if exists "threads_owner_insert" on public.community_threads;
+create policy "threads_owner_insert" on public.community_threads
+  for insert to authenticated
+  with check (user_id = (select auth.uid()) and is_pinned = false and is_locked = false);
+
+drop policy if exists "threads_owner_update" on public.community_threads;
+create policy "threads_owner_update" on public.community_threads
+  for update to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()) and is_pinned = false and is_locked = false);
+
+drop policy if exists "replies_owner_insert" on public.community_replies;
+create policy "replies_owner_insert" on public.community_replies
+  for insert to authenticated
+  with check (
+    user_id = (select auth.uid())
+    and not exists (
+      select 1 from public.community_threads t
+      where t.id = community_replies.thread_id and t.is_locked
+    )
+  );
+
 -- The public profile UI never needs the email column. Remove table-wide SELECT
 -- and grant only the fields used by public profile, comments, and Studio screens.
 revoke select on public.profiles from anon, authenticated;
