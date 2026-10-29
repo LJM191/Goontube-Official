@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { X } from "lucide-react";
 import goontubeLogo from "@/assets/goontube-logo.png";
 
 const AGES = [
@@ -22,14 +21,6 @@ export function AgeWelcome() {
   return (
     <div className="fixed inset-0 z-[100] grid place-items-center bg-black/75 p-4 backdrop-blur-md">
       <div className="relative w-full max-w-lg rounded-3xl bg-panel p-6 shadow-2xl ring-1 ring-edge/70 sm:p-8">
-        <button
-          onClick={() => setOpen(false)}
-          aria-label="Fermer"
-          className="absolute right-4 top-4 grid size-9 place-items-center rounded-full bg-frost text-faint hover:text-foreground"
-        >
-          <X className="size-4" />
-        </button>
-
         <div className="mx-auto flex justify-center">
           <img src={goontubeLogo} alt="Goontube" className="h-auto w-56 sm:w-64" />
         </div>
