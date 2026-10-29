@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Textarea } from "@/components/ui/textarea";
 import { CommunityMedia } from "@/components/stream/CommunityMedia";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/community/thread/$id")({
@@ -24,7 +25,7 @@ function ThreadPage() {
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { data: thread, isLoading } = useQuery({
+  const { data: thread, isLoading, isError: threadError, refetch: refetchThread } = useQuery({
     queryKey: ["community-thread", id],
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("community_threads").select("*").eq("id", id).maybeSingle();
@@ -32,7 +33,7 @@ function ThreadPage() {
       return data as Thread | null;
     },
   });
-  const { data: replies } = useQuery({
+  const { data: replies, isError: repliesError, refetch: refetchReplies } = useQuery({
     queryKey: ["community-replies", id],
     enabled: !!thread,
     queryFn: async () => {
@@ -67,6 +68,7 @@ function ThreadPage() {
   }
 
   if (isLoading) return <div className="mx-auto max-w-3xl p-8 text-center text-muted-foreground">Chargement…</div>;
+  if (threadError) return <QueryErrorState title="Impossible de charger la discussion" onRetry={() => void refetchThread()} />;
   if (!thread) return <div className="mx-auto max-w-3xl p-8 text-center">Discussion introuvable.</div>;
 
   return (
@@ -81,8 +83,8 @@ function ThreadPage() {
       </article>
       <section className="mt-5 space-y-3">
         <h2 className="text-lg font-bold">Discussion</h2>
-        {(replies ?? []).map((item) => <article key={item.id} className="rounded-2xl border border-edge/60 bg-panel p-4 sm:p-5"><div className="mb-2 text-xs text-muted-foreground">Membre · {new Date(item.created_at).toLocaleString("fr-FR")}</div><p className="whitespace-pre-wrap break-words text-sm leading-6">{item.body}</p></article>)}
-        {replies?.length === 0 && <p className="rounded-2xl border border-dashed border-edge p-5 text-sm text-muted-foreground">Pas encore de réponse. À toi de lancer la discussion.</p>}
+        {repliesError ? <QueryErrorState title="Impossible de charger les réponses" onRetry={() => void refetchReplies()} /> : (replies ?? []).map((item) => <article key={item.id} className="rounded-2xl border border-edge/60 bg-panel p-4 sm:p-5"><div className="mb-2 text-xs text-muted-foreground">Membre · {new Date(item.created_at).toLocaleString("fr-FR")}</div><p className="whitespace-pre-wrap break-words text-sm leading-6">{item.body}</p></article>)}
+        {!repliesError && replies?.length === 0 && <p className="rounded-2xl border border-dashed border-edge p-5 text-sm text-muted-foreground">Pas encore de réponse. À toi de lancer la discussion.</p>}
         {user ? <form onSubmit={sendReply} className="rounded-2xl border border-edge/60 bg-panel p-4 sm:p-5"><label className="mb-2 block text-sm font-semibold" htmlFor="community-reply">Ajouter une réponse</label><Textarea id="community-reply" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Écris une réponse utile et respectueuse…" rows={4} maxLength={10000} required /><button disabled={busy || !reply.trim()} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-glow px-4 text-sm font-bold text-primary-foreground disabled:opacity-50"><Send className="size-4" />{busy ? "Envoi…" : "Répondre"}</button></form> : <p className="rounded-2xl border border-edge/60 bg-panel p-4 text-sm text-muted-foreground">Connecte-toi pour répondre à cette discussion.</p>}
       </section>
     </main>
