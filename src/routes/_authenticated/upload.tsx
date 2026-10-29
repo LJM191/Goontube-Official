@@ -59,6 +59,7 @@ function probeVideo(file: File): Promise<{ duration: number; frame: Blob | null 
     const video = document.createElement("video");
     let settled = false;
     let timeout = 0;
+    let knownDuration = 0;
 
     const finish = (result: { duration: number; frame: Blob | null }) => {
       if (settled) return;
@@ -73,11 +74,12 @@ function probeVideo(file: File): Promise<{ duration: number; frame: Blob | null 
       resolve(result);
     };
 
-    timeout = window.setTimeout(() => finish({ duration: 0, frame: null }), 15_000);
+    timeout = window.setTimeout(() => finish({ duration: knownDuration, frame: null }), 15_000);
     video.preload = "metadata";
     video.muted = true;
     video.onloadedmetadata = () => {
       const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      knownDuration = duration;
       if (duration <= 0 || video.videoWidth <= 0 || video.videoHeight <= 0) {
         finish({ duration, frame: null });
         return;
@@ -181,6 +183,19 @@ function Upload() {
     setProbe(await probeVideo(normalizedFile));
   }
 
+  function pickThumbnail(file: File | undefined) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("Formats de miniature acceptés : JPEG, PNG, WebP et GIF.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("La miniature doit faire 10 Mo maximum.");
+      return;
+    }
+    setThumb(file);
+  }
+
   function resetFile() {
     if (step) return;
     setFile(null);
@@ -200,6 +215,8 @@ function Upload() {
       return;
     }
 
+    let uploadedVideoPath: string | null = null;
+    let uploadedThumbnailPath: string | null = null;
     try {
       let uploadFile = file;
       setCompression(null);
@@ -219,11 +236,13 @@ function Upload() {
       setStep("Envoi de la vidéo…");
       const ext = uploadFile.name.split(".").pop()?.toLowerCase() || "mp4";
       const videoPath = await uploadMedia("videos", user.id, uploadFile, ext);
+      uploadedVideoPath = videoPath;
       setStep("Envoi de la miniature…");
       const thumbBlob = thumb ?? probe?.frame;
       const thumbPath = thumbBlob
         ? await uploadMedia("thumbnails", user.id, thumbBlob, thumb ? thumb.name.split(".").pop() || "jpg" : "jpg")
         : null;
+      uploadedThumbnailPath = thumbPath;
       setStep("Publication…");
       const { data, error } = await supabase
         .from("videos")
@@ -240,9 +259,15 @@ function Upload() {
         .select("id")
         .single();
       if (error) throw error;
+      uploadedVideoPath = null;
+      uploadedThumbnailPath = null;
       toast.success("Vidéo publiée !");
       navigate({ to: "/watch/$id", params: { id: data.id } });
     } catch (err) {
+      await Promise.allSettled([
+        ...(uploadedVideoPath ? [supabase.storage.from("videos").remove([uploadedVideoPath])] : []),
+        ...(uploadedThumbnailPath ? [supabase.storage.from("thumbnails").remove([uploadedThumbnailPath])] : []),
+      ]);
       toast.error(err instanceof Error ? err.message : "Échec de la mise en ligne");
       setStep(null);
       setCompression(null);
@@ -393,7 +418,7 @@ function Upload() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <label className={`inline-flex cursor-pointer items-center gap-2 rounded-full border border-edge px-4 py-2 text-sm font-medium transition hover:bg-background/70 ${isBusy ? "pointer-events-none opacity-50" : ""}`}>
                       <ImagePlus className="size-4" /> Importer une image
-                      <input type="file" accept="image/*" className="hidden" disabled={isBusy} onChange={(event) => setThumb(event.target.files?.[0] ?? null)} />
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={isBusy} onChange={(event) => pickThumbnail(event.target.files?.[0])} />
                     </label>
                     {thumb && <button type="button" disabled={isBusy} onClick={() => setThumb(null)} className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-background/70 hover:text-foreground">Utiliser l’image automatique</button>}
                   </div>
