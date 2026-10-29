@@ -55,21 +55,27 @@ function ForumPage() {
     if (file && !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) { toast.error("Formats acceptés : JPEG, PNG, WebP et GIF."); return; }
     if (file && file.size > 10 * 1024 * 1024) { toast.error("10 Mo maximum par média."); return; }
     setBusy(true);
+    let uploadedMediaPath: string | null = null;
     try {
       let mediaPath: string | null = null;
       let mediaType: "photo" | "gif" | null = null;
       if (file) {
         mediaPath = await uploadMedia("thumbnails", user.id, file, file.name.split(".").pop() || "jpg");
+        uploadedMediaPath = mediaPath;
         mediaType = file.type === "image/gif" ? "gif" : "photo";
       }
       const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, user_id: user.id, title: title.trim(), content: body.trim() || " ", media_path: mediaPath, media_type: mediaType }).select("id").single();
       if (error) throw error;
+      uploadedMediaPath = null;
       setTitle(""); setBody(""); setFile(null); setShowNew(false);
       await qc.invalidateQueries({ queryKey: ["community-threads", forum.id] });
       await qc.invalidateQueries({ queryKey: ["community-feed"] });
       toast.success("Publication partagée !");
       if (data) window.location.href = `/community/thread/${data.id}`;
     } catch (error) {
+      if (uploadedMediaPath) {
+        await supabase.storage.from("thumbnails").remove([uploadedMediaPath]).catch(() => undefined);
+      }
       toast.error(error instanceof Error ? error.message : "Impossible de publier");
     } finally { setBusy(false); }
   }
