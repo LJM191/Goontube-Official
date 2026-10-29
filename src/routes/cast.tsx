@@ -36,7 +36,7 @@ function CastReceiver() {
     const channel = supabase.channel(`goontube-cast-${normalized}`, { config: { broadcast: { self: false } } });
     channelRef.current = channel;
     channel.on("broadcast", { event: "media" }, (message) => {
-      const next = message.payload as CastMedia;
+      const next = message["payload"] as CastMedia;
       if (next && typeof next.url === "string" && /^https?:\/\//i.test(next.url)) {
         if (readyTimerRef.current !== null) window.clearInterval(readyTimerRef.current);
         readyTimerRef.current = null;
