@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchFeed } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/explore")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/explore")({
 });
 
 function Explore() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["feed", "popular", "tout"],
     queryFn: () => fetchFeed({ order: "popular" }),
   });
@@ -32,7 +33,7 @@ function Explore() {
       <p className="mb-6 text-sm text-muted-foreground">
         Toutes les vidéos publiques, réunies au même endroit.
       </p>
-      <VideoGrid videos={data} loading={isLoading} empty={<EmptyState title="Aucune vidéo pour l'instant" text="Les vidéos publiées apparaîtront ici." />} />
+      {isError ? <QueryErrorState title="Impossible de charger les vidéos" onRetry={() => void refetch()} /> : <VideoGrid videos={data} loading={isLoading} empty={<EmptyState title="Aucune vidéo pour l'instant" text="Les vidéos publiées apparaîtront ici." />} />}
     </>
   );
 }
