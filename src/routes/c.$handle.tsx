@@ -67,7 +67,7 @@ function EditChannel({ channel }: { channel: Channel }) {
           .from("profiles")
           .update({ profile_photo: patch.avatar_url })
           .eq("user_id", user!.id);
-        if (profileError) throw profileError;
+        if (profileError) toast.info("La chaîne a été mise à jour, mais la photo du profil n’a pas pu être synchronisée.");
       }
       await qc.invalidateQueries();
       toast.success("Chaîne mise à jour");
