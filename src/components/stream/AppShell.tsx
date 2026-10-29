@@ -319,7 +319,7 @@ function UserMenu() {
 
 function OrientationIcon({ type }: { type: string }) {
   if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
-  if (type === "Bi" || type === "Bisexuel") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
+  if (type === "Bi") return <span aria-hidden="true" className="text-lg leading-none">⚤</span>;
   if (type === "Gay") return <span aria-hidden="true" className="text-lg leading-none">⚣</span>;
   if (type === "S'identifie comme un cheval") return <span aria-hidden="true" className="text-lg leading-none">🐴</span>;
   return <span aria-hidden="true" className="text-lg leading-none">🐧</span>;
@@ -327,7 +327,7 @@ function OrientationIcon({ type }: { type: string }) {
 
 const ORIENTATION_OPTIONS = [
   { label: "Hétéro", slug: "orientation-hetero" },
-  { label: "Bisexuel", slug: "orientation-bi" },
+  { label: "Bi", slug: "orientation-bi" },
   { label: "Gay", slug: "orientation-gay" },
   { label: "S'identifie comme un cheval", slug: "orientation-cheval" },
   { label: "S'identifie comme un pingouin", slug: "orientation-pingouin" },
