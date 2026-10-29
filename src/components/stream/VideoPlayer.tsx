@@ -218,7 +218,17 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
         });
         const session = context.getCurrentSession();
         const activeSession = session ?? await context.requestSession();
-        const mediaInfo = new w.chrome.cast.media.MediaInfo(src, v.currentSrc.includes(".m3u8") ? "application/x-mpegURL" : "video/mp4");
+        const mediaPath = new URL(src, window.location.href).pathname.toLowerCase();
+        const mediaContentType = mediaPath.endsWith(".m3u8")
+          ? "application/x-mpegURL"
+          : mediaPath.endsWith(".webm")
+            ? "video/webm"
+            : mediaPath.endsWith(".ogg") || mediaPath.endsWith(".ogv")
+              ? "video/ogg"
+              : mediaPath.endsWith(".mov")
+                ? "video/quicktime"
+                : "video/mp4";
+        const mediaInfo = new w.chrome.cast.media.MediaInfo(src, mediaContentType);
         const metadata = new w.chrome.cast.media.GenericMediaMetadata();
         metadata.title = title;
         if (poster) metadata.images = [{ url: poster }];
