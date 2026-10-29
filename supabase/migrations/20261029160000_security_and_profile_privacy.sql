@@ -78,7 +78,7 @@ create policy "replies_owner_insert" on public.community_replies
 
 -- The public profile UI never needs the email column. Remove table-wide SELECT
 -- and grant only the fields used by public profile, comments, and Studio screens.
-revoke select on public.profiles from anon, authenticated;
+revoke select on public.profiles from public, anon, authenticated;
 grant select (user_id, pseudo, avatar, school_level, profile_photo, bio, created_at, updated_at)
   on public.profiles to anon, authenticated;
 
