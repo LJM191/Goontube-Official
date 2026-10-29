@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type FormEvent } from "react";
 import { ArrowBigDown, ArrowBigUp, ImagePlus, MessageCircle, Plus, Search, Users, X, Flame, Clock3, LayoutList } from "lucide-react";
@@ -26,6 +26,7 @@ function slugify(value: string) {
 
 function CommunityPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"hot" | "new" | "top">("hot");
@@ -134,15 +135,17 @@ function CommunityPage() {
     try {
       const { data, error } = await (supabase as any).from("community_forums").insert({
         owner_id: user.id, name: forumName.trim(), slug: `${slugify(forumName)}-${crypto.randomUUID().slice(0, 6)}`,
-        description: forumDescription.trim() || null, is_public: true,
-      }).select("id").single();
+        description: forumDescription.trim(), is_public: true,
+      }).select("id,slug").single();
       if (error) throw error;
       setForumName(""); setForumDescription(""); setShowCreateForum(false);
       await qc.invalidateQueries({ queryKey: ["community-forums"] });
       if (data?.id) setForumId(data.id);
       toast.success("Communauté créée !");
+      if (data?.slug) await navigate({ to: "/community/forum/$slug", params: { slug: data.slug } });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Impossible de créer la communauté");
+      const message = typeof error === "object" && error !== null && "message" in error && typeof error.message === "string" ? error.message : error instanceof Error ? error.message : "Impossible de créer la communauté";
+      toast.error(message);
     } finally { setBusy(false); }
   }
 
@@ -199,6 +202,8 @@ function CommunityPage() {
       </form>}
 
       {showCreateForum && <form onSubmit={createForum} className="mb-5 rounded-2xl border border-edge/70 bg-panel p-4 sm:p-5"><div className="mb-3 flex items-center justify-between"><h2 className="font-bold">Créer une communauté</h2><button type="button" onClick={() => setShowCreateForum(false)} aria-label="Fermer" className="rounded-full p-1.5 hover:bg-frost"><X className="size-4" /></button></div><div className="grid gap-3 sm:grid-cols-2"><Input value={forumName} onChange={(e) => setForumName(e.target.value)} placeholder="Nom de la communauté" maxLength={60} required /><Input value={forumDescription} onChange={(e) => setForumDescription(e.target.value)} placeholder="Description (facultatif)" maxLength={240} /></div><button disabled={busy} className="mt-3 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-50">{busy ? "Création…" : "Créer la communauté"}</button></form>}
+
+      {!forumsLoading && !!forums?.length && <section className="mb-5 rounded-2xl border border-edge/60 bg-panel p-4 lg:hidden"><div className="mb-2 flex items-center justify-between"><h2 className="font-bold">Communautés existantes</h2><span className="text-xs text-muted-foreground">{forums.length}</span></div><div className="flex flex-wrap gap-2">{forums.map((forum) => <Link key={forum.id} to="/community/forum/$slug" params={{ slug: forum.slug }} className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-edge/60 px-3 py-2 text-sm hover:bg-frost"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-frost text-[10px] font-black text-glow">g/</span><span className="min-w-0 truncate">{forum.name}</span></Link>)}</div></section>}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,760px)_310px] xl:justify-center">
         <section className="min-w-0">
