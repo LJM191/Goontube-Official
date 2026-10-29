@@ -14,6 +14,7 @@ import { Comments } from "@/components/stream/Comments";
 import { VideoPlayer } from "@/components/stream/VideoPlayer";
 import { Thumbnail } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME } from "@/lib/config";
 
@@ -199,7 +200,7 @@ function Watch() {
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const counted = useRef<string | null>(null);
-  const { data: video, isLoading } = useQuery({
+  const { data: video, isLoading, isError: videoError, refetch: refetchVideo } = useQuery({
     queryKey: ["video", id],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -234,6 +235,7 @@ function Watch() {
         <Skeleton className="mt-4 h-6 w-2/3 bg-frost" />
       </div>
     );
+  if (videoError) return <QueryErrorState title="Impossible de charger cette vidéo" onRetry={() => void refetchVideo()} />;
   if (!video) return <EmptyState title="Vidéo introuvable" text="Elle a peut-être été supprimée ou rendue privée." />;
 
   const ch = video.channel!;
