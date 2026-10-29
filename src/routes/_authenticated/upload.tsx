@@ -56,31 +56,54 @@ type CompressionStatus = {
 function probeVideo(file: File): Promise<{ duration: number; frame: Blob | null }> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
-    const v = document.createElement("video");
-    v.preload = "metadata";
-    v.muted = true;
-    v.src = url;
-    v.onloadedmetadata = () => {
-      v.currentTime = Math.min(2, (v.duration || 0) / 3);
-    };
-    v.onseeked = () => {
-      const c = document.createElement("canvas");
-      c.width = 1280;
-      c.height = Math.round((1280 * v.videoHeight) / (v.videoWidth || 1)) || 720;
-      c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
-      c.toBlob(
-        (b) => {
-          URL.revokeObjectURL(url);
-          resolve({ duration: v.duration || 0, frame: b });
-        },
-        "image/jpeg",
-        0.85,
-      );
-    };
-    v.onerror = () => {
+    const video = document.createElement("video");
+    let settled = false;
+    let timeout = 0;
+
+    const finish = (result: { duration: number; frame: Blob | null }) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
       URL.revokeObjectURL(url);
-      resolve({ duration: 0, frame: null });
+      video.onloadedmetadata = null;
+      video.onseeked = null;
+      video.onerror = null;
+      video.removeAttribute("src");
+      video.load();
+      resolve(result);
     };
+
+    timeout = window.setTimeout(() => finish({ duration: 0, frame: null }), 15_000);
+    video.preload = "metadata";
+    video.muted = true;
+    video.onloadedmetadata = () => {
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      if (duration <= 0 || video.videoWidth <= 0 || video.videoHeight <= 0) {
+        finish({ duration, frame: null });
+        return;
+      }
+      try {
+        video.currentTime = Math.min(2, duration / 3);
+      } catch {
+        finish({ duration, frame: null });
+      }
+    };
+    video.onseeked = () => {
+      const duration = Number.isFinite(video.duration) ? video.duration : 0;
+      const scale = Math.min(1, 1280 / Math.max(1, video.videoWidth), 720 / Math.max(1, video.videoHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+      canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        finish({ duration, frame: null });
+        return;
+      }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((frame) => finish({ duration, frame }), "image/jpeg", 0.85);
+    };
+    video.onerror = () => finish({ duration: 0, frame: null });
+    video.src = url;
   });
 }
 
@@ -138,13 +161,24 @@ function Upload() {
       toast.error("Ce fichier est trop volumineux pour être traité dans le navigateur. Choisissez une vidéo plus courte ou plus légère.");
       return;
     }
-    setFile(f);
+    const mimeByExtension: Record<string, string> = {
+      ".mp4": "video/mp4",
+      ".webm": "video/webm",
+      ".mov": "video/quicktime",
+      ".ogg": "video/ogg",
+    };
+    const normalizedFile =
+      ACCEPTED_VIDEO_TYPES.includes(f.type) || !mimeByExtension[extension]
+        ? f
+        : new File([f], f.name, { type: mimeByExtension[extension], lastModified: f.lastModified });
+
+    setFile(normalizedFile);
     setProbe(null);
     setThumb(null);
     setCompression(null);
     setStep(null);
-    setTitle((current) => current || f.name.replace(/\.[^.]+$/, ""));
-    setProbe(await probeVideo(f));
+    setTitle((current) => current || normalizedFile.name.replace(/\.[^.]+$/, ""));
+    setProbe(await probeVideo(normalizedFile));
   }
 
   function resetFile() {
