@@ -12,7 +12,7 @@ import { CommunityMedia } from "@/components/stream/CommunityMedia";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/community/forum/$slug")({
-  head: ({ params }) => ({ meta: [{ title: `${params.slug} — Communauté — ${APP_NAME}` }] }),
+  head: () => ({ meta: [{ title: "Communauté — Goontube" }] }),
   component: ForumPage,
 });
 
