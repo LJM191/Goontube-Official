@@ -43,7 +43,7 @@ function ForumPage() {
     queryKey: ["community-threads", forum?.id],
     enabled: !!forum,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("forum_id", forum!.id).order("is_pinned", { ascending: false }).order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("community_threads").select("id,forum_id,author_id:user_id,title,body:content,media_path,media_type,is_pinned,created_at,updated_at").eq("forum_id", forum!.id).order("is_pinned", { ascending: false }).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Thread[];
     },
@@ -62,7 +62,7 @@ function ForumPage() {
         mediaPath = await uploadMedia("thumbnails", user.id, file, file.name.split(".").pop() || "jpg");
         mediaType = file.type === "image/gif" ? "gif" : "photo";
       }
-      const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, author_id: user.id, title: title.trim(), body: body.trim() || " ", media_path: mediaPath, media_type: mediaType }).select("id").single();
+      const { data, error } = await (supabase as any).from("community_threads").insert({ forum_id: forum.id, user_id: user.id, title: title.trim(), content: body.trim() || " ", media_path: mediaPath, media_type: mediaType }).select("id").single();
       if (error) throw error;
       setTitle(""); setBody(""); setFile(null); setShowNew(false);
       await qc.invalidateQueries({ queryKey: ["community-threads", forum.id] });
