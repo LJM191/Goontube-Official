@@ -43,6 +43,7 @@ function MediaCard({ item, canDelete, onDelete, onCast }: { item: Media; canDele
 }
 
 function PhotosPage() {
+  const receiverAddress = typeof window !== "undefined" ? `${window.location.host}/cast` : "goontube.fr/cast";
   const { user } = useAuth();
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
@@ -165,7 +166,7 @@ function PhotosPage() {
         <div className="flex items-start justify-between gap-4"><div className="flex size-12 items-center justify-center rounded-2xl bg-glow/10 text-glow"><Tv2 className="size-6" /></div><button type="button" onClick={stopCast} aria-label="Fermer" className="rounded-full p-2 text-muted-foreground hover:bg-background"><X className="size-5" /></button></div>
         <h2 id="cast-title" className="mt-4 text-2xl font-black">Afficher sur la télé</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Ouvre la page de réception Goontube dans le navigateur de la télé, puis saisis ce code. Garde cette fenêtre ouverte pendant la diffusion.</p>
         <div className="my-5 rounded-2xl border border-glow/25 bg-glow/[0.06] p-4 text-center"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Code de connexion</p><p className="my-2 font-mono text-4xl font-black tracking-[0.22em] text-glow sm:text-5xl">{castSession.code}</p><div className="flex items-center justify-center gap-2 text-xs">{castSession.connected ? <><span className="size-2 rounded-full bg-emerald-500" /><span className="font-semibold text-emerald-600">Écran connecté</span></> : <><span className="size-2 animate-pulse rounded-full bg-amber-500" /><span className="text-muted-foreground">En attente de la télé…</span></>}</div></div>
-        <div className="space-y-2 rounded-2xl bg-background/60 p-4 text-sm"><p className="font-semibold">Sur la télé</p><p className="text-muted-foreground">1. Ouvre <span className="font-semibold text-foreground">goontube.fr/cast</span></p><p className="text-muted-foreground">2. Entre le code ci-dessus et appuie sur Connecter.</p><p className="text-muted-foreground">3. La photo ou le GIF s’affiche en plein écran.</p></div>
+        <div className="space-y-2 rounded-2xl bg-background/60 p-4 text-sm"><p className="font-semibold">Sur la télé</p><p className="text-muted-foreground">1. Ouvre <span className="font-semibold text-foreground">{receiverAddress}</span></p><p className="text-muted-foreground">2. Entre le code ci-dessus et appuie sur Connecter.</p><p className="text-muted-foreground">3. La photo ou le GIF s’affiche en plein écran.</p></div>
         <button type="button" onClick={() => void copyCastLink()} className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-edge bg-background px-4 text-sm font-semibold hover:border-glow/50">{copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}{copied ? "Lien copié" : "Copier le lien de réception"}</button>
         <p className="mt-3 text-center text-[11px] leading-5 text-muted-foreground">Pour un téléviseur sans navigateur, utilise la recopie d’écran intégrée à ton téléphone.</p>
       </section>
