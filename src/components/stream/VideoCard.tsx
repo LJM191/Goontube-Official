@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Play } from "lucide-react";
 import { useMediaUrl } from "@/lib/media";
 import { formatDuration, formatViews, timeAgo } from "@/lib/format";
@@ -9,8 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function Thumbnail({ video, className, priority = false }: { video: VideoCardData; className?: string; priority?: boolean }) {
   const url = useMediaUrl("thumbnails", video.thumbnail_path);
-  const [imageFailed, setImageFailed] = useState(false);
-  useEffect(() => setImageFailed(false), [url]);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   return (
     <div className={`relative overflow-hidden rounded-lg bg-frost outline-1 -outline-offset-1 outline-edge/40 ${className ?? ""}`}>
       <div className="aspect-video w-full">
