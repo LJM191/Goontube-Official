@@ -116,7 +116,7 @@ function formatFileSize(bytes: number) {
 
 function Upload() {
   const { user } = Route.useRouteContext();
-  const { data: me } = useMe();
+  const { data: me, error: meError, isLoading: meLoading, refetch: refetchMe } = useMe();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -488,13 +488,13 @@ function Upload() {
 
             <div className="space-y-3 rounded-2xl border border-edge/70 bg-panel/60 p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><CheckCircle2 className="size-4 text-glow" /> Vérifiez les détails avant de publier.</div>
-              <button type="submit" disabled={isBusy || !me?.channel} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
+              <button type="submit" disabled={isBusy || meLoading || !me?.channel} className="flex w-full items-center justify-center gap-2 rounded-full bg-glow px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-glow/15 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55">
                 {isBusy ? <><Loader2 className="size-4 animate-spin" /> {step}</> : <><UploadCloud className="size-4" /> Publier la vidéo</>}
               </button>
               <button type="button" disabled={isBusy} onClick={resetFile} className="flex w-full items-center justify-center gap-2 rounded-full border border-edge px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-background/70 hover:text-foreground disabled:opacity-50">
                 <X className="size-4" /> Changer de vidéo
               </button>
-              {!me?.channel && <p className="text-center text-xs text-destructive">Créez une chaîne avant de publier une vidéo.</p>}
+              {meError ? <p role="alert" className="text-center text-xs text-destructive">Impossible de vérifier votre chaîne. <button type="button" onClick={() => void refetchMe()} className="underline">Réessayer</button></p> : !meLoading && !me?.channel && <p className="text-center text-xs text-destructive">Créez une chaîne avant de publier une vidéo.</p>}
             </div>
           </aside>
         </form>
