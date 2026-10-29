@@ -3,7 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Clock,
   Compass,
-  Globe,
   Home,
   Library,
   LogOut,
@@ -357,7 +356,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
             <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>ABONNEMENTS<span className={underlineClass(activeClass("/subscriptions"))} /></Link>
             <Link to="/community" className={navClass(activeClass("/community"))}>COMMUNAUTÉ<span className={underlineClass(activeClass("/community"))} /></Link>
-            <Link to="/photos" className={navClass(activeClass("/photos"))}>PHOTOS ET GIFS<span className={underlineClass(activeClass("/photos"))} /></Link>
           </div>
         </nav>
       </header>
@@ -372,7 +370,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           { to: "/explore", label: "Explorer", icon: Compass },
           { to: "/subscriptions", label: "Abonnements", icon: Tv },
           { to: "/community", label: "Communauté", icon: MessageSquare },
-          { to: "/photos", label: "Photos", icon: Globe },
         ].map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
           return (
