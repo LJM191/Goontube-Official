@@ -10,7 +10,7 @@ import { CommunityMedia } from "@/components/stream/CommunityMedia";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/community/thread/$id")({
-  head: ({ params }) => ({ meta: [{ title: `Discussion — ${params.id} — ${APP_NAME}`] }),
+  head: ({ params }) => ({ meta: [{ title: `Discussion — ${params.id} — ${APP_NAME}` }] }),
   component: ThreadPage,
 });
 
