@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
+import { toast } from "sonner";
 import { APP_NAME } from "@/lib/config";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -20,7 +22,7 @@ function LibraryPage() {
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
 
-  const { data: playlists, error } = useQuery({
+  const { data: playlists, error, refetch: refetchPlaylists } = useQuery({
     queryKey: ["playlists", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -34,7 +36,7 @@ function LibraryPage() {
     },
   });
 
-  const { data: playlistVideos, isLoading: videosLoading } = useQuery({
+  const { data: playlistVideos, isLoading: videosLoading, isError: playlistVideosError, refetch: refetchPlaylistVideos } = useQuery({
     queryKey: ["playlist-videos", selected],
     enabled: !!selected,
     queryFn: async () => {
@@ -66,6 +68,7 @@ function LibraryPage() {
       setSelected(id);
       qc.invalidateQueries({ queryKey: ["playlists", user?.id] });
     },
+    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : "Impossible de créer la playlist."),
   });
 
   const deletePlaylist = useMutation({
@@ -77,18 +80,13 @@ function LibraryPage() {
       setSelected(null);
       qc.invalidateQueries({ queryKey: ["playlists", user?.id] });
     },
+    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : "Impossible de supprimer la playlist."),
   });
 
   const selectedPlaylist = playlists?.find((p: any) => p.id === selected);
 
   return (
     <>
-      {error && (
-        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-          Impossible de charger les playlists : {error instanceof Error ? error.message : "erreur Supabase"}.
-        </div>
-      )}
-
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Bibliothèque</h1>
@@ -113,7 +111,7 @@ function LibraryPage() {
         </form>
       </div>
 
-      {(playlists ?? []).length > 0 ? (
+      {error ? <QueryErrorState title="Impossible de charger les playlists" onRetry={() => void refetchPlaylists()} /> : (playlists ?? []).length > 0 ? (
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(playlists ?? []).map((playlist: any) => (
             <div key={playlist.id} className="rounded-2xl bg-panel/70 p-4 ring-1 ring-edge/40">
@@ -145,11 +143,11 @@ function LibraryPage() {
               Retour
             </button>
           </div>
-          <VideoGrid
+          {playlistVideosError ? <QueryErrorState title="Impossible de charger cette playlist" onRetry={() => void refetchPlaylistVideos()} /> : <VideoGrid
             videos={playlistVideos}
             loading={videosLoading}
             empty={<EmptyState title="Playlist vide" text="Ajoutez des vidéos à cette playlist depuis leur page de lecture." />}
-          />
+          />}
         </section>
       )}
     </>
