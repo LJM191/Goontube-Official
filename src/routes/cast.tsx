@@ -18,8 +18,10 @@ function CastReceiver() {
   const [media, setMedia] = useState<CastMedia | null>(null);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected" | "error">("idle");
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const readyTimerRef = useRef<number | null>(null);
 
   useEffect(() => () => {
+    if (readyTimerRef.current !== null) window.clearInterval(readyTimerRef.current);
     if (channelRef.current) void supabase.removeChannel(channelRef.current);
   }, []);
 
@@ -36,6 +38,8 @@ function CastReceiver() {
     channel.on("broadcast", { event: "media" }, (message) => {
       const next = message.payload as CastMedia;
       if (next && typeof next.url === "string" && /^https?:\/\//i.test(next.url)) {
+        if (readyTimerRef.current !== null) window.clearInterval(readyTimerRef.current);
+        readyTimerRef.current = null;
         setMedia({ url: next.url, title: String(next.title || "Publication Goontube"), type: next.type === "gif" ? "gif" : "photo" });
         setStatus("connected");
       }
@@ -44,6 +48,10 @@ function CastReceiver() {
       if (nextStatus === "SUBSCRIBED") {
         setStatus("connected");
         void channel.send({ type: "broadcast", event: "ready", payload: { receiver: "tv" } });
+        if (readyTimerRef.current !== null) window.clearInterval(readyTimerRef.current);
+        readyTimerRef.current = window.setInterval(() => {
+          void channel.send({ type: "broadcast", event: "ready", payload: { receiver: "tv" } });
+        }, 2000);
       }
       if (nextStatus === "CHANNEL_ERROR" || nextStatus === "TIMED_OUT") setStatus("error");
     });
