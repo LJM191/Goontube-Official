@@ -62,10 +62,13 @@ function EditChannel({ channel }: { channel: Channel }) {
       if (banner) patch.banner_url = await uploadMedia("banners", user!.id, banner, banner.name.split(".").pop() || "jpg");
       const { error } = await supabase.from("channels").update(patch).eq("id", channel.id);
       if (error) throw error;
-      await supabase.from("profiles").update({
-        pseudo: patch.name!,
-        ...(patch.avatar_url ? { profile_photo: patch.avatar_url } : {}),
-      }).eq("user_id", user!.id);
+      if (patch.avatar_url) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ profile_photo: patch.avatar_url })
+          .eq("user_id", user!.id);
+        if (profileError) throw profileError;
+      }
       await qc.invalidateQueries();
       toast.success("Chaîne mise à jour");
       setOpen(false);
