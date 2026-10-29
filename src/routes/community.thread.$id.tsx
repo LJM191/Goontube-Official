@@ -28,7 +28,7 @@ function ThreadPage() {
   const { data: thread, isLoading, isError: threadError, refetch: refetchThread } = useQuery({
     queryKey: ["community-thread", id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("community_threads").select("*").eq("id", id).maybeSingle();
+      const { data, error } = await (supabase as any).from("community_threads").select("id,forum_id,author_id:user_id,title,body:content,media_path,media_type,created_at,updated_at").eq("id", id).maybeSingle();
       if (error) throw error;
       return data as Thread | null;
     },
@@ -37,7 +37,7 @@ function ThreadPage() {
     queryKey: ["community-replies", id],
     enabled: !!thread,
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("community_replies").select("id,thread_id,author_id,body,created_at").eq("thread_id", id).order("created_at");
+      const { data, error } = await (supabase as any).from("community_replies").select("id,thread_id,author_id:user_id,body:content,created_at").eq("thread_id", id).order("created_at");
       if (error) throw error;
       return (data ?? []) as Reply[];
     },
@@ -57,7 +57,7 @@ function ThreadPage() {
     if (!user || !thread || !reply.trim()) return;
     setBusy(true);
     try {
-      const { error } = await (supabase as any).from("community_replies").insert({ thread_id: id, author_id: user.id, body: reply.trim() });
+      const { error } = await (supabase as any).from("community_replies").insert({ thread_id: id, user_id: user.id, content: reply.trim() });
       if (error) throw error;
       setReply("");
       await qc.invalidateQueries({ queryKey: ["community-replies", id] });
