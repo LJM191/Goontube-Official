@@ -9,6 +9,7 @@ import { uploadMedia } from "@/lib/media";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
 import { Thumbnail } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
+import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/studio")({
@@ -124,7 +125,7 @@ function Studio() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [moderatingId, setModeratingId] = useState<string | null>(null);
-  const { data: channel, isLoading } = useQuery({
+  const { data: channel, isLoading, isError: channelError, refetch: refetchChannel } = useQuery({
     queryKey: ["studio-channel", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -193,6 +194,7 @@ function Studio() {
 
   if (!user) return <EmptyState title="Connectez-vous" text="Le Studio est réservé aux créateurs." />;
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du Studio…</div>;
+  if (channelError) return <QueryErrorState title="Impossible de charger le Studio" onRetry={() => void refetchChannel()} />;
   if (!channel) return <EmptyState title="Chaîne introuvable" text="Créez une chaîne pour accéder au Studio." />;
 
   const totalViews = videos.reduce((n, v) => n + Number(v.view_count || 0), 0);
