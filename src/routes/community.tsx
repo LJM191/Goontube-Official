@@ -1,12 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MessageSquare, Plus, Search, Users, Pin, Lock } from "lucide-react";
+import { MessageSquare, Plus, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { APP_NAME } from "@/lib/config";
 
 export const Route = createFileRoute("/community")({
@@ -21,6 +20,7 @@ function slugify(value: string) {
 }
 
 function CommunityPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { user } = useAuth();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -36,9 +36,8 @@ function CommunityPage() {
       if (error) throw error;
       return (data ?? []) as Forum[];
     },
+    enabled: pathname === "/community",
   });
-
-  const visible = (forums ?? []).filter((f) => !search.trim() || `${f.name} ${f.description ?? ""}`.toLowerCase().includes(search.toLowerCase()));
 
   async function createForum(e: React.FormEvent) {
     e.preventDefault();
@@ -57,6 +56,12 @@ function CommunityPage() {
       toast.error(e instanceof Error ? e.message : "Impossible de créer le forum");
     } finally { setBusy(false); }
   }
+
+  // The forum and thread routes are nested under /community. Render their matched
+  // child route instead of leaving the forum directory visible over it.
+  if (pathname !== "/community") return <Outlet />;
+
+  const visible = (forums ?? []).filter((f) => !search.trim() || `${f.name} ${f.description ?? ""}`.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -77,12 +82,10 @@ function CommunityPage() {
           </form>
         )}
       </section>
-
       <div className="flex items-center gap-3 rounded-2xl bg-panel/70 px-4 py-3 ring-1 ring-edge/40">
         <Search className="size-5 text-faint" />
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un forum…" className="w-full bg-transparent text-sm outline-none" />
       </div>
-
       <section>
         <div className="mb-3 flex items-center justify-between"><h2 className="text-xl font-bold">Forums publics</h2><span className="text-sm text-faint">{visible.length} forum{visible.length > 1 ? "s" : ""}</span></div>
         {isLoading ? <div className="rounded-2xl bg-panel p-8 text-center text-muted-foreground">Chargement…</div> : visible.length === 0 ? (
@@ -110,7 +113,7 @@ function ForumCard({ forum }: { forum: Forum }) {
     <Link to="/community/forum/$slug" params={{ slug: forum.slug }} className="group rounded-2xl bg-panel p-5 ring-1 ring-edge/40 transition hover:-translate-y-0.5 hover:ring-glow/50">
       <div className="flex items-start gap-4">
         <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-frost text-glow"><MessageSquare className="size-6" /></div>
-        <div className="min-w-0 flex-1"><h3 className="font-bold group-hover:text-glow">{forum.name}</h3><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{forum.description || "Aucune description."}</p><p className="mt-3 text-xs text-faint">{stats} discussion{stats > 1 ? "s" : ""}</p></div>
+        <div className="min-w-0 flex-1"><h3 className="font-bold group-hover:text-glow">{forum.name}</h3><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{forum.description || "Aucune description."}</p><p className="mt-3 text-xs text-faint">{stats ?? 0} discussion{stats === 1 ? "" : "s"}</p></div>
       </div>
     </Link>
   );
