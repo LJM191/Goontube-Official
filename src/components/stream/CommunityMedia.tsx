@@ -16,10 +16,14 @@ function loadGoogleCastSdk(): Promise<boolean> {
   if (w.__goontubeCastSdkPromise) return w.__goontubeCastSdkPromise;
   w.__goontubeCastSdkPromise = new Promise<boolean>((resolve) => {
     let settled = false;
+    let timeoutId: number | undefined;
     const finish = (available: boolean) => {
       if (settled) return;
       settled = true;
-      resolve(available && Boolean(w.cast?.framework && w.chrome?.cast));
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      const ready = available && Boolean(w.cast?.framework && w.chrome?.cast);
+      if (!ready) delete w.__goontubeCastSdkPromise;
+      resolve(ready);
     };
     w.__onGCastApiAvailable = (available) => finish(available);
     const script = document.createElement("script");
@@ -27,7 +31,7 @@ function loadGoogleCastSdk(): Promise<boolean> {
     script.async = true;
     script.onerror = () => finish(false);
     document.head.appendChild(script);
-    window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
+    timeoutId = window.setTimeout(() => finish(Boolean(w.cast?.framework && w.chrome?.cast)), 10000);
   });
   return w.__goontubeCastSdkPromise;
 }
@@ -52,7 +56,15 @@ export function CommunityMedia({ path, type, title }: { path: string; type: "pho
         autoJoinPolicy: w.chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
       });
       const session = context.getCurrentSession() ?? await context.requestSession();
-      const mediaInfo = new w.chrome.cast.media.MediaInfo(url, type === "gif" ? "image/gif" : (url.match(/\.png(?:\?|$)/i) ? "image/png" : "image/jpeg"));
+      const mediaPath = new URL(url, window.location.href).pathname.toLowerCase();
+      const mediaContentType = mediaPath.endsWith(".gif")
+        ? "image/gif"
+        : mediaPath.endsWith(".png")
+          ? "image/png"
+          : mediaPath.endsWith(".webp")
+            ? "image/webp"
+            : "image/jpeg";
+      const mediaInfo = new w.chrome.cast.media.MediaInfo(url, mediaContentType);
       const metadata = new w.chrome.cast.media.GenericMediaMetadata();
       metadata.title = title || (type === "gif" ? "GIF Goontube" : "Photo Goontube");
       mediaInfo.metadata = metadata;
