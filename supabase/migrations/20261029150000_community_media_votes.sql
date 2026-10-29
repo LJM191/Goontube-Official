@@ -1,7 +1,8 @@
 -- Extend community posts with native image/GIF attachments and Reddit-style voting.
 alter table public.community_threads
   add column if not exists media_path text,
-  add column if not exists media_type text;
+  add column if not exists media_type text,
+  add column if not exists is_pinned boolean not null default false;
 
 alter table public.community_threads
   drop constraint if exists community_threads_media_type_check;
