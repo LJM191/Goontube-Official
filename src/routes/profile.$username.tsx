@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Eye, Users, Video, Pencil } from "lucide-react";
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/profile/$username")({
 function EditUsername({ current }: { current: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(current);
   const [busy, setBusy] = useState(false);
@@ -42,6 +43,9 @@ function EditUsername({ current }: { current: string }) {
       await qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Arobase modifié !");
       setOpen(false);
+      if (username !== current) {
+        await navigate({ to: "/profile/$username", params: { username }, replace: true });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Impossible de modifier l'arobase.");
     } finally {
