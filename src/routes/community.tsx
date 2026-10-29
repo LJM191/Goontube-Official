@@ -165,9 +165,12 @@ function CommunityPage() {
           <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Le fil de la communauté</h1>
           <p className="mt-1 text-sm text-muted-foreground">Des discussions, des idées, des photos et des GIFs au même endroit.</p>
         </div>
-        <button onClick={() => setShowComposer((value) => !value)} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-glow px-4 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-110">
-          {showComposer ? <X className="size-4" /> : <Plus className="size-4" />}<span className="hidden sm:inline">{showComposer ? "Fermer" : "Créer un post"}</span><span className="sm:hidden">{showComposer ? "Fermer" : "Créer"}</span>
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button onClick={() => setShowCreateForum((value) => !value)} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-edge bg-panel px-3 text-xs font-semibold transition hover:bg-frost sm:px-4 sm:text-sm"><Users className="size-4" /><span className="hidden sm:inline">Créer une communauté</span><span className="sm:hidden">Communauté</span></button>
+          <button onClick={() => setShowComposer((value) => !value)} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-glow px-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-110 sm:px-4">
+            {showComposer ? <X className="size-4" /> : <Plus className="size-4" />}<span className="hidden sm:inline">{showComposer ? "Fermer" : "Créer un post"}</span><span className="sm:hidden">{showComposer ? "Fermer" : "Créer"}</span>
+          </button>
+        </div>
       </div>
 
       {showComposer && <form onSubmit={publishPost} className="mb-5 rounded-2xl border border-edge/70 bg-panel p-4 shadow-sm sm:p-6">
