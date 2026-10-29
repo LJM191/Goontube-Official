@@ -106,8 +106,11 @@ function SaveActions({ videoId }: { videoId: string }) {
   const addToPlaylist = async (playlistId: string) => {
     if (!user) return;
     const { error } = await (supabase as any).from("playlist_items").upsert({ playlist_id: playlistId, video_id: videoId });
-    if (error) toast.error(error.message);
-    else toast.success("Vidéo ajoutée à la playlist");
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Vidéo ajoutée à la playlist");
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["playlist-videos", playlistId] });
   };
