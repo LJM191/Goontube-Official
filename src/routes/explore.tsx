@@ -28,7 +28,7 @@ function Explore() {
 
   return (
     <>
-      <h1 className="mb-1 text-2xl font-semibold">Tout</h1>
+      <h1 className="mb-1 text-2xl font-semibold">Explorer</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Toutes les vidéos publiques, réunies au même endroit.
       </p>
