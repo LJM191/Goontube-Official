@@ -127,7 +127,7 @@ function SearchBar() {
     if (!clean) return;
     const next = [clean, ...recent.filter((x) => x.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
     setRecent(next);
-    localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+    try { localStorage.setItem("goontube-recent-searches", JSON.stringify(next)); } catch { /* Search still works without browser storage. */ }
   };
 
   const submit = (value = q) => {
@@ -187,7 +187,7 @@ function SearchBar() {
                     onClick={() => {
                       const next = recent.filter((search) => search !== item);
                       setRecent(next);
-                      localStorage.setItem("goontube-recent-searches", JSON.stringify(next));
+                      try { localStorage.setItem("goontube-recent-searches", JSON.stringify(next)); } catch { /* Recent searches are optional. */ }
                     }}
                     aria-label={`Supprimer la recherche « ${item} »`}
                     className="mr-2 grid size-7 shrink-0 place-items-center rounded-full text-faint hover:bg-panel hover:text-foreground"
@@ -348,10 +348,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 lg:flex lg:gap-3 lg:px-8">
-          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8">
+          <div className="flex h-full w-60 shrink-0 items-center pr-2">
             <Link to="/explore" search={{}} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-panel/70 hover:text-foreground"><Compass className="size-5" /><span>Tout</span></Link>
           </div>
-          <div className="flex h-full items-stretch justify-center gap-1 lg:gap-3">
+          <div className="flex h-full min-w-0 flex-1 items-stretch justify-center gap-1 lg:gap-3">
             <Link to="/" className={navClass(activeClass("/"))}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
             <Link to="/explore" search={{}} className={navClass(activeClass("/explore"))}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
             <Link to="/subscriptions" className={navClass(activeClass("/subscriptions"))}>ABONNEMENTS<span className={underlineClass(activeClass("/subscriptions"))} /></Link>
