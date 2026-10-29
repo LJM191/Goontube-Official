@@ -165,15 +165,15 @@ function CommunityPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1440px] px-3 pb-10 pt-4 sm:px-5 sm:pt-7 lg:px-8">
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-glow">GOONTUBE · COMMUNAUTÉ</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Le fil de la communauté</h1>
           <p className="mt-1 text-sm text-muted-foreground">Des discussions, des idées, des photos et des GIFs au même endroit.</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => setShowCreateForum((value) => !value)} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-edge bg-panel px-3 text-xs font-semibold transition hover:bg-frost sm:px-4 sm:text-sm"><Users className="size-4" /><span className="hidden sm:inline">Créer une communauté</span><span className="sm:hidden">Communauté</span></button>
-          <button onClick={() => setShowComposer((value) => !value)} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-glow px-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-110 sm:px-4">
+        <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:shrink-0">
+          <button onClick={() => setShowCreateForum((value) => !value)} className="inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-edge bg-panel px-3 text-xs font-semibold transition hover:bg-frost sm:flex-none sm:px-4 sm:text-sm"><Users className="size-4" /><span className="hidden sm:inline">Créer une communauté</span><span className="sm:hidden">Communauté</span></button>
+          <button onClick={() => setShowComposer((value) => !value)} className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-glow px-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:brightness-110 sm:flex-none sm:px-4">
             {showComposer ? <X className="size-4" /> : <Plus className="size-4" />}<span className="hidden sm:inline">{showComposer ? "Fermer" : "Créer un post"}</span><span className="sm:hidden">{showComposer ? "Fermer" : "Créer"}</span>
           </button>
         </div>
@@ -190,7 +190,7 @@ function CommunityPage() {
         </div>
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Qu’est-ce que tu veux partager ? Ajoute du contexte ou lance une discussion…" rows={4} maxLength={10000} className="mt-3" />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-edge px-4 text-sm font-semibold transition hover:bg-frost"><ImagePlus className="size-4 text-glow" />{file ? file.name : "Ajouter une photo ou un GIF"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+          <label className="inline-flex min-h-10 min-w-0 max-w-full cursor-pointer items-center gap-2 rounded-full border border-edge px-4 text-sm font-semibold transition hover:bg-frost"><ImagePlus className="size-4 shrink-0 text-glow" /><span className="min-w-0 truncate">{file ? file.name : "Ajouter une photo ou un GIF"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
           {file && <button type="button" onClick={() => setFile(null)} className="text-sm text-muted-foreground underline">Retirer le média</button>}
           <button disabled={busy || !user || (!forums?.length)} className="inline-flex min-h-10 items-center justify-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition hover:opacity-90 disabled:opacity-50">{busy ? "Publication…" : "Publier"}</button>
         </div>
@@ -231,8 +231,8 @@ function PostCard({ thread, score, myVote, onVote }: { thread: Thread; score: nu
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"><span className="font-semibold text-glow">{thread.forum?.name ?? "Communauté"}</span><span>·</span><span>{new Date(thread.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>{thread.is_pinned && <span className="rounded-full bg-glow/10 px-2 py-0.5 font-semibold text-glow">Épinglé</span>}</div>
-        <Link to="/community/thread/$id" params={{ id: thread.id }} className="mt-1 block text-[15px] font-bold leading-snug tracking-tight hover:text-glow sm:text-base">{thread.title}</Link>
-        {thread.body?.trim() && <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">{thread.body}</p>}
+        <Link to="/community/thread/$id" params={{ id: thread.id }} className="mt-1 block break-words text-[15px] font-bold leading-snug tracking-tight [overflow-wrap:anywhere] hover:text-glow sm:text-base">{thread.title}</Link>
+        {thread.body?.trim() && <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 [overflow-wrap:anywhere] text-muted-foreground">{thread.body}</p>}
         {thread.media_path && thread.media_type && <CommunityMedia path={thread.media_path} type={thread.media_type} title={thread.title} />}
         <div className="mt-3 flex flex-wrap items-center gap-2"><Link to="/community/thread/$id" params={{ id: thread.id }} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-semibold text-muted-foreground transition hover:bg-frost hover:text-foreground"><MessageCircle className="size-4" /> Rejoindre la discussion</Link><span className="text-xs text-muted-foreground">·</span><span className="text-xs text-muted-foreground">Goontube Communauté</span></div>
       </div>
