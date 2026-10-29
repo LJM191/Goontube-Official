@@ -51,7 +51,7 @@ function CommunityPage() {
   const { data: threads, isLoading, isError } = useQuery({
     queryKey: ["community-feed"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("community_threads").select("id,forum_id,author_id,title,body,media_path,media_type,is_pinned,created_at,updated_at,forum:community_forums!inner(name,slug,is_public)").eq("forum.is_public", true).order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(100);
+      const { data, error } = await (supabase as any).from("community_threads").select("id,forum_id,author_id:user_id,title,body:content,media_path,media_type,is_pinned,created_at,updated_at,forum:community_forums!inner(name,slug,is_public)").eq("forum.is_public", true).order("is_pinned", { ascending: false }).order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       return (data ?? []) as Thread[];
     },
@@ -109,7 +109,7 @@ function CommunityPage() {
         mediaType = file.type === "image/gif" ? "gif" : "photo";
       }
       const { error } = await (supabase as any).from("community_threads").insert({
-        forum_id: targetForum, author_id: user.id, title: title.trim(), body: body.trim() || " ",
+        forum_id: targetForum, user_id: user.id, title: title.trim(), content: body.trim() || " ",
         media_path: mediaPath, media_type: mediaType,
       });
       if (error) throw error;
