@@ -98,6 +98,7 @@ function CommunityPage() {
     if (file && !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) { toast.error("Formats acceptés : JPEG, PNG, WebP et GIF."); return; }
     if (file && file.size > 10 * 1024 * 1024) { toast.error("10 Mo maximum par image ou GIF."); return; }
     setBusy(true);
+    let uploadedMediaPath: string | null = null;
     try {
       const targetForum = forumId || forums?.[0]?.id;
       if (!targetForum) throw new Error("Aucun forum disponible.");
@@ -106,6 +107,7 @@ function CommunityPage() {
       if (file) {
         const ext = file.name.split(".").pop()?.toLowerCase() || (file.type === "image/gif" ? "gif" : "jpg");
         mediaPath = await uploadMedia("thumbnails", user.id, file, ext);
+        uploadedMediaPath = mediaPath;
         mediaType = file.type === "image/gif" ? "gif" : "photo";
       }
       const { error } = await (supabase as any).from("community_threads").insert({
@@ -113,10 +115,14 @@ function CommunityPage() {
         media_path: mediaPath, media_type: mediaType,
       });
       if (error) throw error;
+      uploadedMediaPath = null;
       setTitle(""); setBody(""); setFile(null); setShowComposer(false);
       await qc.invalidateQueries({ queryKey: ["community-feed"] });
       toast.success("Publication partagée avec la communauté !");
     } catch (error) {
+      if (uploadedMediaPath) {
+        await supabase.storage.from("thumbnails").remove([uploadedMediaPath]).catch(() => undefined);
+      }
       toast.error(error instanceof Error ? error.message : "Impossible de publier");
     } finally { setBusy(false); }
   }
