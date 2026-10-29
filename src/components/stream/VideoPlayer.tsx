@@ -115,22 +115,59 @@ export function VideoPlayer({ src, poster, title, autoPlay = true, sources = [],
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    const onTime = () => setProgress(v.currentTime);
+    const onTime = () => {
+      setProgress(v.currentTime);
+      if (v.paused || v.seeking) {
+        previousPlaybackTime.current = null;
+        return;
+      }
+      const currentTime = v.currentTime;
+      const previousTime = previousPlaybackTime.current;
+      if (previousTime !== null) {
+        const delta = currentTime - previousTime;
+        if (delta > 0 && delta <= 1.5) accumulatedWatchedSeconds.current += delta;
+      }
+      previousPlaybackTime.current = currentTime;
+      if (!qualifiedViewReported.current && Number.isFinite(v.duration) && v.duration >= 5 && accumulatedWatchedSeconds.current >= 5) {
+        qualifiedViewReported.current = true;
+        if (onQualifiedViewRef.current) onQualifiedViewRef.current(accumulatedWatchedSeconds.current, false);
+      }
+    };
     const onMeta = () => {
       setDuration(v.duration || 0);
       setPlaying(!v.paused);
     };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
+    const onPlay = () => {
+      setPlaying(true);
+      previousPlaybackTime.current = v.currentTime;
+    };
+    const onPause = () => {
+      setPlaying(false);
+      previousPlaybackTime.current = null;
+    };
+    const onSeeking = () => { previousPlaybackTime.current = null; };
+    const onSeeked = () => { previousPlaybackTime.current = v.currentTime; };
+    const onEnded = () => {
+      if (!qualifiedViewReported.current && Number.isFinite(v.duration) && v.duration > 0 && v.duration < 5) {
+        qualifiedViewReported.current = true;
+        if (onQualifiedViewRef.current) onQualifiedViewRef.current(v.duration, true);
+      }
+    };
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("loadedmetadata", onMeta);
     v.addEventListener("play", onPlay);
     v.addEventListener("pause", onPause);
+    v.addEventListener("seeking", onSeeking);
+    v.addEventListener("seeked", onSeeked);
+    v.addEventListener("ended", onEnded);
     return () => {
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("loadedmetadata", onMeta);
       v.removeEventListener("play", onPlay);
       v.removeEventListener("pause", onPause);
+      v.removeEventListener("seeking", onSeeking);
+      v.removeEventListener("seeked", onSeeked);
+      v.removeEventListener("ended", onEnded);
     };
   }, [activeSrc]);
 
