@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -328,9 +327,7 @@ function Upload() {
                   <Textarea id="desc" rows={6} maxLength={5000} value={description} onChange={(event) => setDescription(event.target.value)} disabled={isBusy} placeholder="De quoi parle cette vidéo ? Ajoutez des détails utiles aux spectateurs…" className="resize-y bg-background/60" />
                   <div className="text-right text-xs text-muted-foreground">{description.length}/5000</div>
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                  </div>
+                <div className="space-y-2">
                   <div className="space-y-2">
                     <Label htmlFor="vis">Visibilité</Label>
                     <select id="vis" value={visibility} onChange={(event) => setVisibility(event.target.value as typeof visibility)} disabled={isBusy} className="h-11 w-full rounded-lg border border-input bg-background/60 px-3 text-sm outline-none transition focus:border-glow focus:ring-2 focus:ring-glow/20 disabled:opacity-60">
