@@ -3,7 +3,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Clock,
   Compass,
-  ChevronDown,
   Home,
   Library,
   LogOut,
