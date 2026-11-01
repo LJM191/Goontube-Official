@@ -408,7 +408,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav aria-label="Navigation principale" className="relative hidden h-16 items-stretch justify-center gap-1 border-t border-edge/40 px-2 lg:flex lg:gap-3 lg:px-8">
-          <div className="flex h-full w-60 shrink-0 items-center pr-2"><OrientationMenu /></div>
+          <div className="absolute left-2 top-0 flex h-full w-60 items-center pr-2 lg:left-8"><OrientationMenu /></div>
           <div className="absolute left-1/2 top-0 flex h-full w-max -translate-x-1/2 items-stretch justify-center gap-1 lg:gap-2">
             <Link to="/" className={navClass(activeClass("/")).replace("min-w-[145px]", "min-w-[130px]")}>ACCUEIL<span className={underlineClass(activeClass("/"))} /></Link>
             <Link to="/explore" search={{}} className={navClass(activeClass("/explore")).replace("min-w-[145px]", "min-w-[130px]")}>EXPLORER<span className={underlineClass(activeClass("/explore"))} /></Link>
