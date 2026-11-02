@@ -18,7 +18,7 @@ export function Thumbnail({ video, className, priority = false }: { video: Video
             src={url}
             alt={video.title}
             loading={priority ? "eager" : "lazy"}
-            fetchPriority={priority ? "high" : "auto"}
+            fetchPriority={priority ? "high" : "low"}
             decoding="async"
             className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
