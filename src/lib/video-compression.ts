@@ -1,4 +1,4 @@
-import { FFmpeg } from "@ffmpeg/ffmpeg";
+import type { FFmpeg } from "@ffmpeg/ffmpeg";
 
 export const MAX_VIDEO_UPLOAD_BYTES = 46_000_000;
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
@@ -25,6 +25,9 @@ async function getFFmpeg(onProgress: (progress: number) => void) {
   if (ffmpegInstance?.loaded) return ffmpegInstance;
   if (!ffmpegLoadPromise) {
     ffmpegLoadPromise = (async () => {
+      // Keep the FFmpeg WASM wrapper out of the initial app bundle. It is only
+      // needed when a user uploads a file larger than the storage limit.
+      const { FFmpeg } = await import("@ffmpeg/ffmpeg");
       const ffmpeg = new FFmpeg();
       const coreURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.js`, "text/javascript");
       const wasmURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.wasm`, "application/wasm");

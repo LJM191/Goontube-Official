@@ -5,6 +5,7 @@ import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
 import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { APP_NAME } from "@/lib/config";
+import { OrientationMenu } from "@/components/stream/OrientationMenu";
 
 export const Route = createFileRoute("/explore")({
   validateSearch: (_search: Record<string, unknown>) => ({}),
@@ -33,6 +34,9 @@ function Explore() {
       <p className="mb-6 text-sm text-muted-foreground">
         Toutes les vidéos publiques, réunies au même endroit.
       </p>
+      <div className="mb-5 max-w-sm rounded-xl border border-edge/60 bg-panel/60 px-2 py-1 lg:hidden">
+        <OrientationMenu />
+      </div>
       {isError ? <QueryErrorState title="Impossible de charger les vidéos" onRetry={() => void refetch()} /> : <VideoGrid videos={data} loading={isLoading} empty={<EmptyState title="Aucune vidéo pour l'instant" text="Les vidéos publiées apparaîtront ici." />} />}
     </>
   );

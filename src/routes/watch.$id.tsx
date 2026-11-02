@@ -176,7 +176,7 @@ function SaveActions({ videoId }: { videoId: string }) {
 }
 
 function UpNext({ currentId }: { currentId: string }) {
-  const { data } = useQuery({ queryKey: ["feed", null], queryFn: () => fetchFeed() });
+  const { data } = useQuery({ queryKey: ["feed", "up-next"], queryFn: () => fetchFeed({ limit: 12 }) });
   const list = (data ?? []).filter((v) => v.id !== currentId).slice(0, 12);
   return (
     <div className="flex flex-col gap-3">
