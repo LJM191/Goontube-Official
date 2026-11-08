@@ -163,7 +163,6 @@ function Profile() {
         <div><h2 className="text-xl font-bold">Publications communautaires</h2><p className="text-sm text-muted-foreground">Les dernières discussions lancées par ce membre.</p></div>
         {postsLoading ? <div className="rounded-2xl bg-panel p-6 text-sm text-muted-foreground">Chargement des publications…</div> : posts.length ? <div className="space-y-3">{posts.map((post: any) => <article key={post.id} className="rounded-2xl border border-edge/60 bg-panel p-4 sm:p-5"><div className="text-xs text-muted-foreground">{post.forum?.name ?? "Communauté"} · {new Date(post.created_at).toLocaleDateString("fr-FR")}</div><Link to="/community/thread/$id" params={{ id: post.id }} className="mt-2 block break-words font-semibold hover:text-glow">{post.title}</Link><p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm text-muted-foreground">{post.content}</p><Link to="/community/thread/$id" params={{ id: post.id }} className="mt-3 inline-flex min-h-9 items-center text-xs font-semibold text-glow">Voir la discussion →</Link></article>)}</div> : <p className="rounded-xl border border-dashed border-edge p-5 text-sm text-muted-foreground">Aucune publication communautaire pour le moment.</p>}
       </section>
-      </div>
     </div>
   );
 }
