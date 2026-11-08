@@ -364,6 +364,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <NotificationsBell />
             <UserMenu />
           </div>
         </div>
