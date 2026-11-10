@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { VIDEO_STORAGE_LIMIT_BYTES } from "@/lib/video-upload-limits";
 
 export type Bucket = "videos" | "thumbnails" | "avatars" | "banners";
 
@@ -8,7 +9,7 @@ const TTL = 60 * 60;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 
 const BUCKET_RULES: Record<Bucket, { maxBytes: number; mimeTypes: readonly string[] }> = {
-  videos: { maxBytes: 2 * 1024 * 1024 * 1024, mimeTypes: ["video/mp4", "video/webm", "video/quicktime", "video/ogg"] },
+  videos: { maxBytes: VIDEO_STORAGE_LIMIT_BYTES, mimeTypes: ["video/mp4", "video/webm", "video/quicktime", "video/ogg"] },
   thumbnails: { maxBytes: 10 * 1024 * 1024, mimeTypes: IMAGE_TYPES },
   avatars: { maxBytes: 5 * 1024 * 1024, mimeTypes: IMAGE_TYPES },
   banners: { maxBytes: 10 * 1024 * 1024, mimeTypes: IMAGE_TYPES },

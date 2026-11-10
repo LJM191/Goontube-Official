@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Clock,
+  Bell,
   Compass,
   Home,
   Library,
@@ -233,6 +234,28 @@ function SearchBar() {
   );
 }
 
+function NotificationsBell() {
+  const { user } = useAuth();
+  const { data: unread = 0 } = useQuery({
+    queryKey: ["notification-unread-count", user?.id],
+    enabled: !!user,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { count, error } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user!.id).is("read_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+  if (!user) return null;
+  return (
+    <Link to="/notifications" aria-label={unread ? `Notifications, ${unread} non lues` : "Notifications"}
+      className="relative grid size-10 shrink-0 place-items-center rounded-full border border-edge/50 bg-panel/70 text-muted-foreground transition hover:bg-frost hover:text-foreground">
+      <Bell className="size-5" />
+      {unread > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">{unread > 99 ? "99+" : unread}</span>}
+    </Link>
+  );
+}
+
 function UserMenu() {
   const { user, loading } = useAuth();
   const { data } = useMe();
@@ -341,6 +364,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SearchBar />
           </div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <NotificationsBell />
             <UserMenu />
           </div>
         </div>

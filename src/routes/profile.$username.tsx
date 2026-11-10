@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Eye, Users, Video, Pencil } from "lucide-react";
+import { CalendarDays, Users, Pencil, MessageCircle, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMediaUrl } from "@/lib/media";
 import { formatCount } from "@/lib/format";
 import { ChannelAvatar } from "@/components/stream/ChannelAvatar";
+import { VideoGrid } from "@/components/stream/VideoCard";
+import { VIDEO_SELECT, type VideoCardData } from "@/lib/videos";
 import { EmptyState } from "@/components/stream/EmptyState";
 import { QueryErrorState } from "@/components/stream/QueryErrorState";
 import { Input } from "@/components/ui/input";
@@ -99,6 +101,28 @@ function Profile() {
     },
   });
   const banner = useMediaUrl("banners", channel?.banner_url);
+  const { data: videos = [], isLoading: videosLoading } = useQuery({
+    queryKey: ["profile-videos", profile?.user_id],
+    enabled: !!profile && !!channel,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("videos").select(VIDEO_SELECT)
+        .eq("channel_id", channel!.id).eq("visibility", "public")
+        .order("published_at", { ascending: false }).limit(24);
+      if (error) throw error;
+      return (data ?? []) as unknown as VideoCardData[];
+    },
+  });
+  const { data: posts = [], isLoading: postsLoading } = useQuery({
+    queryKey: ["profile-community-posts", profile?.user_id],
+    enabled: !!profile,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("community_threads")
+        .select("id,title,content,created_at,forum:community_forums(name,slug,is_public)")
+        .eq("user_id", profile!.user_id).order("created_at", { ascending: false }).limit(12);
+      if (error) throw error;
+      return (data ?? []).filter((post: any) => post.forum?.is_public !== false);
+    },
+  });
 
   if (isLoading) return <div className="p-8 text-muted-foreground">Chargement du profil…</div>;
   if (profileError) return <QueryErrorState title="Impossible de charger ce profil" onRetry={() => void refetchProfile()} />;
@@ -126,11 +150,19 @@ function Profile() {
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-2xl bg-frost/60 p-4"><Users className="size-4" /><p className="mt-2 text-xl font-semibold">{formatCount(channel?.subscriber_count ?? 0)}</p><p className="text-xs text-faint">abonnés</p></div>
-          <div className="rounded-2xl bg-frost/60 p-4"><Video className="size-4" /><p className="mt-2 text-xl font-semibold">Chaîne</p><p className="text-xs text-faint">créateur</p></div>
+          <div className="rounded-2xl bg-frost/60 p-4"><Video className="size-4" /><p className="mt-2 text-xl font-semibold">{videos.length}</p><p className="text-xs text-faint">vidéos publiques</p></div>
+          <div className="rounded-2xl bg-frost/60 p-4"><MessageCircle className="size-4" /><p className="mt-2 text-xl font-semibold">{posts.length}</p><p className="text-xs text-faint">publications</p></div>
           <div className="rounded-2xl bg-frost/60 p-4"><CalendarDays className="size-4" /><p className="mt-2 text-xl font-semibold">{new Date(profile.created_at).toLocaleDateString("fr-FR")}</p><p className="text-xs text-faint">inscription</p></div>
-          <div className="rounded-2xl bg-frost/60 p-4"><Eye className="size-4" /><p className="mt-2 text-xl font-semibold">Public</p><p className="text-xs text-faint">profil</p></div>
         </div>
       </div>
+      <section className="mt-8 space-y-4">
+        <div className="flex items-end justify-between gap-3"><div><h2 className="text-xl font-bold">Vidéos publiées</h2><p className="text-sm text-muted-foreground">Les dernières vidéos publiques de ce membre.</p></div>{channel && <Link to="/c/$handle" params={{ handle: channel.handle }} className="text-sm font-semibold text-glow hover:underline">Voir la chaîne</Link>}</div>
+        {channel ? <VideoGrid videos={videos} loading={videosLoading} empty={<EmptyState title="Aucune vidéo publique" text="Ce membre n'a pas encore publié de vidéo." />} /> : <p className="rounded-xl border border-dashed border-edge p-5 text-sm text-muted-foreground">Ce membre n'a pas encore créé de chaîne.</p>}
+      </section>
+      <section className="mt-8 space-y-4">
+        <div><h2 className="text-xl font-bold">Publications communautaires</h2><p className="text-sm text-muted-foreground">Les dernières discussions lancées par ce membre.</p></div>
+        {postsLoading ? <div className="rounded-2xl bg-panel p-6 text-sm text-muted-foreground">Chargement des publications…</div> : posts.length ? <div className="space-y-3">{posts.map((post: any) => <article key={post.id} className="rounded-2xl border border-edge/60 bg-panel p-4 sm:p-5"><div className="text-xs text-muted-foreground">{post.forum?.name ?? "Communauté"} · {new Date(post.created_at).toLocaleDateString("fr-FR")}</div><Link to="/community/thread/$id" params={{ id: post.id }} className="mt-2 block break-words font-semibold hover:text-glow">{post.title}</Link><p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm text-muted-foreground">{post.content}</p><Link to="/community/thread/$id" params={{ id: post.id }} className="mt-3 inline-flex min-h-9 items-center text-xs font-semibold text-glow">Voir la discussion →</Link></article>)}</div> : <p className="rounded-xl border border-dashed border-edge p-5 text-sm text-muted-foreground">Aucune publication communautaire pour le moment.</p>}
+      </section>
     </div>
   );
 }
