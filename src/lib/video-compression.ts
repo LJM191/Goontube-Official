@@ -1,7 +1,7 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
+import { MAX_VIDEO_UPLOAD_BYTES } from "@/lib/video-upload-limits";
 
-export const MAX_VIDEO_UPLOAD_BYTES = 46_000_000;
-export const VIDEO_STORAGE_LIMIT_BYTES = 50_000_000;
+export { MAX_VIDEO_UPLOAD_BYTES };
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
 const ENGINE_FETCH_TIMEOUT_MS = 45_000;
 const METADATA_TIMEOUT_MS = 20_000;
@@ -69,7 +69,7 @@ async function getFFmpeg(onProgress: (progress: number) => void) {
 }
 
 function readVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const video = document.createElement("video");
     let settled = false;
@@ -92,7 +92,6 @@ function readVideoDuration(file: File): Promise<number> {
     video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? video.duration : 0);
     video.onerror = () => finish(0);
     video.src = url;
-    void reject;
   });
 }
 
