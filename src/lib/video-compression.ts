@@ -98,7 +98,7 @@ function readVideoDuration(file: File): Promise<number> {
 async function readDurationFromFFmpeg(ffmpeg: FFmpeg, inputName: string): Promise<number> {
   let duration = 0;
   const handleLog = ({ message }: { message: string }) => {
-    const match = message.match(/Duration:\\s*(\\d{2,}):(\\d{2}):(\\d{2}(?:\\.\\d+)?)/);
+    const match = message.match(/Duration:\s*(\d{2,}):(\d{2}):(\d{2}(?:\.\d+)?)/);
     if (match) {
       duration = Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
     }
