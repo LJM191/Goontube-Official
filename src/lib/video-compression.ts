@@ -1,5 +1,5 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
-import { MAX_VIDEO_UPLOAD_BYTES } from "@/lib/video-upload-limits";
+import { MAX_VIDEO_UPLOAD_BYTES, shouldCompressVideo } from "@/lib/video-upload-limits";
 
 export { MAX_VIDEO_UPLOAD_BYTES };
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
@@ -100,7 +100,7 @@ export async function compressVideo(
   file: File,
   onProgress: (update: VideoCompressionUpdate) => void,
 ): Promise<File> {
-  if (file.size <= MAX_VIDEO_UPLOAD_BYTES) return file;
+  if (!shouldCompressVideo(file.size)) return file;
   if (typeof window === "undefined" || typeof document === "undefined") {
     throw new Error("La compression vidéo doit être lancée depuis un navigateur.");
   }
