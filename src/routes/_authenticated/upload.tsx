@@ -39,9 +39,17 @@ export const Route = createFileRoute("/_authenticated/upload")({
   component: Upload,
 });
 
-// Source files are compressed locally when needed. Keep the source limit generous,
-// while the final object uploaded to storage must remain below the 50 Mo bucket cap.
-const MAX_SOURCE_BYTES = 500 * 1024 * 1024;
+// Keep browser memory use bounded, especially on phones where FFmpeg/WASM needs extra RAM.
+const MAX_DESKTOP_SOURCE_BYTES = 500 * 1024 * 1024;
+const MAX_MOBILE_SOURCE_BYTES = 200 * 1024 * 1024;
+
+function getMaxSourceBytes() {
+  if (typeof navigator === "undefined") return MAX_DESKTOP_SOURCE_BYTES;
+  const userAgent = navigator.userAgent || "";
+  const isIOS = /iPhone|iPad|iPod/i.test(userAgent) || (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(userAgent);
+  return isIOS || isAndroid ? MAX_MOBILE_SOURCE_BYTES : MAX_DESKTOP_SOURCE_BYTES;
+}
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
 const ACCEPTED_VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".ogg"];
 
@@ -339,7 +347,7 @@ function Upload() {
             >
               Choisir une vidéo
             </button>
-            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Limite de 50 Mo, compression automatique dès environ 46 Mo</p>
+            <p className="mt-4 text-xs text-muted-foreground">MP4, WebM, MOV ou OGG · Stockage max. 50 Mo · Fichier source max. 200 Mo sur mobile et 500 Mo sur ordinateur</p>
             <input
               ref={inputRef}
               type="file"
