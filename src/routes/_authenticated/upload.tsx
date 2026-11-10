@@ -168,8 +168,8 @@ function Upload() {
       toast.error("Choisissez une vidéo au format MP4, WebM, MOV ou OGG.");
       return;
     }
-    if (f.size > MAX_SOURCE_BYTES) {
-      toast.error("Ce fichier est trop volumineux pour être traité dans le navigateur. Choisissez une vidéo plus courte ou plus légère.");
+    if (f.size > getMaxSourceBytes()) {
+      toast.error(`Cette vidéo dépasse la limite de traitement de ${Math.round(getMaxSourceBytes() / (1024 * 1024))} Mo sur cet appareil. Choisissez une vidéo plus courte ou plus légère.`);
       return;
     }
     const mimeByExtension: Record<string, string> = {
