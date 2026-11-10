@@ -1,7 +1,10 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 
 export const MAX_VIDEO_UPLOAD_BYTES = 46_000_000;
+export const VIDEO_STORAGE_LIMIT_BYTES = 50_000_000;
 const CORE_BASE_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
+const ENGINE_FETCH_TIMEOUT_MS = 45_000;
+const METADATA_TIMEOUT_MS = 20_000;
 
 export type VideoCompressionUpdate = {
   phase: "loading" | "encoding";
@@ -10,35 +13,51 @@ export type VideoCompressionUpdate = {
   attempts: number;
 };
 
+type CompressionAttempt = { width: number; height: number; factor: number };
+
 let ffmpegInstance: FFmpeg | null = null;
 let ffmpegLoadPromise: Promise<FFmpeg> | null = null;
 
 async function fetchAsBlobUrl(url: string, contentType: string) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Impossible de télécharger le moteur de compression vidéo.");
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), ENGINE_FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal, cache: "force-cache" });
+    if (!response.ok) {
+      throw new Error(`Le moteur de compression est indisponible (HTTP ${response.status}).`);
+    }
+    return URL.createObjectURL(new Blob([await response.arrayBuffer()], { type: contentType }));
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error("Le téléchargement du moteur de compression a expiré. Vérifiez votre connexion puis réessayez.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
   }
-  return URL.createObjectURL(new Blob([await response.arrayBuffer()], { type: contentType }));
 }
 
 async function getFFmpeg(onProgress: (progress: number) => void) {
   if (ffmpegInstance?.loaded) return ffmpegInstance;
   if (!ffmpegLoadPromise) {
     ffmpegLoadPromise = (async () => {
-      // Keep the FFmpeg WASM wrapper out of the initial app bundle. It is only
-      // needed when a user uploads a file larger than the storage limit.
       const { FFmpeg } = await import("@ffmpeg/ffmpeg");
       const ffmpeg = new FFmpeg();
-      const coreURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.js`, "text/javascript");
-      const wasmURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.wasm`, "application/wasm");
+      let coreURL: string | null = null;
+      let wasmURL: string | null = null;
       try {
+        coreURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.js`, "text/javascript");
+        wasmURL = await fetchAsBlobUrl(`${CORE_BASE_URL}/ffmpeg-core.wasm`, "application/wasm");
         await ffmpeg.load({ coreURL, wasmURL });
+        ffmpegInstance = ffmpeg;
+        return ffmpeg;
+      } catch (error) {
+        ffmpeg.terminate();
+        throw error;
       } finally {
-        URL.revokeObjectURL(coreURL);
-        URL.revokeObjectURL(wasmURL);
+        if (coreURL) URL.revokeObjectURL(coreURL);
+        if (wasmURL) URL.revokeObjectURL(wasmURL);
       }
-      ffmpegInstance = ffmpeg;
-      return ffmpeg;
     })().catch((error) => {
       ffmpegLoadPromise = null;
       throw error;
@@ -49,61 +68,80 @@ async function getFFmpeg(onProgress: (progress: number) => void) {
   return ffmpeg;
 }
 
-/**
- * Compress a video locally in the browser. Nothing is sent to the server until
- * the output has been checked against the configured upload-size ceiling.
- */
+function readVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    let settled = false;
+    const timeout = window.setTimeout(() => finish(0), METADATA_TIMEOUT_MS);
+
+    function finish(duration: number) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      video.onloadedmetadata = null;
+      video.onerror = null;
+      video.removeAttribute("src");
+      video.load();
+      URL.revokeObjectURL(url);
+      resolve(duration);
+    }
+
+    video.preload = "metadata";
+    video.muted = true;
+    video.onloadedmetadata = () => finish(Number.isFinite(video.duration) ? video.duration : 0);
+    video.onerror = () => finish(0);
+    video.src = url;
+    void reject;
+  });
+}
+
+/** Compress locally. The returned file is guaranteed to fit the application upload ceiling. */
 export async function compressVideo(
   file: File,
   onProgress: (update: VideoCompressionUpdate) => void,
 ): Promise<File> {
   if (file.size <= MAX_VIDEO_UPLOAD_BYTES) return file;
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    throw new Error("La compression vidéo doit être lancée depuis un navigateur.");
+  }
+
+  const duration = await readVideoDuration(file);
+  if (!duration || duration <= 0) {
+    throw new Error("Impossible de lire la durée de cette vidéo. Essayez un fichier MP4 ou MOV standard.");
+  }
 
   onProgress({ phase: "loading", progress: 0, attempt: 0, attempts: 6 });
   const ffmpeg = await getFFmpeg((progress) => {
     onProgress({ phase: "loading", progress, attempt: 0, attempts: 6 });
   });
 
-  const inputName = `input-${Date.now()}.${file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4"}`;
+  const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
+  const inputName = `input-${Date.now()}.${extension}`;
   const outputName = `compressed-${Date.now()}.mp4`;
-  const inputBytes = new Uint8Array(await file.arrayBuffer());
-  await ffmpeg.writeFile(inputName, inputBytes);
-
-  const duration = await new Promise<number>((resolve) => {
-    const url = URL.createObjectURL(file);
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      const seconds = Number.isFinite(video.duration) ? video.duration : 0;
-      URL.revokeObjectURL(url);
-      resolve(seconds);
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(0);
-    };
-    video.src = url;
-  });
-
-  if (!duration || duration <= 0) {
-    await ffmpeg.deleteFile(inputName);
-    throw new Error("Impossible de lire la durée de cette vidéo pour la compresser.");
+  let inputBytes = new Uint8Array(await file.arrayBuffer());
+  try {
+    await ffmpeg.writeFile(inputName, inputBytes);
+  } finally {
+    // FFmpeg has its own copy in its virtual filesystem; release the extra browser-side buffer.
+    inputBytes = new Uint8Array(0);
   }
 
-  const attempts = [
-    { width: 1920, factor: 1 },
-    { width: 1920, factor: 0.85 },
-    { width: 1280, factor: 0.72 },
-    { width: 1280, factor: 0.58 },
-    { width: 960, factor: 0.46 },
-    { width: 720, factor: 0.35 },
+  const attempts: CompressionAttempt[] = [
+    { width: 1920, height: 1080, factor: 1 },
+    { width: 1920, height: 1080, factor: 0.85 },
+    { width: 1280, height: 720, factor: 0.72 },
+    { width: 1280, height: 720, factor: 0.58 },
+    { width: 960, height: 540, factor: 0.46 },
+    { width: 720, height: 480, factor: 0.35 },
   ];
-  const targetTotalBitrate = Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8 * 0.9) / duration);
-  const audioBitrate = Math.max(16_000, Math.min(96_000, Math.floor(targetTotalBitrate * 0.18)));
+  const targetTotalBitrate = Math.floor((MAX_VIDEO_UPLOAD_BYTES * 8 * 0.86) / duration);
+  const audioBitrate = Math.max(16_000, Math.min(96_000, Math.floor(targetTotalBitrate * 0.16)));
   const budgetBitrate = Math.max(24_000, targetTotalBitrate - audioBitrate);
   let currentAttempt = 0;
   let successfulEncodes = 0;
   let lastEncodingError = "";
+
   const handleLog = ({ message }: { message: string }) => {
     if (/error|failed|invalid|unsupported|unable/i.test(message)) {
       lastEncodingError = message.trim().slice(-500);
@@ -117,6 +155,7 @@ export async function compressVideo(
       attempts: attempts.length,
     });
   };
+
   ffmpeg.on("progress", handleProgress);
   ffmpeg.on("log", handleLog);
 
@@ -124,15 +163,15 @@ export async function compressVideo(
     for (let index = 0; index < attempts.length; index += 1) {
       const attempt = attempts[index]!;
       currentAttempt = index + 1;
-      onProgress({ phase: "encoding", progress: 0, attempt: index + 1, attempts: attempts.length });
+      onProgress({ phase: "encoding", progress: 0, attempt: currentAttempt, attempts: attempts.length });
       try {
         await ffmpeg.deleteFile(outputName);
       } catch {
-        // The output file does not exist on the first attempt.
+        // The output does not exist before the first attempt.
       }
 
       const videoBitrate = Math.max(18_000, Math.floor(budgetBitrate * attempt.factor));
-      const scale = `scale='min(${attempt.width},iw)':'min(${attempt.width},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
+      const scale = `scale='min(${attempt.width},iw)':'min(${attempt.height},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
       let exitCode: number;
       try {
         exitCode = await ffmpeg.exec([
@@ -155,7 +194,7 @@ export async function compressVideo(
       }
 
       if (exitCode !== 0) {
-        if (!lastEncodingError) lastEncodingError = `FFmpeg a terminé avec le code ${exitCode}.`;
+        lastEncodingError = lastEncodingError || `FFmpeg a terminé avec le code ${exitCode}.`;
         continue;
       }
 
@@ -170,6 +209,7 @@ export async function compressVideo(
         lastEncodingError = "Le fichier compressé est illisible.";
         continue;
       }
+
       successfulEncodes += 1;
       const outputBuffer = new Uint8Array(output).buffer as ArrayBuffer;
       if (outputBuffer.byteLength <= MAX_VIDEO_UPLOAD_BYTES) {
@@ -187,18 +227,18 @@ export async function compressVideo(
       try {
         await ffmpeg.deleteFile(name);
       } catch {
-        // Ignore cleanup failures after a compression error.
+        // Ignore cleanup errors after a compression failure.
       }
     }
   }
 
   if (successfulEncodes === 0) {
     throw new Error(
-      `La compression n’a pas réussi à encoder cette vidéo. Essayez un fichier MP4 ou MOV standard. ${lastEncodingError}`.trim(),
+      `La compression n’a pas réussi à encoder cette vidéo. Essayez un MP4 ou MOV standard. ${lastEncodingError}`.trim(),
     );
   }
 
   throw new Error(
-    "La vidéo reste trop volumineuse après six essais de compression. Essayez une vidéo plus courte ou une résolution inférieure.",
+    "La vidéo reste trop volumineuse après six essais. Essayez une vidéo plus courte ou une résolution inférieure.",
   );
 }
