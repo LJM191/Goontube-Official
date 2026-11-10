@@ -95,6 +95,27 @@ function readVideoDuration(file: File): Promise<number> {
   });
 }
 
+async function readDurationFromFFmpeg(ffmpeg: FFmpeg, inputName: string): Promise<number> {
+  let duration = 0;
+  const handleLog = ({ message }: { message: string }) => {
+    const match = message.match(/Duration:\\s*(\\d{2,}):(\\d{2}):(\\d{2}(?:\\.\\d+)?)/);
+    if (match) {
+      duration = Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
+    }
+  };
+
+  ffmpeg.on("log", handleLog);
+  try {
+    // FFmpeg prints input metadata before returning a non-zero code because no output was requested.
+    await ffmpeg.exec(["-i", inputName]);
+  } catch {
+    // The expected "no output file" exit can be surfaced as an exception by FFmpeg.wasm.
+  } finally {
+    ffmpeg.off("log", handleLog);
+  }
+  return duration;
+}
+
 /** Compress locally. The returned file is guaranteed to fit the application upload ceiling. */
 export async function compressVideo(
   file: File,
@@ -105,10 +126,7 @@ export async function compressVideo(
     throw new Error("La compression vidéo doit être lancée depuis un navigateur.");
   }
 
-  const duration = await readVideoDuration(file);
-  if (!duration || duration <= 0) {
-    throw new Error("Impossible de lire la durée de cette vidéo. Essayez un fichier MP4 ou MOV standard.");
-  }
+  const browserDuration = await readVideoDuration(file);
 
   onProgress({ phase: "loading", progress: 0, attempt: 0, attempts: 6 });
   const ffmpeg = await getFFmpeg((progress) => {
@@ -124,6 +142,16 @@ export async function compressVideo(
   } finally {
     // FFmpeg has its own copy in its virtual filesystem; release the extra browser-side buffer.
     inputBytes = new Uint8Array(0);
+  }
+
+  const duration = browserDuration || await readDurationFromFFmpeg(ffmpeg, inputName);
+  if (!duration || duration <= 0) {
+    try {
+      await ffmpeg.deleteFile(inputName);
+    } catch {
+      // Ignore cleanup failures when metadata cannot be read.
+    }
+    throw new Error("Impossible de lire la durée de cette vidéo. Essayez un fichier MP4, MOV ou WebM standard.");
   }
 
   const attempts: CompressionAttempt[] = [
