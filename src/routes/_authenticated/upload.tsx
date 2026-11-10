@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadMedia } from "@/lib/media";
-import { compressVideo, MAX_VIDEO_UPLOAD_BYTES } from "@/lib/video-compression";
+import { compressVideo } from "@/lib/video-compression";
+import { shouldCompressVideo } from "@/lib/video-upload-limits";
 import { formatDuration } from "@/lib/format";
 import { useMe } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
@@ -228,7 +229,7 @@ function Upload() {
     try {
       let uploadFile = file;
       setCompression(null);
-      if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
+      if (shouldCompressVideo(file.size)) {
         setStep("Préparation de la compression…");
         setCompression({ phase: "loading", progress: 0, attempt: 0, attempts: 6 });
         uploadFile = await compressVideo(file, (status) => {
