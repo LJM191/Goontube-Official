@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Heart } from "lucide-react";
 
 function OrientationIcon({ type }: { type: string }) {
   if (type === "Hétéro") return <span aria-hidden="true" className="text-lg leading-none">⚥</span>;
@@ -51,7 +51,9 @@ export function OrientationMenu() {
           {ORIENTATION_OPTIONS.map((option) => (
             <button key={option.slug} type="button" onClick={() => choose(option)}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-muted-foreground hover:bg-frost hover:text-foreground">
-              <OrientationIcon type={option.label} /><span>{option.label}</span>
+              <OrientationIcon type={option.label} />
+              <span className="flex-1">{option.label}</span>
+              {option.label === "Gay" && <Heart aria-label="Cœur" className="size-4 shrink-0 fill-rose-500 text-rose-500" />}
             </button>
           ))}
         </div>
@@ -59,4 +61,3 @@ export function OrientationMenu() {
     </div>
   );
 }
-
