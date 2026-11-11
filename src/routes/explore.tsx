@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Flame, Clock3, Users, Compass, Hash, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchFeed, fetchCategories } from "@/lib/videos";
+import { fetchFeed } from "@/lib/videos";
 import { VideoGrid } from "@/components/stream/VideoCard";
 import { EmptyState } from "@/components/stream/EmptyState";
 import { QueryErrorState } from "@/components/stream/QueryErrorState";
@@ -27,12 +27,10 @@ type Forum = { id: string; name: string; slug: string; description: string | nul
 
 function Explore() {
   const [order, setOrder] = useState<"popular" | "recent">("popular");
-  const [categoryId, setCategoryId] = useState("");
   const [term, setTerm] = useState("");
-  const { data: categories = [] } = useQuery({ queryKey: ["explore-categories"], queryFn: fetchCategories, staleTime: 5 * 60_000 });
   const { data: videos, isLoading, isError, refetch } = useQuery({
-    queryKey: ["explore-videos", order, categoryId],
-    queryFn: () => fetchFeed({ order, categoryId: categoryId || null, limit: 48 }),
+    queryKey: ["explore-videos", order],
+    queryFn: () => fetchFeed({ order, limit: 48 }),
     staleTime: 45_000,
   });
   const { data: channels = [], isLoading: channelsLoading } = useQuery({
@@ -75,10 +73,6 @@ function Explore() {
             <button onClick={() => setOrder("recent")} className={`flex min-h-9 flex-1 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold sm:flex-none ${order === "recent" ? "bg-frost text-foreground" : "text-muted-foreground"}`}><Clock3 className="size-4"/> Récentes</button>
           </div>
         </div>
-        {categories.length > 0 && <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
-          <button onClick={() => setCategoryId("")} className={`min-h-9 shrink-0 rounded-full px-4 text-sm font-semibold ring-1 ring-edge/50 ${!categoryId ? "bg-glow text-primary-foreground ring-glow" : "bg-panel hover:bg-frost"}`}>Tout</button>
-          {categories.map((category) => <button key={category.id} onClick={() => setCategoryId(category.id)} className={`min-h-9 shrink-0 rounded-full px-4 text-sm font-medium ring-1 ring-edge/50 ${categoryId === category.id ? "bg-glow text-primary-foreground ring-glow" : "bg-panel hover:bg-frost"}`}>{category.name}</button>)}
-        </div>}
         {isError ? <QueryErrorState title="Impossible de charger les vidéos" onRetry={() => void refetch()} /> : <VideoGrid videos={filteredVideos} loading={isLoading} empty={<EmptyState title={term ? "Aucun résultat" : "Aucune vidéo pour l'instant"} text={term ? "Essaie un autre mot-clé." : "Les vidéos publiques apparaîtront ici."} />} />}
       </section>
 
