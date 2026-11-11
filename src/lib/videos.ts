@@ -18,17 +18,10 @@ export type VideoCardData = {
   channel: { id: string; handle: string; name: string; avatar_path: string | null; subscriber_count: number };
 };
 
-export async function fetchFeed(opts: { categoryId?: string | null; order?: "recent" | "popular"; limit?: number } = {}) {
+export async function fetchFeed(opts: { order?: "recent" | "popular"; limit?: number } = {}) {
   let q = supabase.from("videos").select(VIDEO_SELECT).eq("visibility", "public");
-  if (opts.categoryId) q = q.eq("category_id", opts.categoryId);
   q = opts.order === "popular" ? q.order("view_count", { ascending: false }) : q.order("published_at", { ascending: false });
   const { data, error } = await q.limit(opts.limit ?? 36);
   if (error) throw error;
   return (data ?? []) as unknown as VideoCardData[];
-}
-
-export async function fetchCategories() {
-  const { data, error } = await supabase.from("categories").select("id,name,slug").order("name");
-  if (error) throw error;
-  return data ?? [];
 }
