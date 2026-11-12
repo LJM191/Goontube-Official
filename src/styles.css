@@ -193,6 +193,14 @@ html:not(.dark) {
   transition: background-color 150ms;
 }
 
+/* Defer off-screen video-card rendering on desktop to reduce layout and paint work in long feeds. */
+@media (min-width: 1024px) {
+  .video-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 360px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
