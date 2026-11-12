@@ -37,7 +37,7 @@ export function Thumbnail({ video, className, priority = false }: { video: Video
 
 export function VideoCard({ video, priority = false }: { video: VideoCardData; priority?: boolean }) {
   return (
-    <article className="group">
+    <article className="video-card group">
       <Link to="/watch/$id" params={{ id: video.id }} className="block">
         <Thumbnail video={video} priority={priority} />
       </Link>
