@@ -34,7 +34,6 @@ export function OrientationMenu() {
     setSelected(option.label);
     try { localStorage.setItem("goontube-orientation", option.label); } catch { /* Selection still works without storage. */ }
     setOpen(false);
-    window.location.href = `/explore?category=${encodeURIComponent(option.slug)}`;
   };
 
   return (
