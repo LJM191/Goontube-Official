@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import goontubeLogo from "@/assets/goontube-logo.png";
 
 const AGES = [
@@ -14,7 +14,24 @@ const AGES = [
 ];
 
 export function AgeWelcome() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      setOpen(sessionStorage.getItem("goontube-age-welcome-dismissed") !== "1");
+    } catch {
+      setOpen(true);
+    }
+  }, []);
+
+  const confirmAge = () => {
+    try {
+      sessionStorage.setItem("goontube-age-welcome-dismissed", "1");
+    } catch {
+      // The welcome dialog still closes for this page when storage is unavailable.
+    }
+    setOpen(false);
+  };
 
   if (!open) return null;
 
@@ -34,7 +51,7 @@ export function AgeWelcome() {
           {AGES.map((age) => (
             <button
               key={age}
-              onClick={() => setOpen(false)}
+              onClick={confirmAge}
               className={`rounded-2xl bg-frost/70 px-3 py-3 text-sm font-medium ring-1 ring-edge/40 transition hover:bg-glow/15 hover:ring-glow/50 ${age === "6-7 🙌" ? "col-span-2 sm:col-span-3" : ""}`}
             >
               {age}
